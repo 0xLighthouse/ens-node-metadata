@@ -1,0 +1,52 @@
+#!/bin/bash
+set -e
+#
+#  Usage:
+#    sh scripts/dev.sh
+#
+#  It requires:
+#    - a local anvil instance running on port 8545
+#    - the LOCAL_RPC environment variable set
+#    - the DEV_DEPLOYER_PRIVATE_KEY environment variable set
+#    - the BOND_ISSUER environment variable set
+
+# Test if anvil is running on port 8545
+if ! nc -z localhost 8545; then
+  echo "Anvil is not running"
+  exit 1
+fi
+
+# # Deploy the signals contract to the development network
+# #
+# #   Requires:
+# #     - a local anvil instance running on port 8545
+# #     - the LOCAL_RPC environment variable set
+# cd apps/signals
+# forge clean && forge install
+# forge script script/Development.s.sol --fork-url $LOCAL_RPC --broadcast --private-key $DEV_DEPLOYER_PRIVATE_KEY
+# cd ../..
+
+# Error out if the BOND_ISSUER environment variable is not set
+if [ -z "$BOND_ISSUER" ]; then
+  echo "A BOND_ISSUER environment variable is required"
+  exit 1
+fi
+
+# Deploy the uniswap v4 hooks contract to the development network
+#
+#   Requires:
+#     - a local anvil instance running on port 8545
+#     - the BOND_ISSUER environment variable set
+cd apps/bond-hook
+forge clean && forge install
+forge script script/LocalDeployment.sol --fork-url $LOCAL_RPC --broadcast --private-key $DEV_DEPLOYER_PRIVATE_KEY
+cd ../..
+
+# TODO: Seed some bonds
+# TODO: Seed some bonds
+# TODO: Seed some bonds
+#
+#  - This script creates three initiatives, with minimum support amounts and a 12 month lock duration
+# cd apps/signals
+# forge script script/TestData.s.sol --fork-url $LOCAL_RPC --broadcast --private-key $DEV_DEPLOYER_PRIVATE_KEY
+# cd ../..

@@ -1,0 +1,20 @@
+[profile.default]
+src = "src"
+out = "out"
+libs = ["lib"]
+solc_version = '0.8.26'
+evm_version = "cancun"
+optimizer_runs = 1
+via_ir = true
+ffi = false
+ignored_error_codes = [2519]
+remappings = [
+    "ens-contracts/=lib/ens-contracts/contracts/",
+    "@ensdomains/ens-contracts/=lib/ens-contracts/contracts/",
+    "@ensdomains/buffer/=lib/buffer/",
+    "@ensdomains/solsha1/=lib/solsha1/",
+    "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/"
+]
+
+[profile.formatter]
+line_length = 80
