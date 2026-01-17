@@ -1,4 +1,4 @@
-# 🧿 Harbor: Access liquidity for your locked positions
+# ENS: Metadata
 
 ## Getting started
 

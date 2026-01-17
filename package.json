@@ -19,5 +19,5 @@
     "turbo": "^2.5.5"
   },
   "name": "signals",
-  "packageManager": "pnpm@9.0.0"
+  "packageManager": "pnpm@10.28.0"
 }
