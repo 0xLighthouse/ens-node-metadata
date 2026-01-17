@@ -8,6 +8,8 @@ interface SpaceGateProps {
   children: React.ReactNode
 }
 
+const SELECT_DOMAIN_PATH = '/select-domain'
+
 export function SpaceGate({ children }: SpaceGateProps) {
   const { activeSpace, isAuthenticated, status } = useAppStore()
   const router = useRouter()
@@ -19,14 +21,14 @@ export function SpaceGate({ children }: SpaceGateProps) {
       isAuthenticated &&
       status === 'ready' &&
       !activeSpace &&
-      !pathname.startsWith('/onboarding')
+      !pathname.includes(SELECT_DOMAIN_PATH)
     ) {
-      router.push('/onboarding/select-space')
+      router.push(SELECT_DOMAIN_PATH)
     }
   }, [isAuthenticated, status, activeSpace, pathname, router])
 
   // Allow onboarding pages to bypass space requirement
-  if (pathname.startsWith('/onboarding')) {
+  if (pathname.includes(SELECT_DOMAIN_PATH)) {
     return <>{children}</>
   }
 

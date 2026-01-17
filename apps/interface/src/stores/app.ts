@@ -3,8 +3,6 @@ import { persist } from 'zustand/middleware'
 import Cookies from 'js-cookie'
 import { TOKEN_COOKIE } from '@/config/constants'
 import { useApiStore } from './api'
-import { QUERY_TEAMS } from '@/graphql/query.teams'
-
 
 interface User {
   id?: string
@@ -12,20 +10,6 @@ interface User {
   email?: string
 }
 
-interface TeamsResponse {
-  me: {
-    status: string
-    createdAt: string
-    accounts: Array<{
-      accountId: string
-      address: string
-      teams: Array<{
-        role: string
-        space: Space
-      }>
-    }>
-  }
-}
 
 type AppStatus = 'idle' | 'initializing' | 'loading-spaces' | 'ready' | 'error'
 
@@ -45,8 +29,6 @@ interface AppState {
 
   // Actions
   initialize: () => Promise<void>
-  setBearerToken: (token: string) => void
-  setUser: (user: User) => void
   setActiveSpace: (space: Space | null) => void
   clearActiveSpace: () => void
   fetchSpaces: () => Promise<void>
@@ -93,31 +75,6 @@ export const useAppStore = create<AppState>()(
             error: error instanceof Error ? error.message : 'Initialization failed'
           })
         }
-      },
-
-      setBearerToken: (token: string) => {
-        if (token) {
-          Cookies.set(TOKEN_COOKIE, token, { expires: 7 })
-          set({
-            token,
-            isAuthenticated: true,
-            status: 'loading-spaces'
-          })
-
-          // Fetch spaces after setting token
-          get().fetchSpaces().then(() => {
-            set({ status: 'ready' })
-          }).catch((error) => {
-            console.error('Failed to fetch spaces after login:', error)
-            set({ status: 'error', error: 'Failed to load spaces' })
-          })
-        } else {
-          get().reset()
-        }
-      },
-
-      setUser: (user: User) => {
-        set({ user })
       },
 
       setActiveSpace: (space: Space | null) => {

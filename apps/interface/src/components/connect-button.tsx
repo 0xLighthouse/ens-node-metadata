@@ -3,7 +3,7 @@
 import React from 'react'
 
 import { usePrivy, useWallets } from '@privy-io/react-auth'
-import { Button } from '../ui/button'
+import { Button } from './ui/button'
 import { cn } from '@/lib/utils'
 import { colorSystem, typography } from '@/config/theme'
 import { resolveAvatar, shortAddress } from '@/lib/utils'

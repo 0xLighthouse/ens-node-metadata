@@ -1,8 +1,7 @@
 'use client'
 
-import { SignInWithWallet } from '@/components/web3/sign-in-with-wallet'
-import { useSessionStore } from '@/stores/session'
 import { usePrivy } from '@privy-io/react-auth'
+import Link from 'next/link'
 
 export function Unauthenticated() {
   const { authenticated } = usePrivy()
@@ -17,16 +16,15 @@ export function Unauthenticated() {
       ) : (
         <div className="text-center space-y-6 max-w-md">
           <div className="space-y-4">
-            <h1 className="text-3xl font-bold">Welcome to Lighthouse</h1>
-            <p className="text-muted-foreground text-lg">Please sign in to continue</p>
+            <h1 className="text-3xl font-bold">ENS org registrar</h1>
+            <p className="text-muted-foreground text-lg">
+              This interface{' '}
+              <Link href="https://ens.org" target="_blank" rel="noopener noreferrer">
+                allows you
+              </Link>{' '}
+              to manage company metadata on ENS
+            </p>
           </div>
-          <SignInWithWallet
-            authStore={useSessionStore.getState()}
-            onSuccess={() => {
-              // Refresh the page to trigger server-side re-render
-              window.location.reload()
-            }}
-          />
         </div>
       )}
     </div>

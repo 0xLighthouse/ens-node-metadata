@@ -67,7 +67,7 @@ export const useApiStore = create<ApiState>((set, get) => ({
     }
   },
 
-  isRequestError: (error?: unknown) => {
+  isRequestError: (error?: unknown): boolean => {
     const errStr = error?.toString().toLowerCase()
     return (
       errStr?.includes('network request failed') ||
@@ -83,5 +83,5 @@ export const useApiStore = create<ApiState>((set, get) => ({
   },
 }))
 
-// Export a singleton instance for cases where you need the API client directly
+// Export a singleton instance for cases where we need the API client directly without Zustand
 export const apiStore = useApiStore.getState()

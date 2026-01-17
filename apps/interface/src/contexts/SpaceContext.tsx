@@ -1,7 +1,7 @@
 'use client'
 
 import { createContext, useContext } from 'react'
-import { useSpacesStore, type Space } from '@/stores/spaces'
+import { useDomainsStore, type Space } from '@/stores/domains'
 
 interface ISpaceContext {
   activeSpace: Space | null
@@ -33,8 +33,8 @@ const SpaceContextProvider = ({ children }: { children: React.ReactNode }) => {
     error,
     setActiveSpace,
     clearActiveSpace,
-    fetchSpaces
-  } = useSpacesStore()
+    fetchSpaces,
+  } = useDomainsStore()
 
   return (
     <SpaceContext.Provider
@@ -45,7 +45,7 @@ const SpaceContextProvider = ({ children }: { children: React.ReactNode }) => {
         error,
         setActiveSpace,
         clearActiveSpace,
-        fetchSpaces
+        fetchSpaces,
       }}
     >
       {children}

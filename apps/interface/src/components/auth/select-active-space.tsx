@@ -11,7 +11,6 @@ import {
 } from '@/components/ui/table'
 import { SpaceAvatar } from '@/components/ui/space-avatar'
 import { Button } from '@/components/ui/button'
-import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 
 interface SelectActiveSpaceProps {
@@ -30,8 +29,6 @@ export function SelectActiveSpace({ availableSpaces }: SelectActiveSpaceProps) {
 
   // Use prop or store spaces
   const spaces = availableSpaces || storeSpaces
-
-  // No need for manual fetching - app store handles initialization
 
   const handleSelectSpace = (space: Space) => {
     setActiveSpace(space)

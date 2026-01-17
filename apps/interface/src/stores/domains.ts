@@ -1,25 +1,10 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { useApiStore } from './api'
-import { QUERY_TEAMS } from '@/graphql/query.teams'
+import { QUERY_DOMAINS_BY_ADDRESS } from '@/graphql/query.domains-by-address'
 
 
-interface TeamsResponse {
-  me: {
-    status: string
-    createdAt: string
-    accounts: Array<{
-      accountId: string
-      address: string
-      teams: Array<{
-        role: string
-        space: Space
-      }>
-    }>
-  }
-}
-
-interface SpacesState {
+interface DomainsState {
   activeSpace: Space | null
   availableSpaces: Space[]
   isLoading: boolean
@@ -31,7 +16,7 @@ interface SpacesState {
   reset: () => void
 }
 
-export const useSpacesStore = create<SpacesState>()(
+export const useDomainsStore = create<DomainsState>()(
   persist(
     (set, get) => ({
       activeSpace: null,
@@ -104,4 +89,4 @@ export const useSpacesStore = create<SpacesState>()(
   ),
 )
 
-export type { Space, SpacesState as SpaceState }
+export type { DomainsState }

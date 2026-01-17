@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import Cookies from 'js-cookie'
 import { TOKEN_COOKIE } from '@/config/constants'
-import { useSpacesStore } from './spaces'
+import { useDomainsStore } from './domains'
 
 interface User {
   id?: string
@@ -53,7 +53,7 @@ export const useSessionStore = create<SessionState>()(
         // --- reset other stores ---
         // Use a small timeout to ensure state updates are batched properly
         setTimeout(() => {
-          useSpacesStore.getState().reset?.()
+          useDomainsStore.getState().reset?.()
         }, 0)
 
         // No redirect needed - AuthGate will handle UI change automatically

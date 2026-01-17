@@ -3,7 +3,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { cn } from '@/lib/utils'
 import { useState } from 'react'
-import type { Space } from '@/stores/spaces'
+import type { Space } from '@/stores/domains'
 
 interface Props {
   space: Space
