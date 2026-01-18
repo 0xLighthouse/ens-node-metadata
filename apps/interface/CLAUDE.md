@@ -111,10 +111,11 @@ Main tree visualization component using @visx:
 
 **Implementation Details:**
 
-- Uses `LinkVertical` from `@visx/shape` for smooth bezier curves
-- Separation algorithm: `(a.parent === b.parent ? 1 : 0.5) / a.depth`
-- Initial zoom: 70%, configurable via store
+- Uses `LinkVertical`/`LinkHorizontal` from `@visx/shape` with orientation-aware accessors
+- Separation algorithm: `(a.parent === b.parent ? 1 : 1.2)`
+- Auto-fits and centers visible node bounds after layout; zoom scales the fitted layout
 - Handles both vertical and horizontal layouts
+- Node spacing derives from card dimensions plus minimal padding
 
 #### `DomainTreeNodeCard` (`/app/components/tree/DomainTreeNode.tsx`)
 
@@ -154,7 +155,7 @@ Control panel with buttons:
 Responsive wrapper:
 
 - Uses `@visx/responsive` for automatic sizing
-- Fixed height: 800px
+- Uses a viewport-based height via `h-[calc(100vh-12rem)]`
 - Provides tree data from context
 - Renders controls and tree
 
@@ -167,12 +168,12 @@ Responsive wrapper:
 - `@visx/group` - SVG group positioning
 - `@visx/responsive` - Responsive sizing
 - `@visx/gradient` - Linear gradients
-- `@visx/shape` - Link components (LinkVertical)
+- `@visx/shape` - Link components (LinkVertical/LinkHorizontal)
 
 ### Key Architectural Decisions
 
 1. **Cartesian layout only** - Polar layout was removed due to complexity and overlapping issues
-2. **Fixed node sizes** - 280x100px (full) or 200x200px (compact) for consistent spacing
+2. **Fixed node sizes** - 280x100px (full) or 200x100px (compact) for consistent spacing
 3. **Memoization** - Hierarchy creation and node cards are memoized for performance
 4. **Collapse state** - Stored in Set for O(1) lookup, managed centrally in store
 5. **visx over raw D3** - Better React integration, less imperative DOM manipulation
@@ -197,7 +198,7 @@ Responsive wrapper:
 
 - Modify `separation` function in `DomainTree`
 - Adjust `defaultMargin` for padding
-- Modify initial zoom in `initialTransformMatrix`
+- Tune `nodeSpacingX`, `nodeSpacingY`, or `fitPadding` in `DomainTree`
 
 ### Performance Considerations
 

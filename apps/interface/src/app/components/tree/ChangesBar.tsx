@@ -37,7 +37,7 @@ export function ChangesBar() {
 
   return (
     <>
-      <div className="fixed top-4 left-1/2 -translate-x-1/2 z-30 flex items-center gap-3 px-4 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-full shadow-lg">
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-30 flex items-center gap-3 px-5 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-full shadow-lg">
         {/* Changes Count */}
         <div className="flex items-center gap-2">
           <span className="w-2 h-2 bg-yellow-500 rounded-full"></span>
@@ -47,18 +47,18 @@ export function ChangesBar() {
         </div>
 
         {/* Divider */}
-        <div className="w-px h-4 bg-gray-200 dark:bg-gray-700"></div>
+        <div className="w-px h-5 bg-gray-200 dark:bg-gray-700"></div>
 
         {/* Actions */}
         <div className="flex items-center gap-2">
           <button
             onClick={clearAllChanges}
-            className="text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+            className="text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
           >
             Clear
           </button>
           <button
-            className="px-3 py-1 bg-indigo-600 text-white text-xs font-medium rounded-full hover:bg-indigo-700 transition-colors"
+            className="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-full hover:bg-indigo-700 transition-colors"
             onClick={() => setIsDialogOpen(true)}
           >
             Apply Changes
