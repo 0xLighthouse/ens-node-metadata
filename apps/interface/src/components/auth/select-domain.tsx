@@ -1,6 +1,6 @@
 'use client'
 
-import { useAppStore, type Space } from '@/stores/app'
+import { useAppStore, type ENSRootDomain } from '@/stores/app'
 import {
   Table,
   TableBody,
@@ -13,36 +13,28 @@ import { SpaceAvatar } from '@/components/ui/space-avatar'
 import { Button } from '@/components/ui/button'
 import { useRouter } from 'next/navigation'
 
-interface SelectActiveSpaceProps {
-  availableSpaces?: Space[]
-}
-
-export function SelectActiveSpace({ availableSpaces }: SelectActiveSpaceProps) {
-  const {
-    availableSpaces: storeSpaces,
-    setActiveSpace,
-    isAuthenticated,
-    token,
-    status,
-  } = useAppStore()
+export function SelectDomain() {
+  const { registeredDomains: domains, setActiveDomain, status, isInitialized } = useAppStore()
   const router = useRouter()
 
-  // Use prop or store spaces
-  const spaces = availableSpaces || storeSpaces
+  console.log('----- SELECT ACTIVE DOMAIN -----')
+  console.log('domains', domains)
+  console.log('status', status)
+  console.log('isInitialized', isInitialized)
 
-  const handleSelectSpace = (space: Space) => {
-    setActiveSpace(space)
+  const handleSelectDomain = (domain) => {
+    setActiveDomain(domain)
     // Redirect to dashboard after selection
-    router.push('/')
+    router.push(`/${domain.name}`)
   }
 
-  // Don't render if not authenticated - let AuthGate handle this
-  if (!isAuthenticated) {
+  // Don't render if not initialized - let Web3Provider handle this
+  if (!isInitialized) {
     return null
   }
 
   // Show loading while app is initializing or loading spaces
-  if (status === 'initializing' || status === 'loading-spaces') {
+  if (status === 'initializing' || status === 'loading-domains') {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center space-y-8 p-4">
         <div className="text-center space-y-4">
@@ -72,7 +64,7 @@ export function SelectActiveSpace({ availableSpaces }: SelectActiveSpaceProps) {
   }
 
   // Only show "No Spaces Available" when app is ready and truly no spaces
-  if (status === 'ready' && spaces.length === 0) {
+  if (status === 'ready' && domains.length === 0) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center space-y-8 p-4">
         <div className="text-center space-y-4">
@@ -82,10 +74,9 @@ export function SelectActiveSpace({ availableSpaces }: SelectActiveSpaceProps) {
             <p>
               <strong>Debug Info:</strong>
             </p>
-            <p>Authenticated: {isAuthenticated ? 'Yes' : 'No'}</p>
-            <p>Token: {token ? `${token.substring(0, 20)}...` : 'None'}</p>
+            <p>Initialized: {isInitialized ? 'Yes' : 'No'}</p>
             <p>Status: {status}</p>
-            <p>Spaces Count: {spaces.length}</p>
+            <p>Domains Count: {domains.length}</p>
           </div>
         </div>
       </div>
@@ -95,10 +86,8 @@ export function SelectActiveSpace({ availableSpaces }: SelectActiveSpaceProps) {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center space-y-8 p-4">
       <div className="text-center space-y-4 mb-8">
-        <h1 className="text-3xl font-bold">Select a Space</h1>
-        <p className="text-muted-foreground text-lg">
-          Choose a space to continue working with Lighthouse
-        </p>
+        <h1 className="text-3xl font-bold">Select a Domain</h1>
+        <p className="text-muted-foreground text-lg">Choose a domain to load</p>
       </div>
 
       <div className="w-full max-w-4xl">
@@ -112,25 +101,26 @@ export function SelectActiveSpace({ availableSpaces }: SelectActiveSpaceProps) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {spaces.map((space) => (
-              <TableRow key={space.spaceId}>
+            {domains.map((domain) => (
+              <TableRow key={domain.id}>
                 <TableCell className="flex items-center gap-3">
-                  <SpaceAvatar space={space} size="sm" />
+                  <SpaceAvatar space={domain} size="sm" />
                   <div>
-                    <div className="font-medium">{space.title || space.ens || space.spaceId}</div>
-                    <div className="text-sm text-muted-foreground">{space.spaceId}</div>
+                    <div className="font-medium">{domain.name}</div>
+                    <div className="text-sm text-muted-foreground">{domain.id}</div>
                   </div>
                 </TableCell>
                 <TableCell>
-                  {space.ens ? (
-                    <code className="text-sm bg-muted px-2 py-1 rounded">{space.ens}</code>
+                  {domain.namehash ? (
+                    <code className="text-sm bg-muted px-2 py-1 rounded">{domain.namehash}</code>
                   ) : (
                     <span className="text-muted-foreground">—</span>
                   )}
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
-                    {space.isFoundingMember && (
+                    asas
+                    {/* {domain.isFoundingMember && (
                       <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10">
                         Founding Member
                       </span>
@@ -139,11 +129,11 @@ export function SelectActiveSpace({ availableSpaces }: SelectActiveSpaceProps) {
                       <span className="text-sm text-muted-foreground">
                         Indexed: {space.indexedAtHeight}
                       </span>
-                    )}
+                    )} */}
                   </div>
                 </TableCell>
                 <TableCell>
-                  <Button onClick={() => handleSelectSpace(space)} size="sm">
+                  <Button onClick={() => handleSelectDomain(domain)} size="sm">
                     Select
                   </Button>
                 </TableCell>

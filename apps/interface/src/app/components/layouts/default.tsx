@@ -5,7 +5,7 @@ import { PageBreadcrumbs } from '@/components/page-breadcrumbs'
 import { Auth } from '@/components/connect-button'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { AuthGate } from '@/components/auth/auth-gate'
-import { SpaceGate } from '@/components/auth/space-gate'
+import { DomainGate } from '@/components/auth/domain-gate'
 
 export default function DefaultLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -25,7 +25,7 @@ export default function DefaultLayout({ children }: { children: React.ReactNode 
         </header>
 
         <AuthGate>
-          <SpaceGate>{children}</SpaceGate>
+          <DomainGate>{children}</DomainGate>
         </AuthGate>
       </SidebarInset>
     </SidebarProvider>

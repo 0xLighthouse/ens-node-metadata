@@ -8,7 +8,6 @@ import { Toaster } from '@/components/ui/sonner'
 import { getThemeCookie } from '@/lib/nextjs/getThemeCookie'
 import { ThemeProvider } from '@/contexts/ThemeContext'
 import { Web3Provider } from '@/contexts/Web3Provider'
-import { SpaceProvider } from '@/contexts/SpaceContext'
 
 import DefaultLayout from './components/layouts/default'
 
@@ -37,17 +36,15 @@ export default function RootLayout({
   const theme = getThemeCookie()
 
   return (
-    <html lang="en" className={theme} >
+    <html lang="en" className={theme}>
       <body>
         <ThemeProvider initialTheme={theme}>
           <Web3Provider>
-            <SpaceProvider>
-              <DefaultLayout>{children}</DefaultLayout>
-              <Toaster />
-            </SpaceProvider>
+            <DefaultLayout>{children}</DefaultLayout>
+            <Toaster />
           </Web3Provider>
         </ThemeProvider>
       </body>
-    </html >
+    </html>
   )
 }

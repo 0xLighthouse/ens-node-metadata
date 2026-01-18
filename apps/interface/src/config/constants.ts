@@ -1,4 +1,8 @@
-export const TOKEN_COOKIE = 'lghths_auth-token'
+/**
+ * The cookie name for the authentication token
+ * Checks authentication on the server side
+ */
+export const AUTH_TOKEN_COOKIE = 'privy-token'
 
 export const API_ENDPOINT = process.env.NEXT_PUBLIC_API_ENDPOINT as string
 

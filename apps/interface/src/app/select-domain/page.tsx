@@ -1,5 +1,5 @@
-import { SelectActiveSpace } from '@/components/auth/select-active-space'
+import { SelectDomain } from '@/components/auth/select-domain'
 
 export default function SelectSpacePage() {
-  return <SelectActiveSpace />
+  return <SelectDomain />
 }

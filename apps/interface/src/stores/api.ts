@@ -1,15 +1,15 @@
 import { create } from 'zustand'
 import { GraphQLClient } from 'graphql-request'
-import Cookies from 'js-cookie'
 import { toast } from 'sonner'
 
-import { TOKEN_COOKIE, API_ENDPOINT } from '@/config/constants'
+import { API_ENDPOINT } from '@/config/constants'
 import { resolveApiError } from '@/lib/api/utils/resolveApiError'
 
 interface ApiState {
   client: GraphQLClient
-  request: <T>(query: string, variables?: any) => Promise<T>
+  ensSubgraph: GraphQLClient
   publicRequest: <T>(query: string, variables?: any) => Promise<T>
+  ensRequest: <T>(query: string, variables?: any) => Promise<T>
   handleServerError: (error: unknown) => void
   handleRequestError: (error: unknown) => void
   isRequestError: (error?: unknown) => boolean
@@ -19,18 +19,18 @@ interface ApiState {
 export const useApiStore = create<ApiState>((set, get) => ({
   client: new GraphQLClient(`${API_ENDPOINT}/graphql`),
 
-  request: async <T>(query: string, variables = {}): Promise<T> => {
+  ensSubgraph: new GraphQLClient('https://api.alpha.ensnode.io/subgraph'),
+
+  ensRequest: async <T>(query: string, variables = {}): Promise<T> => {
     try {
-      const token = Cookies.get(TOKEN_COOKIE)
-      return await get().client.request<T>(query, variables, {
-        authorization: token ? `Bearer ${token}` : undefined,
-      })
+      return await get().ensSubgraph.request<T>(query, variables)
     } catch (error) {
       console.error(error)
       get().handleRequestError(error)
       throw error?.response?.errors || error
     }
   },
+
 
   publicRequest: async <T>(query: string, variables = {}): Promise<T> => {
     try {

@@ -4,35 +4,35 @@ import { useAppStore } from '@/stores/app'
 import { useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 
-interface SpaceGateProps {
+interface Props {
   children: React.ReactNode
 }
 
 const SELECT_DOMAIN_PATH = '/select-domain'
 
-export function SpaceGate({ children }: SpaceGateProps) {
-  const { activeSpace, isAuthenticated, status } = useAppStore()
+export function DomainGate({ children }: Props) {
+  const { activeDomain, isInitialized, status } = useAppStore()
   const router = useRouter()
   const pathname = usePathname()
 
   // Redirect to space selection if no active space and app is ready
   useEffect(() => {
     if (
-      isAuthenticated &&
+      isInitialized &&
       status === 'ready' &&
-      !activeSpace &&
+      !activeDomain &&
       !pathname.includes(SELECT_DOMAIN_PATH)
     ) {
       router.push(SELECT_DOMAIN_PATH)
     }
-  }, [isAuthenticated, status, activeSpace, pathname, router])
+  }, [isInitialized, status, activeDomain, pathname, router])
 
   // Allow onboarding pages to bypass space requirement
   if (pathname.includes(SELECT_DOMAIN_PATH)) {
     return <>{children}</>
   }
 
-  if (!activeSpace) {
+  if (!activeDomain) {
     // Show loading or return null while redirecting
     return null
   }

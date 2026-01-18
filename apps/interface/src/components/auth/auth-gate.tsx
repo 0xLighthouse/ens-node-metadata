@@ -1,5 +1,5 @@
 import { cookies } from 'next/headers'
-import { TOKEN_COOKIE } from '@/config/constants'
+import { AUTH_TOKEN_COOKIE } from '@/config/constants'
 import { Unauthenticated } from './unauthenticated'
 
 interface AuthGateProps {
@@ -9,7 +9,7 @@ interface AuthGateProps {
 export function AuthGate({ children }: AuthGateProps) {
   // Server-side authentication check
   const cookieStore = cookies()
-  const token = cookieStore.get(TOKEN_COOKIE)
+  const token = cookieStore.get(AUTH_TOKEN_COOKIE)
   const isAuthenticated = !!token?.value
 
   if (!isAuthenticated) {

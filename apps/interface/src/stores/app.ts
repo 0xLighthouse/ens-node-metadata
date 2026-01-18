@@ -1,37 +1,31 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import Cookies from 'js-cookie'
-import { TOKEN_COOKIE } from '@/config/constants'
+import { AUTH_TOKEN_COOKIE } from '@/config/constants'
 import { useApiStore } from './api'
+import { QUERY_DOMAINS_BY_ADDRESS } from '@/graphql/query.domains-by-address'
+import { ENSRootDomain } from '@/types'
+import { User } from '@privy-io/react-auth'
 
-interface User {
-  id?: string
-  address?: string
-  email?: string
-}
-
-
-type AppStatus = 'idle' | 'initializing' | 'loading-spaces' | 'ready' | 'error'
+type AppStatus = 'idle' | 'initializing' | 'loading-domains' | 'ready' | 'error'
 
 interface AppState {
-  // Auth state
-  user: User | null
-  token: string | null
-  isAuthenticated: boolean
+  isInitialized: boolean
+  user: User | undefined
 
   // Spaces state
-  activeSpace: Space | null
-  availableSpaces: Space[]
+  activeDomain: ENSRootDomain | null
+  registeredDomains: ENSRootDomain[]
 
   // App state
   status: AppStatus
   error: string | null
 
-  // Actions
-  initialize: () => Promise<void>
-  setActiveSpace: (space: Space | null) => void
-  clearActiveSpace: () => void
-  fetchSpaces: () => Promise<void>
+
+  initialize: (user: User) => Promise<void>
+  setActiveDomain: (domain: ENSRootDomain) => void
+  clearActiveDomain: () => void
+  fetchDomains: (userAddress: string) => Promise<void>
   logout: () => void
   reset: () => void
 }
@@ -40,34 +34,23 @@ export const useAppStore = create<AppState>()(
   persist(
     (set, get) => ({
       // Initial state
-      user: null,
-      token: null,
-      isAuthenticated: false,
-      activeSpace: null,
-      availableSpaces: [],
+      isInitialized: false,
+      user: undefined,
+      activeDomain: null,
+      registeredDomains: [],
       status: 'idle',
       error: null,
 
-      initialize: async () => {
+      initialize: async (user: User) => {
         console.log('AppStore.initialize')
-        set({ status: 'initializing' })
+        set({ status: 'initializing', user })
 
         try {
-          const token = Cookies.get(TOKEN_COOKIE)
-
-          if (token) {
-            set({
-              token,
-              isAuthenticated: true,
-              status: 'loading-spaces'
-            })
-
-            // Fetch spaces after authentication is confirmed
-            await get().fetchSpaces()
-            set({ status: 'ready' })
-          } else {
-            set({ status: 'ready' })
-          }
+          set({
+            status: 'loading-domains'
+          })
+          await get().fetchDomains(user.wallet?.address)
+          set({ status: 'ready', isInitialized: true })
         } catch (error) {
           console.error('AppStore initialization error:', error)
           set({
@@ -77,46 +60,46 @@ export const useAppStore = create<AppState>()(
         }
       },
 
-      setActiveSpace: (space: Space | null) => {
-        set({ activeSpace: space })
+      setActiveDomain: (domain: ENSRootDomain) => {
+        set({ activeDomain: domain })
       },
 
-      clearActiveSpace: () => {
-        set({ activeSpace: null })
+      clearActiveDomain: () => {
+        set({ activeDomain: null })
       },
 
-      fetchSpaces: async () => {
-        const { isAuthenticated, token } = get()
+      fetchDomains: async (userAddress: string) => {
 
-        if (!isAuthenticated || !token) {
-          console.warn('AppStore.fetchSpaces: Not authenticated')
-          return
-        }
+        console.log('AppStore.fetchDomains.userAddress', userAddress)
 
         try {
           const apiStore = useApiStore.getState()
-          const resp = await apiStore.request<TeamsResponse>(QUERY_TEAMS)
+          const resp = await apiStore.ensRequest(QUERY_DOMAINS_BY_ADDRESS, { address: userAddress })
 
-          console.log('AppStore.fetchSpaces.resp', resp)
+          console.log('AppStore.fetchDomains.resp', resp)
 
-          // Extract all spaces from all accounts and teams
-          const spaces: Space[] = []
-          for (const account of resp.me.accounts) {
-            for (const team of account.teams) {
-              if (team.space) {
-                spaces.push(team.space)
-              }
-            }
+          // Transform shitty subgraph response to our types
+          const domains: ENSRootDomain[] = []
+          for (const item of resp.domains) {
+            domains.push({
+              id: item.id,
+              label: item.labelName,
+              name: item.name,
+              namehash: item.id,
+              createdAt: item.createdAt,
+              expiryDate: item.expiryDate,
+              isMigrated: item.isMigrated,
+            })
           }
 
           set({
-            availableSpaces: spaces,
+            registeredDomains: domains,
             error: null,
           })
         } catch (error) {
-          console.error('AppStore.fetchSpaces error:', error)
+          console.error('AppStore.fetchDomains error:', error)
           set({
-            error: error instanceof Error ? error.message : 'Failed to fetch spaces',
+            error: error instanceof Error ? error.message : 'Failed to fetch domains',
           })
         }
       },
@@ -125,15 +108,12 @@ export const useAppStore = create<AppState>()(
         console.log('AppStore.logout')
 
         // Clear cookie
-        Cookies.remove(TOKEN_COOKIE)
+        Cookies.remove(AUTH_TOKEN_COOKIE)
 
         // Reset all state
         set({
-          user: null,
-          token: null,
-          isAuthenticated: false,
-          activeSpace: null,
-          availableSpaces: [],
+          activeDomain: null,
+          registeredDomains: [],
           status: 'ready',
           error: null,
         })
@@ -148,14 +128,9 @@ export const useAppStore = create<AppState>()(
       },
 
       reset: () => {
-        // Internal reset method (for initialization failures, etc.)
-        Cookies.remove(TOKEN_COOKIE)
         set({
-          user: null,
-          token: null,
-          isAuthenticated: false,
-          activeSpace: null,
-          availableSpaces: [],
+          activeDomain: null,
+          registeredDomains: [],
           status: 'ready',
           error: null,
         })
@@ -164,17 +139,11 @@ export const useAppStore = create<AppState>()(
     {
       name: 'app-store',
       partialize: (state) => ({
-        user: state.user,
-        activeSpace: state.activeSpace,
-        // Don't persist availableSpaces - always fetch fresh
+        activeDomain: state.activeDomain,
+        // Don't persist registeredDomains - always fetch fresh
       }),
     },
   ),
 )
 
-// Initialize the store on client side
-if (typeof window !== 'undefined') {
-  useAppStore.getState().initialize()
-}
-
-export type { User, Space, AppState, AppStatus }
+export type { AppState, AppStatus }

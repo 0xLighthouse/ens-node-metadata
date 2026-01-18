@@ -1,11 +1,12 @@
 'use client'
 
 import { PrivyProvider, usePrivy, useWallets } from '@privy-io/react-auth'
-import { baseSepolia } from 'viem/chains'
+import { mainnet } from 'viem/chains'
 import { createContext, useContext, useEffect, useState } from 'react'
 import { createPublicClient, http, WalletClient, createWalletClient, custom } from 'viem'
+import { useAppStore } from '@/stores/app'
 
-const chain = baseSepolia
+const chain = mainnet
 
 // Create shared public client instance
 const publicClient = createPublicClient({
@@ -30,14 +31,14 @@ interface IWeb3Context {
 // Separate internal component that uses Privy hooks
 const Web3ContextProvider = ({ children }: { children: React.ReactNode }) => {
   const [walletClient, setWalletClient] = useState<WalletClient | null>(null)
-  const { ready: privyReady } = usePrivy()
+  const { ready: privyReady, user } = usePrivy()
   const { ready: walletReady, wallets } = useWallets()
-  const [isInitialized, setIsInitialized] = useState(false)
+  const { isInitialized } = useAppStore()
 
   useEffect(() => {
-    if (privyReady && walletReady) {
-      console.info(`Web3 Context initialized: ${privyReady}`)
-      setIsInitialized(true)
+    // Initialize the app store
+    if (privyReady && walletReady && user) {
+      useAppStore.getState().initialize(user)
     }
   }, [privyReady, walletReady])
 
