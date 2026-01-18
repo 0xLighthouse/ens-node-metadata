@@ -8,8 +8,8 @@ import { Zoom } from '@visx/zoom'
 import type { ProvidedZoom } from '@visx/zoom/lib/types'
 import type { HierarchyPointNode } from '@visx/hierarchy/lib/types'
 import { type DomainTreeNode } from '@/contexts/TreeDataContext'
-import { useTreeStore } from '@/stores/tree'
-import { useEditStore } from '@/stores/edits'
+import { useTreeControlsStore } from '@/stores/tree-controls'
+import { useTreeEditStore } from '@/stores/tree-edits'
 import { DomainTreeNodeCard } from './DomainTreeNode'
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react'
 
@@ -103,9 +103,9 @@ export function DomainTree({ data, width, height }: DomainTreeProps) {
     collapsedNodes,
     toggleNodeCollapsed,
     zoomLevel,
-  } = useTreeStore()
+  } = useTreeControlsStore()
 
-  const { openDrawer, hasEditForNode } = useEditStore()
+  const { openEditDrawer, hasPendingEdit } = useTreeEditStore()
 
   const zoomRef = useRef<ProvidedZoom<SVGSVGElement> | null>(null)
   const [layoutBounds, setLayoutBounds] = useState<LayoutBounds | null>(null)
@@ -208,10 +208,10 @@ export function DomainTree({ data, width, height }: DomainTreeProps) {
                       cardHeight={cardHeight}
                       selectedNodeName={selectedNodeName}
                       collapsedNodes={collapsedNodes}
-                      hasEditForNode={hasEditForNode}
+                      hasPendingEdit={hasPendingEdit}
                       onSelectNode={(nodeName) => {
                         setSelectedNode(nodeName)
-                        openDrawer(nodeName)
+                        openEditDrawer(nodeName)
                       }}
                       onToggleCollapse={toggleNodeCollapsed}
                       onLayout={handleLayout}
@@ -235,7 +235,7 @@ interface TreeLayerProps {
   cardHeight: number
   selectedNodeName: string | null
   collapsedNodes: Set<string>
-  hasEditForNode: (nodeName: string) => boolean
+  hasPendingEdit: (nodeName: string) => boolean
   onSelectNode: (nodeName: string) => void
   onToggleCollapse: (nodeName: string) => void
   onLayout: (bounds: LayoutBounds) => void
@@ -249,7 +249,7 @@ function TreeLayer({
   cardHeight,
   selectedNodeName,
   collapsedNodes,
-  hasEditForNode,
+  hasPendingEdit,
   onSelectNode,
   onToggleCollapse,
   onLayout,
@@ -325,7 +325,7 @@ function TreeLayer({
           cardHeight={cardHeight}
           isSelected={node.data.name === selectedNodeName}
           isCollapsed={collapsedNodes.has(node.data.name)}
-          hasPendingEdits={hasEditForNode(node.data.name)}
+          hasPendingEdits={hasPendingEdit(node.data.name)}
           childrenCount={countDescendants(node)}
           onClick={() => onSelectNode(node.data.name)}
           onToggleCollapse={() => onToggleCollapse(node.data.name)}

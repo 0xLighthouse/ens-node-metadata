@@ -1,7 +1,7 @@
 'use client'
 
 import { createContext, useContext, useState, useMemo, type ReactNode, type FC } from 'react'
-import { useEditStore } from '@/stores/edits'
+import { useTreeEditStore } from '@/stores/tree-edits'
 
 export interface DomainTreeNode {
   name: string
@@ -119,13 +119,13 @@ const sampleTree: DomainTreeNode = {
 
 export const TreeDataProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const [sourceTree, setSourceTree] = useState<DomainTreeNode>(sampleTree)
-  const { pendingChanges } = useEditStore()
+  const { pendingMutations } = useTreeEditStore()
 
   // Merge pending creations into the tree for visualization
   const previewTree = useMemo(() => {
     const mergePendingCreations = (node: DomainTreeNode): DomainTreeNode => {
       // Find any pending creations for this node
-      const creationsForThisNode = Array.from(pendingChanges.values()).filter(
+      const creationsForThisNode = Array.from(pendingMutations.values()).filter(
         (change) => change.isCreate && change.parentName === node.name,
       )
 
@@ -162,7 +162,7 @@ export const TreeDataProvider: FC<{ children: ReactNode }> = ({ children }) => {
     })
 
     return mergePendingCreations(sourceTree)
-  }, [sourceTree, pendingChanges])
+  }, [sourceTree, pendingMutations])
 
   const addNodesToParent = (parentName: string, newNodes: DomainTreeNode[]) => {
     const addNodes = (node: DomainTreeNode): DomainTreeNode => {

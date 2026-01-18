@@ -3,7 +3,7 @@ import { create } from 'zustand'
 export type TreeOrientation = 'vertical' | 'horizontal'
 export type TreeViewMode = 'full' | 'compact'
 
-interface TreeState {
+interface TreeControlsState {
   // Selected node
   selectedNodeName: string | null
 
@@ -39,7 +39,7 @@ const initialState = {
   collapsedNodes: new Set<string>(),
 }
 
-export const useTreeStore = create<TreeState>()((set, get) => ({
+export const useTreeControlsStore = create<TreeControlsState>()((set, get) => ({
   ...initialState,
 
   setSelectedNode: (nodeName) => {

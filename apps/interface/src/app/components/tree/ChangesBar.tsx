@@ -1,11 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import { useEditStore } from '@/stores/edits'
+import { useTreeEditStore } from '@/stores/tree-edits'
 import { ApplyChangesDialog } from './ApplyChangesDialog'
 
 export function ChangesBar() {
-  const { pendingChanges, clearAllChanges } = useEditStore()
+  const { pendingMutations, clearPendingMutations } = useTreeEditStore()
 
   // Helper to count all nodes including nested children
   const countNodes = (nodes: any[]): number => {
@@ -15,7 +15,7 @@ export function ChangesBar() {
   }
 
   // Count total changes: edits count as 1 each, creations count all nodes recursively
-  const changesCount = Array.from(pendingChanges.values()).reduce((count, change) => {
+  const changesCount = Array.from(pendingMutations.values()).reduce((count, change) => {
     if (change.isCreate) {
       // Count all nodes being created (including nested children)
       return count + (change.nodes ? countNodes(change.nodes) : 0)
@@ -28,8 +28,8 @@ export function ChangesBar() {
 
   const handleApplyChanges = () => {
     // TODO: Apply changes to backend
-    console.log('Apply changes:', Array.from(pendingChanges.values()))
-    clearAllChanges()
+    console.log('Apply changes:', Array.from(pendingMutations.values()))
+    clearPendingMutations()
     setIsDialogOpen(false)
   }
 
@@ -52,7 +52,7 @@ export function ChangesBar() {
         {/* Actions */}
         <div className="flex items-center gap-2">
           <button
-            onClick={clearAllChanges}
+            onClick={clearPendingMutations}
             className="text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
           >
             Clear

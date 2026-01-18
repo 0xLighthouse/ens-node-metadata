@@ -1,13 +1,20 @@
 'use client'
 
 import { Drawer } from 'vaul'
-import { useEditStore } from '@/stores/edits'
+import { useTreeEditStore } from '@/stores/tree-edits'
 import { useTreeData } from '@/contexts/TreeDataContext'
 import { useState, useEffect } from 'react'
 
 export function NodeEditDrawer() {
   const { sourceTree, previewTree } = useTreeData()
-  const { isDrawerOpen, selectedNodeForEdit, closeDrawer, addEdit, getEditForNode, removeChange } = useEditStore()
+  const {
+    isEditDrawerOpen,
+    selectedNode,
+    closeEditDrawer,
+    upsertEdit,
+    getPendingEdit,
+    discardPendingMutation,
+  } = useTreeEditStore()
 
   // Find the node data in base tree
   const findNode = (name: string, node = sourceTree): any => {
@@ -33,9 +40,9 @@ export function NodeEditDrawer() {
     return null
   }
 
-  const currentNode = selectedNodeForEdit ? findNode(selectedNodeForEdit) : null
-  const nodeWithEdits = selectedNodeForEdit ? findNodeInTree(selectedNodeForEdit) : null
-  const existingEdit = selectedNodeForEdit ? getEditForNode(selectedNodeForEdit) : undefined
+  const currentNode = selectedNode ? findNode(selectedNode) : null
+  const nodeWithEdits = selectedNode ? findNodeInTree(selectedNode) : null
+  const existingEdit = selectedNode ? getPendingEdit(selectedNode) : undefined
   const isPendingCreation = nodeWithEdits?.isPendingCreation || false
 
   // Form state
@@ -59,17 +66,17 @@ export function NodeEditDrawer() {
   }, [nodeWithEdits])
 
   const handleSave = () => {
-    if (!selectedNodeForEdit) return
+    if (!selectedNode) return
 
-    addEdit(selectedNodeForEdit, formData)
-    closeDrawer()
+    upsertEdit(selectedNode, formData)
+    closeEditDrawer()
   }
 
   const handleDiscard = () => {
-    if (!selectedNodeForEdit) return
+    if (!selectedNode) return
 
-    removeChange(selectedNodeForEdit)
-    closeDrawer()
+    discardPendingMutation(selectedNode)
+    closeEditDrawer()
   }
 
   const hasChanges =
@@ -82,7 +89,7 @@ export function NodeEditDrawer() {
   const hasPendingEdits = !isPendingCreation && !!existingEdit
 
   return (
-    <Drawer.Root open={isDrawerOpen} onOpenChange={(open) => !open && closeDrawer()} direction="right">
+    <Drawer.Root open={isEditDrawerOpen} onOpenChange={(open) => !open && closeEditDrawer()} direction="right">
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 bg-black/40 z-40" />
         <Drawer.Content
@@ -204,7 +211,7 @@ export function NodeEditDrawer() {
               )}
               <div className="flex gap-2">
                 <button
-                  onClick={closeDrawer}
+                  onClick={closeEditDrawer}
                   className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                 >
                   Cancel

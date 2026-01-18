@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Sparkles } from 'lucide-react'
-import { useTreeStore } from '@/stores/tree'
+import { useTreeControlsStore } from '@/stores/tree-controls'
 import { useTreeData, type DomainTreeNode } from '@/contexts/TreeDataContext'
 import { SuggestionsDialog } from './SuggestionsDialog'
 
@@ -21,7 +21,7 @@ export function TreeControls() {
     resetZoom,
     collapseAll,
     expandAll,
-  } = useTreeStore()
+  } = useTreeControlsStore()
 
   // Collect all node names that have children
   const getAllNodesWithChildren = (node: DomainTreeNode): string[] => {

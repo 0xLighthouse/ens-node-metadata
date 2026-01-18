@@ -1,7 +1,7 @@
 'use client'
 
 import { Drawer } from 'vaul'
-import { useEditStore } from '@/stores/edits'
+import { useTreeEditStore } from '@/stores/tree-edits'
 import { useTreeData, type DomainTreeNode } from '@/contexts/TreeDataContext'
 import { useState, useEffect } from 'react'
 
@@ -21,7 +21,7 @@ export function NodeCreateDrawer({
   nodes,
 }: NodeCreateDrawerProps) {
   const { sourceTree, previewTree } = useTreeData()
-  const { addCreation } = useEditStore()
+  const { queueCreation } = useTreeEditStore()
 
   const [selectedParent, setSelectedParent] = useState<string>(sourceTree.name)
 
@@ -52,7 +52,7 @@ export function NodeCreateDrawer({
   const availableParents = collectAllNodes(previewTree)
 
   const handleCreate = () => {
-    addCreation(suggestionId, selectedParent, nodes)
+    queueCreation(suggestionId, selectedParent, nodes)
     onClose()
   }
 

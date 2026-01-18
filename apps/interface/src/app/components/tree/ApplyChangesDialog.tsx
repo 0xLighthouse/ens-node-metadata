@@ -8,7 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { useEditStore } from '@/stores/edits'
+import { useTreeEditStore } from '@/stores/tree-edits'
 import { useTreeData } from '@/contexts/TreeDataContext'
 
 interface ApplyChangesDialogProps {
@@ -18,7 +18,7 @@ interface ApplyChangesDialogProps {
 }
 
 export function ApplyChangesDialog({ open, onOpenChange, onConfirm }: ApplyChangesDialogProps) {
-  const { pendingChanges } = useEditStore()
+  const { pendingMutations } = useTreeEditStore()
   const { sourceTree } = useTreeData()
 
   // Find the original node data
@@ -33,7 +33,7 @@ export function ApplyChangesDialog({ open, onOpenChange, onConfirm }: ApplyChang
     return null
   }
 
-  const changesArray = Array.from(pendingChanges.values())
+  const changesArray = Array.from(pendingMutations.values())
 
   // Helper to count all nodes including nested children
   const countNodes = (nodes: any[]): number => {
