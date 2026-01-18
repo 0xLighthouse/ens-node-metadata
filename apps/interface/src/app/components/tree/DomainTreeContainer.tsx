@@ -13,7 +13,7 @@ export function DomainTreeContainer() {
   return (
     <>
       <ChangesBar />
-      <div className="relative w-full h-[800px] border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden bg-white dark:bg-gray-950">
+      <div className="relative w-full h-[calc(100vh-12rem)] overflow-hidden bg-white dark:bg-gray-950">
         <TreeControls />
         <ParentSize>
           {({ width, height }) => <DomainTree data={tree} width={width} height={height} />}

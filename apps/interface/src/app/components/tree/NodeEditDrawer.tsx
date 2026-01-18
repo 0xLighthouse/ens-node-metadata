@@ -4,14 +4,13 @@ import { Drawer } from 'vaul'
 import { useEditStore } from '@/stores/edits'
 import { useDomainTree } from '@/contexts/DomainTreeContext'
 import { useState, useEffect } from 'react'
-import type { NodeEdit } from '@/stores/edits'
 
 export function NodeEditDrawer() {
-  const { tree } = useDomainTree()
-  const { isDrawerOpen, selectedNodeForEdit, closeDrawer, addEdit, getEditForNode, removeEdit } = useEditStore()
+  const { baseTree, tree } = useDomainTree()
+  const { isDrawerOpen, selectedNodeForEdit, closeDrawer, addEdit, getEditForNode, removeChange } = useEditStore()
 
-  // Find the node data
-  const findNode = (name: string, node = tree): any => {
+  // Find the node data in base tree
+  const findNode = (name: string, node = baseTree): any => {
     if (node.name === name) return node
     if (node.children) {
       for (const child of node.children) {
@@ -22,23 +21,42 @@ export function NodeEditDrawer() {
     return null
   }
 
+  // Find the node in full tree (including pending creations with edits)
+  const findNodeInTree = (name: string, node = tree): any => {
+    if (node.name === name) return node
+    if (node.children) {
+      for (const child of node.children) {
+        const found = findNodeInTree(name, child)
+        if (found) return found
+      }
+    }
+    return null
+  }
+
   const currentNode = selectedNodeForEdit ? findNode(selectedNodeForEdit) : null
+  const nodeWithEdits = selectedNodeForEdit ? findNodeInTree(selectedNodeForEdit) : null
   const existingEdit = selectedNodeForEdit ? getEditForNode(selectedNodeForEdit) : undefined
+  const isPendingCreation = nodeWithEdits?.isPendingCreation || false
 
   // Form state
-  const [formData, setFormData] = useState<Partial<NodeEdit>>({})
+  const [formData, setFormData] = useState<{
+    address?: string
+    wearerCount?: number
+    maxWearers?: number
+    color?: string
+  }>({})
 
-  // Initialize form with current node data + any existing edits
+  // Initialize form with current node data (including pending creation edits)
   useEffect(() => {
-    if (currentNode) {
+    if (nodeWithEdits) {
       setFormData({
-        address: existingEdit?.address ?? currentNode.address ?? '',
-        wearerCount: existingEdit?.wearerCount ?? currentNode.wearerCount ?? 0,
-        maxWearers: existingEdit?.maxWearers ?? currentNode.maxWearers ?? 1,
-        color: existingEdit?.color ?? currentNode.color ?? '#94a3b8',
+        address: nodeWithEdits.address ?? '',
+        wearerCount: nodeWithEdits.wearerCount ?? 0,
+        maxWearers: nodeWithEdits.maxWearers ?? 1,
+        color: nodeWithEdits.color ?? '#94a3b8',
       })
     }
-  }, [currentNode, existingEdit])
+  }, [nodeWithEdits])
 
   const handleSave = () => {
     if (!selectedNodeForEdit) return
@@ -50,17 +68,18 @@ export function NodeEditDrawer() {
   const handleDiscard = () => {
     if (!selectedNodeForEdit) return
 
-    removeEdit(selectedNodeForEdit)
+    removeChange(selectedNodeForEdit)
     closeDrawer()
   }
 
   const hasChanges =
-    formData.address !== (currentNode?.address ?? '') ||
-    formData.wearerCount !== (currentNode?.wearerCount ?? 0) ||
-    formData.maxWearers !== (currentNode?.maxWearers ?? 1) ||
-    formData.color !== (currentNode?.color ?? '#94a3b8')
+    formData.address !== (nodeWithEdits?.address ?? '') ||
+    formData.wearerCount !== (nodeWithEdits?.wearerCount ?? 0) ||
+    formData.maxWearers !== (nodeWithEdits?.maxWearers ?? 1) ||
+    formData.color !== (nodeWithEdits?.color ?? '#94a3b8')
 
-  const hasPendingEdits = !!existingEdit
+  // Only show discard button for actual edits (not pending creations)
+  const hasPendingEdits = !isPendingCreation && !!existingEdit
 
   return (
     <Drawer.Root open={isDrawerOpen} onOpenChange={(open) => !open && closeDrawer()} direction="right">
@@ -77,12 +96,12 @@ export function NodeEditDrawer() {
                 Edit Node
               </Drawer.Title>
               <Drawer.Description className="text-sm text-gray-600 dark:text-gray-400">
-                {currentNode?.name}
+                {nodeWithEdits?.name}
               </Drawer.Description>
             </div>
 
             {/* Form */}
-            {currentNode && !currentNode.isSuggested && (
+            {nodeWithEdits && !nodeWithEdits.isSuggested && (
               <div className="flex-1 overflow-y-auto space-y-4">
                 {/* Address */}
                 <div>
@@ -150,7 +169,7 @@ export function NodeEditDrawer() {
             )}
 
             {/* Suggested Node Message */}
-            {currentNode?.isSuggested && (
+            {nodeWithEdits?.isSuggested && (
               <div className="flex-1 flex items-center justify-center">
                 <div className="text-center text-gray-500 dark:text-gray-400">
                   <p className="text-sm">This is a suggested node.</p>
@@ -192,7 +211,7 @@ export function NodeEditDrawer() {
                 </button>
                 <button
                   onClick={handleSave}
-                  disabled={!hasChanges || currentNode?.isSuggested}
+                  disabled={!hasChanges || nodeWithEdits?.isSuggested}
                   className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   Add to Changes

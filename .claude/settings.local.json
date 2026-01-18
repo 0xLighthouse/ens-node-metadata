@@ -5,7 +5,8 @@
       "Bash(rm:*)",
       "Bash(mkdir:*)",
       "Bash(forge install:*)",
-      "Bash(forge test:*)"
+      "Bash(forge test:*)",
+      "Bash(pnpm tsc:*)"
     ],
     "deny": []
   }

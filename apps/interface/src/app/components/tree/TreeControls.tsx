@@ -1,9 +1,13 @@
 'use client'
 
+import { useState } from 'react'
+import { Sparkles } from 'lucide-react'
 import { useTreeStore } from '@/stores/tree'
 import { useDomainTree, type DomainTreeNode } from '@/contexts/DomainTreeContext'
+import { SuggestionsDialog } from './SuggestionsDialog'
 
 export function TreeControls() {
+  const [isSuggestionsOpen, setIsSuggestionsOpen] = useState(false)
   const { tree } = useDomainTree()
   const {
     orientation,
@@ -39,7 +43,18 @@ export function TreeControls() {
   const hasCollapsedNodes = collapsedNodes.size > 0
 
   return (
-    <div className="absolute bottom-4 left-4 z-10 flex items-center gap-2">
+    <>
+      {/* Suggestions button - top left */}
+      <button
+        onClick={() => setIsSuggestionsOpen(true)}
+        className="absolute top-4 left-4 z-10 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors shadow-sm flex items-center gap-2"
+      >
+        <Sparkles className="w-4 h-4" />
+        Suggestions
+      </button>
+
+      {/* Main controls - bottom left */}
+      <div className="absolute bottom-4 left-4 z-10 flex items-center gap-2">
       <button
         onClick={() => setViewMode(viewMode === 'full' ? 'compact' : 'full')}
         className="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors shadow-sm"
@@ -115,5 +130,8 @@ export function TreeControls() {
         </button>
       </div>
     </div>
+
+      <SuggestionsDialog open={isSuggestionsOpen} onOpenChange={setIsSuggestionsOpen} />
+    </>
   )
 }

@@ -5,14 +5,31 @@ import { useEditStore } from '@/stores/edits'
 import { ApplyChangesDialog } from './ApplyChangesDialog'
 
 export function ChangesBar() {
-  const { pendingEdits, clearAllEdits } = useEditStore()
-  const changesCount = pendingEdits.size
+  const { pendingChanges, clearAllChanges } = useEditStore()
+
+  // Helper to count all nodes including nested children
+  const countNodes = (nodes: any[]): number => {
+    return nodes.reduce((count, node) => {
+      return count + 1 + (node.children ? countNodes(node.children) : 0)
+    }, 0)
+  }
+
+  // Count total changes: edits count as 1 each, creations count all nodes recursively
+  const changesCount = Array.from(pendingChanges.values()).reduce((count, change) => {
+    if (change.isCreate) {
+      // Count all nodes being created (including nested children)
+      return count + (change.nodes ? countNodes(change.nodes) : 0)
+    }
+    // Count edits as 1 each
+    return count + 1
+  }, 0)
+
   const [isDialogOpen, setIsDialogOpen] = useState(false)
 
   const handleApplyChanges = () => {
     // TODO: Apply changes to backend
-    console.log('Apply changes:', Array.from(pendingEdits.values()))
-    clearAllEdits()
+    console.log('Apply changes:', Array.from(pendingChanges.values()))
+    clearAllChanges()
     setIsDialogOpen(false)
   }
 
@@ -35,7 +52,7 @@ export function ChangesBar() {
         {/* Actions */}
         <div className="flex items-center gap-2">
           <button
-            onClick={clearAllEdits}
+            onClick={clearAllChanges}
             className="text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
           >
             Clear

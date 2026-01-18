@@ -10,7 +10,6 @@ import {
 } from '@/components/ui/dialog'
 import { useEditStore } from '@/stores/edits'
 import { useDomainTree } from '@/contexts/DomainTreeContext'
-import type { NodeEdit } from '@/stores/edits'
 
 interface ApplyChangesDialogProps {
   open: boolean
@@ -19,11 +18,11 @@ interface ApplyChangesDialogProps {
 }
 
 export function ApplyChangesDialog({ open, onOpenChange, onConfirm }: ApplyChangesDialogProps) {
-  const { pendingEdits } = useEditStore()
-  const { tree } = useDomainTree()
+  const { pendingChanges } = useEditStore()
+  const { baseTree } = useDomainTree()
 
   // Find the original node data
-  const findNode = (name: string, node = tree): any => {
+  const findNode = (name: string, node = baseTree): any => {
     if (node.name === name) return node
     if (node.children) {
       for (const child of node.children) {
@@ -34,7 +33,22 @@ export function ApplyChangesDialog({ open, onOpenChange, onConfirm }: ApplyChang
     return null
   }
 
-  const editsArray = Array.from(pendingEdits.values())
+  const changesArray = Array.from(pendingChanges.values())
+
+  // Helper to count all nodes including nested children
+  const countNodes = (nodes: any[]): number => {
+    return nodes.reduce((count, node) => {
+      return count + 1 + (node.children ? countNodes(node.children) : 0)
+    }, 0)
+  }
+
+  // Count total changes: edits count as 1 each, creations count all nodes recursively
+  const totalChangesCount = changesArray.reduce((count, change) => {
+    if (change.isCreate) {
+      return count + (change.nodes ? countNodes(change.nodes) : 0)
+    }
+    return count + 1
+  }, 0)
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -42,30 +56,102 @@ export function ApplyChangesDialog({ open, onOpenChange, onConfirm }: ApplyChang
         <DialogHeader>
           <DialogTitle>Apply Changes</DialogTitle>
           <DialogDescription>
-            Review the changes you're about to apply to {editsArray.length}{' '}
-            {editsArray.length === 1 ? 'node' : 'nodes'}.
+            Review the changes you're about to apply: {totalChangesCount}{' '}
+            {totalChangesCount === 1 ? 'change' : 'changes'}.
           </DialogDescription>
         </DialogHeader>
 
         {/* Scrollable content */}
         <div className="flex-1 overflow-y-auto space-y-4 py-4">
-          {editsArray.map((edit) => {
-            const originalNode = findNode(edit.nodeName)
+          {changesArray.map((change) => {
+            if (change.isCreate) {
+              // Helper to render node and its children recursively
+              const renderNodeTree = (nodes: any[], depth = 0) => {
+                return nodes.map((node, idx) => (
+                  <div key={idx} className="space-y-2">
+                    {/* Node name and attributes */}
+                    <div className={`${depth > 0 ? 'ml-6' : ''}`}>
+                      <div className="text-green-700 dark:text-green-300 flex items-start gap-2">
+                        <span className="mt-1">+</span>
+                        <div className="flex-1">
+                          <div className="font-mono font-semibold">{node.name}</div>
+                          {/* Attributes */}
+                          <div className="text-xs text-gray-600 dark:text-gray-400 mt-1 space-y-1">
+                            {node.title && (
+                              <div>Title: {node.title}</div>
+                            )}
+                            {node.kind && (
+                              <div>Kind: {node.kind}</div>
+                            )}
+                            {node.description && (
+                              <div>Description: {node.description}</div>
+                            )}
+                            {node.color && (
+                              <div className="flex items-center gap-2">
+                                <span className="w-3 h-3 rounded border border-gray-300" style={{ backgroundColor: node.color }}></span>
+                                <span>Color: {node.color}</span>
+                              </div>
+                            )}
+                            {node.wearerCount !== undefined && (
+                              <div>Wearer Count: {node.wearerCount}</div>
+                            )}
+                            {node.maxWearers !== undefined && (
+                              <div>Max Wearers: {node.maxWearers}</div>
+                            )}
+                            {node.address && (
+                              <div>Address: {node.address}</div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    {/* Render children recursively */}
+                    {node.children && node.children.length > 0 && (
+                      <div className="ml-4">
+                        {renderNodeTree(node.children, depth + 1)}
+                      </div>
+                    )}
+                  </div>
+                ))
+              }
+
+              // Render creation
+              return (
+                <div
+                  key={change.id}
+                  className="border border-green-200 dark:border-green-700 rounded-lg p-4 bg-green-50 dark:bg-green-950"
+                >
+                  {/* Node creation header */}
+                  <div className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                    <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                    Create {change.nodes ? countNodes(change.nodes) : 0} new {countNodes(change.nodes || []) === 1 ? 'node' : 'nodes'} under {change.parentName}
+                  </div>
+
+                  {/* List of nodes being created with attributes */}
+                  <div className="space-y-3 text-sm ml-4">
+                    {change.nodes && renderNodeTree(change.nodes)}
+                  </div>
+                </div>
+              )
+            }
+
+            // Render edit
+            const originalNode = change.nodeName ? findNode(change.nodeName) : null
             return (
               <div
-                key={edit.nodeName}
+                key={change.id}
                 className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-gray-50 dark:bg-gray-900"
               >
                 {/* Node name header */}
                 <div className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
                   <span className="w-2 h-2 bg-orange-500 rounded-full"></span>
-                  {edit.nodeName}
+                  {change.nodeName}
                 </div>
 
                 {/* Changes list */}
                 <div className="space-y-2 text-sm">
                   {/* Address change */}
-                  {edit.address !== undefined && edit.address !== originalNode?.address && (
+                  {change.changes?.address !== undefined && change.changes?.address !== originalNode?.address && (
                     <div className="grid grid-cols-[120px,1fr] gap-2">
                       <span className="text-gray-600 dark:text-gray-400">Address:</span>
                       <div className="font-mono">
@@ -73,15 +159,15 @@ export function ApplyChangesDialog({ open, onOpenChange, onConfirm }: ApplyChang
                           {originalNode?.address || '(empty)'}
                         </div>
                         <div className="text-green-600 dark:text-green-400">
-                          {edit.address || '(empty)'}
+                          {change.changes?.address || '(empty)'}
                         </div>
                       </div>
                     </div>
                   )}
 
                   {/* Wearer count change */}
-                  {edit.wearerCount !== undefined &&
-                    edit.wearerCount !== originalNode?.wearerCount && (
+                  {change.changes?.wearerCount !== undefined &&
+                    change.changes?.wearerCount !== originalNode?.wearerCount && (
                       <div className="grid grid-cols-[120px,1fr] gap-2">
                         <span className="text-gray-600 dark:text-gray-400">Wearer Count:</span>
                         <div>
@@ -89,15 +175,15 @@ export function ApplyChangesDialog({ open, onOpenChange, onConfirm }: ApplyChang
                             {originalNode?.wearerCount ?? 0}
                           </span>
                           <span className="text-green-600 dark:text-green-400">
-                            {edit.wearerCount}
+                            {change.changes?.wearerCount}
                           </span>
                         </div>
                       </div>
                     )}
 
                   {/* Max wearers change */}
-                  {edit.maxWearers !== undefined &&
-                    edit.maxWearers !== originalNode?.maxWearers && (
+                  {change.changes?.maxWearers !== undefined &&
+                    change.changes?.maxWearers !== originalNode?.maxWearers && (
                       <div className="grid grid-cols-[120px,1fr] gap-2">
                         <span className="text-gray-600 dark:text-gray-400">Max Wearers:</span>
                         <div>
@@ -105,14 +191,14 @@ export function ApplyChangesDialog({ open, onOpenChange, onConfirm }: ApplyChang
                             {originalNode?.maxWearers ?? 1}
                           </span>
                           <span className="text-green-600 dark:text-green-400">
-                            {edit.maxWearers}
+                            {change.changes?.maxWearers}
                           </span>
                         </div>
                       </div>
                     )}
 
                   {/* Color change */}
-                  {edit.color !== undefined && edit.color !== originalNode?.color && (
+                  {change.changes?.color !== undefined && change.changes?.color !== originalNode?.color && (
                     <div className="grid grid-cols-[120px,1fr] gap-2">
                       <span className="text-gray-600 dark:text-gray-400">Color:</span>
                       <div className="flex items-center gap-2">
@@ -129,9 +215,9 @@ export function ApplyChangesDialog({ open, onOpenChange, onConfirm }: ApplyChang
                         <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
                           <span
                             className="w-4 h-4 rounded border border-gray-300"
-                            style={{ backgroundColor: edit.color }}
+                            style={{ backgroundColor: change.changes?.color }}
                           />
-                          <span className="font-mono text-xs">{edit.color}</span>
+                          <span className="font-mono text-xs">{change.changes?.color}</span>
                         </div>
                       </div>
                     </div>
@@ -153,7 +239,7 @@ export function ApplyChangesDialog({ open, onOpenChange, onConfirm }: ApplyChang
             onClick={onConfirm}
             className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors"
           >
-            Apply {editsArray.length} {editsArray.length === 1 ? 'Change' : 'Changes'}
+            Apply {totalChangesCount} {totalChangesCount === 1 ? 'Change' : 'Changes'}
           </button>
         </DialogFooter>
       </DialogContent>

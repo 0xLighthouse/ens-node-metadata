@@ -32,7 +32,7 @@ export function DomainTree({ data, width, height }: DomainTreeProps) {
     zoomLevel,
   } = useTreeStore()
 
-  const { openDrawer, pendingEdits } = useEditStore()
+  const { openDrawer, hasEditForNode } = useEditStore()
 
   const zoomRef = useRef<ProvidedZoom<SVGSVGElement> | null>(null)
 
@@ -106,15 +106,14 @@ export function DomainTree({ data, width, height }: DomainTreeProps) {
           zoomRef.current = zoom
 
           return (
-            <div className="relative">
-              <svg
-                width={width}
-                height={height}
-                style={{ cursor: zoom.isDragging ? 'grabbing' : 'grab' }}
-                ref={zoom.containerRef}
-              >
+            <svg
+              width={width}
+              height={height}
+              style={{ cursor: zoom.isDragging ? 'grabbing' : 'grab', display: 'block' }}
+              ref={zoom.containerRef}
+            >
               <LinearGradient id="tree-gradient" from="#4F46E5" to="#9333EA" />
-              <rect width={width} height={height} rx={14} fill="transparent" />
+              <rect width={width} height={height} fill="transparent" stroke="none" />
               <Group
                 top={defaultMargin.top}
                 left={defaultMargin.left}
@@ -153,7 +152,7 @@ export function DomainTree({ data, width, height }: DomainTreeProps) {
                             cardHeight={cardHeight}
                             isSelected={node.data.name === selectedNodeName}
                             isCollapsed={collapsedNodes.has(node.data.name)}
-                            hasPendingEdits={pendingEdits.has(node.data.name)}
+                            hasPendingEdits={hasEditForNode(node.data.name)}
                             childrenCount={countDescendants(node)}
                             onClick={() => {
                               setSelectedNode(node.data.name)
@@ -168,7 +167,6 @@ export function DomainTree({ data, width, height }: DomainTreeProps) {
                 </Tree>
               </Group>
             </svg>
-          </div>
           )
         }}
       </Zoom>

@@ -34,6 +34,7 @@ const DomainTreeNodeCardComponent = ({
   }
 
   const isSuggested = node.isSuggested || false
+  const isPendingCreation = node.isPendingCreation || false
 
   return (
     <div
@@ -41,18 +42,22 @@ const DomainTreeNodeCardComponent = ({
       className={`
         cursor-pointer transition-all duration-200
         ${isSelected ? 'ring-2 ring-indigo-500 ring-offset-2' : ''}
-        ${isCollapsed && hasChildren && !isSelected && !hasPendingEdits ? 'ring-2 ring-indigo-200' : ''}
+        ${isCollapsed && hasChildren && !isSelected && !hasPendingEdits && !isPendingCreation ? 'ring-2 ring-indigo-200' : ''}
         ${isSuggested ? 'opacity-50' : ''}
       `}
       style={{
         width: isCompact ? '200px' : '280px',
         backgroundColor: isSuggested
           ? '#f8fafc'
+          : isPendingCreation
+          ? '#f0fdf4'
           : hasPendingEdits
           ? '#fff7ed'
           : 'white',
         border: isSuggested
           ? '2px dashed #cbd5e1'
+          : isPendingCreation
+          ? '2px dashed #22c55e'
           : hasPendingEdits
           ? '2px dashed #fb923c'
           : '1px solid #e2e8f0',
@@ -60,6 +65,8 @@ const DomainTreeNodeCardComponent = ({
         overflow: 'hidden',
         boxShadow: isSelected
           ? '0 4px 12px rgba(0, 0, 0, 0.15)'
+          : isPendingCreation
+          ? '0 4px 12px rgba(34, 197, 94, 0.25)'
           : hasPendingEdits
           ? '0 4px 12px rgba(249, 115, 22, 0.25)'
           : '0 2px 8px rgba(0, 0, 0, 0.1)',
@@ -69,8 +76,20 @@ const DomainTreeNodeCardComponent = ({
       <div
         className="flex items-center gap-3 p-3 border-b"
         style={{
-          backgroundColor: isSuggested ? '#f8fafc' : hasPendingEdits ? '#fff7ed' : 'white',
-          borderBottomColor: isSuggested ? '#e2e8f0' : hasPendingEdits ? '#fed7aa' : '#e5e7eb',
+          backgroundColor: isSuggested
+            ? '#f8fafc'
+            : isPendingCreation
+            ? '#f0fdf4'
+            : hasPendingEdits
+            ? '#fff7ed'
+            : 'white',
+          borderBottomColor: isSuggested
+            ? '#e2e8f0'
+            : isPendingCreation
+            ? '#bbf7d0'
+            : hasPendingEdits
+            ? '#fed7aa'
+            : '#e5e7eb',
         }}
       >
         <div
@@ -158,6 +177,8 @@ const DomainTreeNodeCardComponent = ({
         style={{
           backgroundColor: isSuggested
             ? '#f8fafc'
+            : isPendingCreation
+            ? '#dcfce7'
             : hasPendingEdits
             ? '#ffedd5'
             : (node.color ? `${node.color}20` : '#f1f5f9'),
