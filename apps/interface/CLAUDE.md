@@ -152,7 +152,7 @@ Control panel with buttons:
 - **Collapse All / Expand All** - Toggle all node expansion
 - **Zoom Controls** - +/- buttons with percentage display
 
-#### `DomainTreeContainer` (`/app/components/tree/DomainTreeContainer.tsx`)
+#### `TreeContainer` (`/app/components/tree/TreeContainer.tsx`)
 
 Responsive wrapper:
 

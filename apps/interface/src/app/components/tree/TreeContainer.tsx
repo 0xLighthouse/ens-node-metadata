@@ -7,7 +7,7 @@ import { NodeEditDrawer } from './NodeEditDrawer'
 import { ChangesBar } from './ChangesBar'
 import { useTreeData } from '@/contexts/TreeDataContext'
 
-export function DomainTreeContainer() {
+export function TreeContainer() {
   const { previewTree } = useTreeData()
 
   return (
