@@ -2,18 +2,26 @@
 
 import { PageInset } from '@/app/components/containers'
 import { useAppStore } from '@/stores/app'
+import { DomainTreeProvider } from '@/contexts/DomainTreeContext'
+import { DomainTreeContainer } from '@/app/components/tree'
 
-export default function DomainPage() {
+function DomainPageContent() {
   const { activeDomain } = useAppStore()
-
-  console.log('----- DOMAIN PAGE -----')
-  console.log('activeDomain', activeDomain)
 
   return (
     <PageInset>
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">{activeDomain?.name}</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold">{activeDomain?.name || 'Domain Tree'}</h1>
       </div>
+      <DomainTreeContainer />
     </PageInset>
+  )
+}
+
+export default function DomainPage() {
+  return (
+    <DomainTreeProvider>
+      <DomainPageContent />
+    </DomainTreeProvider>
   )
 }
