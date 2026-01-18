@@ -1,7 +1,7 @@
 'use client'
 
 import { memo } from 'react'
-import type { DomainTreeNode } from '@/contexts/DomainTreeContext'
+import type { DomainTreeNode } from '@/contexts/TreeDataContext'
 
 interface DomainTreeNodeProps {
   node: DomainTreeNode

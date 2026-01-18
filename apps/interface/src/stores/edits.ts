@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { DomainTreeNode } from '@/contexts/DomainTreeContext'
+import type { DomainTreeNode } from '@/contexts/TreeDataContext'
 
 export interface NodeChange {
   id: string

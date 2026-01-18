@@ -3,12 +3,12 @@
 import { useState } from 'react'
 import { Sparkles } from 'lucide-react'
 import { useTreeStore } from '@/stores/tree'
-import { useDomainTree, type DomainTreeNode } from '@/contexts/DomainTreeContext'
+import { useTreeData, type DomainTreeNode } from '@/contexts/TreeDataContext'
 import { SuggestionsDialog } from './SuggestionsDialog'
 
 export function TreeControls() {
   const [isSuggestionsOpen, setIsSuggestionsOpen] = useState(false)
-  const { tree } = useDomainTree()
+  const { previewTree } = useTreeData()
   const {
     orientation,
     viewMode,
@@ -36,7 +36,7 @@ export function TreeControls() {
   }
 
   const handleCollapseAll = () => {
-    const allNodesWithChildren = getAllNodesWithChildren(tree)
+    const allNodesWithChildren = getAllNodesWithChildren(previewTree)
     collapseAll(allNodesWithChildren)
   }
 

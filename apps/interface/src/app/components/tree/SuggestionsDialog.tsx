@@ -8,7 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { useDomainTree, type DomainTreeNode } from '@/contexts/DomainTreeContext'
+import { useTreeData, type DomainTreeNode } from '@/contexts/TreeDataContext'
 import { Sparkles, Users, Building2, Globe2, Vault } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { NodeCreateDrawer } from './NodeCreateDrawer'
@@ -32,7 +32,7 @@ const generateColors = () => {
 }
 
 export function SuggestionsDialog({ open, onOpenChange }: SuggestionsDialogProps) {
-  const { baseTree } = useDomainTree()
+  const { sourceTree } = useTreeData()
 
   const [createDrawerOpen, setCreateDrawerOpen] = useState(false)
   const [selectedSuggestion, setSelectedSuggestion] = useState<{
@@ -64,7 +64,7 @@ export function SuggestionsDialog({ open, onOpenChange }: SuggestionsDialogProps
     setSelectedSuggestion({
       id: suggestion.id,
       title: suggestion.title,
-      nodes: suggestion.getNodes(baseTree.name),
+      nodes: suggestion.getNodes(sourceTree.name),
     })
     setCreateDrawerOpen(true)
     onOpenChange(false)

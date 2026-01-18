@@ -70,7 +70,7 @@ Manages tree visualization state using Zustand:
 - `expandAll()` - Expand all nodes
 - `zoomIn()` / `zoomOut()` / `resetZoom()` - Zoom controls
 
-### Context: `DomainTreeContext` (`/contexts/DomainTreeContext.tsx`)
+### Context: `TreeDataContext` (`/contexts/TreeDataContext.tsx`)
 
 Provides tree data to components:
 
@@ -91,7 +91,9 @@ interface DomainTreeNode {
 **Usage:**
 
 - `<DomainTreeProvider>` - Wrap components that need tree data
-- `useDomainTree()` - Access tree data in components
+- `useTreeData()` - Access tree data in components
+- `sourceTree` - Canonical tree data (no pending edits)
+- `previewTree` - Derived tree with pending creations merged for display
 - Currently provides hardcoded sample data for testing
 
 ### Components
@@ -191,7 +193,7 @@ Responsive wrapper:
 **Customizing node appearance:**
 
 1. Modify `DomainTreeNode` interface in context
-2. Update sample data in `DomainTreeContext`
+2. Update sample data in `TreeDataContext`
 3. Update rendering in `DomainTreeNodeCard`
 
 **Adjusting tree spacing:**

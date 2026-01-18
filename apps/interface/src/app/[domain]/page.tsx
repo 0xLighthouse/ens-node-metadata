@@ -2,7 +2,7 @@
 
 import { PageInset } from '@/app/components/containers'
 import { useAppStore } from '@/stores/app'
-import { DomainTreeProvider } from '@/contexts/DomainTreeContext'
+import { TreeDataProvider } from '@/contexts/TreeDataContext'
 import { DomainTreeContainer } from '@/app/components/tree'
 
 function PageContent() {
@@ -22,8 +22,8 @@ function PageContent() {
 
 export default function Page() {
   return (
-    <DomainTreeProvider>
+    <TreeDataProvider>
       <PageContent />
-    </DomainTreeProvider>
+    </TreeDataProvider>
   )
 }

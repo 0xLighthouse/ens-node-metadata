@@ -9,7 +9,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { useEditStore } from '@/stores/edits'
-import { useDomainTree } from '@/contexts/DomainTreeContext'
+import { useTreeData } from '@/contexts/TreeDataContext'
 
 interface ApplyChangesDialogProps {
   open: boolean
@@ -19,10 +19,10 @@ interface ApplyChangesDialogProps {
 
 export function ApplyChangesDialog({ open, onOpenChange, onConfirm }: ApplyChangesDialogProps) {
   const { pendingChanges } = useEditStore()
-  const { baseTree } = useDomainTree()
+  const { sourceTree } = useTreeData()
 
   // Find the original node data
-  const findNode = (name: string, node = baseTree): any => {
+  const findNode = (name: string, node = sourceTree): any => {
     if (node.name === name) return node
     if (node.children) {
       for (const child of node.children) {

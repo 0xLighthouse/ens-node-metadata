@@ -2,15 +2,15 @@
 
 import { Drawer } from 'vaul'
 import { useEditStore } from '@/stores/edits'
-import { useDomainTree } from '@/contexts/DomainTreeContext'
+import { useTreeData } from '@/contexts/TreeDataContext'
 import { useState, useEffect } from 'react'
 
 export function NodeEditDrawer() {
-  const { baseTree, tree } = useDomainTree()
+  const { sourceTree, previewTree } = useTreeData()
   const { isDrawerOpen, selectedNodeForEdit, closeDrawer, addEdit, getEditForNode, removeChange } = useEditStore()
 
   // Find the node data in base tree
-  const findNode = (name: string, node = baseTree): any => {
+  const findNode = (name: string, node = sourceTree): any => {
     if (node.name === name) return node
     if (node.children) {
       for (const child of node.children) {
@@ -22,7 +22,7 @@ export function NodeEditDrawer() {
   }
 
   // Find the node in full tree (including pending creations with edits)
-  const findNodeInTree = (name: string, node = tree): any => {
+  const findNodeInTree = (name: string, node = previewTree): any => {
     if (node.name === name) return node
     if (node.children) {
       for (const child of node.children) {

@@ -22,13 +22,13 @@ export interface DomainTreeNode {
   isPendingCreation?: boolean
 }
 
-interface DomainTreeContextType {
-  tree: DomainTreeNode
-  baseTree: DomainTreeNode
+interface TreeDataContextType {
+  previewTree: DomainTreeNode
+  sourceTree: DomainTreeNode
   addNodesToParent: (parentName: string, newNodes: DomainTreeNode[]) => void
 }
 
-const DomainTreeContext = createContext<DomainTreeContextType | undefined>(undefined)
+const TreeDataContext = createContext<TreeDataContextType | undefined>(undefined)
 
 // Hardcoded sample tree for testing d3 rendering
 const sampleTree: DomainTreeNode = {
@@ -117,21 +117,21 @@ const sampleTree: DomainTreeNode = {
   ],
 }
 
-export const DomainTreeProvider: FC<{ children: ReactNode }> = ({ children }) => {
-  const [baseTree, setBaseTree] = useState<DomainTreeNode>(sampleTree)
+export const TreeDataProvider: FC<{ children: ReactNode }> = ({ children }) => {
+  const [sourceTree, setSourceTree] = useState<DomainTreeNode>(sampleTree)
   const { pendingChanges } = useEditStore()
 
   // Merge pending creations into the tree for visualization
-  const tree = useMemo(() => {
+  const previewTree = useMemo(() => {
     const mergePendingCreations = (node: DomainTreeNode): DomainTreeNode => {
       // Find any pending creations for this node
       const creationsForThisNode = Array.from(pendingChanges.values()).filter(
-        (change) => change.isCreate && change.parentName === node.name
+        (change) => change.isCreate && change.parentName === node.name,
       )
 
       // Collect all nodes to add from creations
       const nodesToAdd: DomainTreeNode[] = []
-      creationsForThisNode.forEach((creation) => {
+      for (const creation of creationsForThisNode) {
         if (creation.nodes) {
           const markedNodes = creation.nodes.map((n) => ({
             ...n,
@@ -141,7 +141,7 @@ export const DomainTreeProvider: FC<{ children: ReactNode }> = ({ children }) =>
           }))
           nodesToAdd.push(...markedNodes)
         }
-      })
+      }
 
       // Recursively process existing children
       const processedChildren = node.children?.map(mergePendingCreations) || []
@@ -161,8 +161,8 @@ export const DomainTreeProvider: FC<{ children: ReactNode }> = ({ children }) =>
       children: node.children?.map(markAsPending),
     })
 
-    return mergePendingCreations(baseTree)
-  }, [baseTree, pendingChanges])
+    return mergePendingCreations(sourceTree)
+  }, [sourceTree, pendingChanges])
 
   const addNodesToParent = (parentName: string, newNodes: DomainTreeNode[]) => {
     const addNodes = (node: DomainTreeNode): DomainTreeNode => {
@@ -180,20 +180,20 @@ export const DomainTreeProvider: FC<{ children: ReactNode }> = ({ children }) =>
       }
       return node
     }
-    setBaseTree((prevTree) => addNodes(prevTree))
+    setSourceTree((prevTree) => addNodes(prevTree))
   }
 
   return (
-    <DomainTreeContext.Provider value={{ tree, baseTree, addNodesToParent }}>
+    <TreeDataContext.Provider value={{ previewTree, sourceTree, addNodesToParent }}>
       {children}
-    </DomainTreeContext.Provider>
+    </TreeDataContext.Provider>
   )
 }
 
-export const useDomainTree = (): DomainTreeContextType => {
-  const context = useContext(DomainTreeContext)
+export const useTreeData = (): TreeDataContextType => {
+  const context = useContext(TreeDataContext)
   if (!context) {
-    throw new Error('useDomainTree must be used within a DomainTreeProvider')
+    throw new Error('useTreeData must be used within a TreeDataProvider')
   }
   return context
 }

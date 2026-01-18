@@ -2,7 +2,7 @@
 
 import { Drawer } from 'vaul'
 import { useEditStore } from '@/stores/edits'
-import { useDomainTree, type DomainTreeNode } from '@/contexts/DomainTreeContext'
+import { useTreeData, type DomainTreeNode } from '@/contexts/TreeDataContext'
 import { useState, useEffect } from 'react'
 
 interface NodeCreateDrawerProps {
@@ -13,18 +13,24 @@ interface NodeCreateDrawerProps {
   nodes: DomainTreeNode[]
 }
 
-export function NodeCreateDrawer({ isOpen, onClose, suggestionId, suggestionTitle, nodes }: NodeCreateDrawerProps) {
-  const { baseTree, tree } = useDomainTree()
+export function NodeCreateDrawer({
+  isOpen,
+  onClose,
+  suggestionId,
+  suggestionTitle,
+  nodes,
+}: NodeCreateDrawerProps) {
+  const { sourceTree, previewTree } = useTreeData()
   const { addCreation } = useEditStore()
 
-  const [selectedParent, setSelectedParent] = useState<string>(baseTree.name)
+  const [selectedParent, setSelectedParent] = useState<string>(sourceTree.name)
 
   // Reset to root when drawer opens
   useEffect(() => {
     if (isOpen) {
-      setSelectedParent(baseTree.name)
+      setSelectedParent(sourceTree.name)
     }
-  }, [isOpen, baseTree.name])
+  }, [isOpen, sourceTree.name])
 
   // Collect all nodes that can be parents (all existing nodes, including pending creations)
   const collectAllNodes = (node: DomainTreeNode): { name: string; depth: number }[] => {
@@ -33,7 +39,9 @@ export function NodeCreateDrawer({ isOpen, onClose, suggestionId, suggestionTitl
     const traverse = (n: DomainTreeNode, depth: number) => {
       nodes.push({ name: n.name, depth })
       if (n.children) {
-        n.children.forEach(child => traverse(child, depth + 1))
+        for (const child of n.children) {
+          traverse(child, depth + 1)
+        }
       }
     }
 
@@ -41,7 +49,7 @@ export function NodeCreateDrawer({ isOpen, onClose, suggestionId, suggestionTitl
     return nodes
   }
 
-  const availableParents = collectAllNodes(tree)
+  const availableParents = collectAllNodes(previewTree)
 
   const handleCreate = () => {
     addCreation(suggestionId, selectedParent, nodes)
@@ -65,27 +73,20 @@ export function NodeCreateDrawer({ isOpen, onClose, suggestionId, suggestionTitl
             <div className="font-mono font-semibold text-sm">{node.name}</div>
             {/* Attributes preview */}
             <div className="text-xs text-gray-600 dark:text-gray-400 mt-1 space-y-1">
-              {node.title && (
-                <div>Title: {node.title}</div>
-              )}
-              {node.kind && (
-                <div>Kind: {node.kind}</div>
-              )}
-              {node.description && (
-                <div>Description: {node.description}</div>
-              )}
+              {node.title && <div>Title: {node.title}</div>}
+              {node.kind && <div>Kind: {node.kind}</div>}
+              {node.description && <div>Description: {node.description}</div>}
               {node.color && (
                 <div className="flex items-center gap-2">
-                  <span className="w-3 h-3 rounded border border-gray-300" style={{ backgroundColor: node.color }}></span>
+                  <span
+                    className="w-3 h-3 rounded border border-gray-300"
+                    style={{ backgroundColor: node.color }}
+                  ></span>
                   <span>Color: {node.color}</span>
                 </div>
               )}
-              {node.wearerCount !== undefined && (
-                <div>Wearer Count: {node.wearerCount}</div>
-              )}
-              {node.maxWearers !== undefined && (
-                <div>Max Wearers: {node.maxWearers}</div>
-              )}
+              {node.wearerCount !== undefined && <div>Wearer Count: {node.wearerCount}</div>}
+              {node.maxWearers !== undefined && <div>Max Wearers: {node.maxWearers}</div>}
             </div>
           </div>
         </div>
