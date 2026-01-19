@@ -1,7 +1,7 @@
 'use client'
 
 import { memo } from 'react'
-import type { DomainTreeNode } from '@/contexts/TreeDataContext'
+import type { DomainTreeNode, TreeNodeType } from '@/contexts/TreeDataContext'
 
 interface DomainTreeNodeProps {
   node: DomainTreeNode
@@ -14,6 +14,17 @@ interface DomainTreeNodeProps {
   onToggleCollapse?: () => void
   childrenCount?: number
 }
+
+const nodeTypeAccent: Record<TreeNodeType, string> = {
+  generic: '#94a3b8',
+  organizationRoot: '#0ea5e9',
+  treasury: '#f59e0b',
+  role: '#8b5cf6',
+  team: '#10b981',
+}
+
+const getNodeAccent = (nodeType?: TreeNodeType) =>
+  (nodeType ? nodeTypeAccent[nodeType] : nodeTypeAccent.generic)
 
 const DomainTreeNodeCardComponent = ({
   node,
@@ -32,6 +43,8 @@ const DomainTreeNodeCardComponent = ({
     e.stopPropagation()
     onToggleCollapse?.()
   }
+
+  const accentColor = getNodeAccent(node.nodeType)
 
   const isSuggested = node.isSuggested || false
   const isPendingCreation = node.isPendingCreation || false
@@ -97,7 +110,7 @@ const DomainTreeNodeCardComponent = ({
           style={{
             width: '40px',
             height: '40px',
-            backgroundColor: isSuggested ? '#e2e8f0' : node.color || '#94a3b8',
+            backgroundColor: isSuggested ? '#e2e8f0' : accentColor,
           }}
         >
           {isSuggested ? (
@@ -171,7 +184,7 @@ const DomainTreeNodeCardComponent = ({
         )}
       </div>
 
-      {/* Address and wearer info */}
+      {/* Address info */}
       <div
         className="px-3 py-2 flex items-center justify-between text-sm"
         style={{
@@ -181,7 +194,7 @@ const DomainTreeNodeCardComponent = ({
             ? '#dcfce7'
             : hasPendingEdits
             ? '#ffedd5'
-            : (node.color ? `${node.color}20` : '#f1f5f9'),
+            : `${accentColor}20`,
         }}
       >
         {isSuggested ? (
@@ -210,11 +223,6 @@ const DomainTreeNodeCardComponent = ({
                 {node.address || '0x0000...0000'}
               </span>
             </div>
-            {node.wearerCount !== undefined && node.maxWearers !== undefined && (
-              <div className="text-xs font-medium text-gray-600 flex-shrink-0">
-                {node.wearerCount} of {node.maxWearers}
-              </div>
-            )}
           </>
         )}
       </div>

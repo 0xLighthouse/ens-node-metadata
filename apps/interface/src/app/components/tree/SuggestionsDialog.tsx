@@ -26,11 +26,6 @@ interface SuggestionsDialogProps {
   onOpenChange: (open: boolean) => void
 }
 
-const generateColors = () => {
-  const colors = ['#3b82f6', '#8b5cf6', '#ec4899', '#10b981', '#f59e0b', '#ef4444', '#06b6d4']
-  return colors
-}
-
 export function SuggestionsDialog({ open, onOpenChange }: SuggestionsDialogProps) {
   const { sourceTree } = useTreeData()
 
@@ -52,9 +47,9 @@ export function SuggestionsDialog({ open, onOpenChange }: SuggestionsDialogProps
         {
           name: `treasury.${rootName}`,
           title: 'Treasury',
+          nodeType: 'treasury',
           kind: 'Safe',
           description: '',
-          color: '#f59e0b',
         },
       ],
     },

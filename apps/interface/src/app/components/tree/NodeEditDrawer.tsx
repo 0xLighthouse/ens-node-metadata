@@ -2,8 +2,44 @@
 
 import { Drawer } from 'vaul'
 import { useTreeEditStore } from '@/stores/tree-edits'
-import { useTreeData } from '@/contexts/TreeDataContext'
+import { useTreeData, type TreeNodeType } from '@/contexts/TreeDataContext'
 import { useState, useEffect } from 'react'
+
+type NodeTypeFieldKey = 'website' | 'email' | 'organizationAddress'
+
+interface NodeTypeSchema {
+  label: string
+  fields: Array<{
+    key: NodeTypeFieldKey
+    label: string
+    type?: string
+    placeholder?: string
+  }>
+}
+
+const nodeTypeSchemas: Record<TreeNodeType, NodeTypeSchema> = {
+  generic: { label: 'Generic', fields: [] },
+  organizationRoot: {
+    label: 'Organization Root',
+    fields: [
+      { key: 'website', label: 'Website', type: 'url', placeholder: 'https://example.org' },
+      { key: 'organizationAddress', label: 'Organization Address', placeholder: '123 Main St' },
+      { key: 'email', label: 'Email', type: 'email', placeholder: 'contact@example.org' },
+    ],
+  },
+  treasury: { label: 'Treasury', fields: [] },
+  role: { label: 'Role', fields: [] },
+  team: { label: 'Team', fields: [] },
+}
+
+type NodeEditFormData = {
+  nodeType?: TreeNodeType
+  kind?: string
+  address?: string
+  website?: string
+  email?: string
+  organizationAddress?: string
+}
 
 export function NodeEditDrawer() {
   const { sourceTree, previewTree } = useTreeData()
@@ -40,30 +76,75 @@ export function NodeEditDrawer() {
     return null
   }
 
-  const currentNode = selectedNode ? findNode(selectedNode) : null
   const nodeWithEdits = selectedNode ? findNodeInTree(selectedNode) : null
   const existingEdit = selectedNode ? getPendingEdit(selectedNode) : undefined
   const isPendingCreation = nodeWithEdits?.isPendingCreation || false
 
   // Form state
-  const [formData, setFormData] = useState<{
-    address?: string
-    wearerCount?: number
-    maxWearers?: number
-    color?: string
-  }>({})
+  const [formData, setFormData] = useState<NodeEditFormData>({})
 
   // Initialize form with current node data (including pending creation edits)
   useEffect(() => {
-    if (nodeWithEdits) {
-      setFormData({
-        address: nodeWithEdits.address ?? '',
-        wearerCount: nodeWithEdits.wearerCount ?? 0,
-        maxWearers: nodeWithEdits.maxWearers ?? 1,
-        color: nodeWithEdits.color ?? '#94a3b8',
-      })
+    if (!nodeWithEdits) return
+
+    const editableKeys: Array<keyof NodeEditFormData> = [
+      'nodeType',
+      'kind',
+      'address',
+      'website',
+      'email',
+      'organizationAddress',
+    ]
+
+    const nextFormData: NodeEditFormData = {
+      address: nodeWithEdits.address ?? '',
     }
-  }, [nodeWithEdits])
+
+    if (nodeWithEdits.nodeType) {
+      nextFormData.nodeType = nodeWithEdits.nodeType
+      nextFormData.kind = nodeWithEdits.kind
+    }
+
+    if (nodeWithEdits.nodeType === 'organizationRoot') {
+      nextFormData.website = nodeWithEdits.website ?? ''
+      nextFormData.email = nodeWithEdits.email ?? ''
+      nextFormData.organizationAddress = nodeWithEdits.organizationAddress ?? ''
+    }
+
+    if (existingEdit?.changes) {
+      for (const [key, value] of Object.entries(existingEdit.changes)) {
+        if (value === undefined) continue
+        if (editableKeys.includes(key as keyof NodeEditFormData)) {
+          nextFormData[key as keyof NodeEditFormData] = value as NodeEditFormData[keyof NodeEditFormData]
+        }
+      }
+    }
+
+    setFormData(nextFormData)
+  }, [existingEdit, nodeWithEdits])
+
+  const handleNodeTypeChange = (nextType: TreeNodeType) => {
+    const schema = nodeTypeSchemas[nextType]
+    setFormData((prev) => {
+      const next: NodeEditFormData = {
+        ...prev,
+        nodeType: nextType,
+        kind: prev.kind ?? schema.label,
+      }
+
+      schema.fields.forEach((field) => {
+        if (next[field.key] === undefined) {
+          next[field.key] = ''
+        }
+      })
+
+      return next
+    })
+  }
+
+  const activeNodeType = formData.nodeType ?? nodeWithEdits?.nodeType
+  const activeSchema = activeNodeType ? nodeTypeSchemas[activeNodeType] : null
+  const shouldSelectType = !nodeWithEdits?.kind
 
   const handleSave = () => {
     if (!selectedNode) return
@@ -81,9 +162,16 @@ export function NodeEditDrawer() {
 
   const hasChanges =
     formData.address !== (nodeWithEdits?.address ?? '') ||
-    formData.wearerCount !== (nodeWithEdits?.wearerCount ?? 0) ||
-    formData.maxWearers !== (nodeWithEdits?.maxWearers ?? 1) ||
-    formData.color !== (nodeWithEdits?.color ?? '#94a3b8')
+    formData.nodeType !== nodeWithEdits?.nodeType ||
+    formData.kind !== nodeWithEdits?.kind ||
+    formData.website !==
+      (nodeWithEdits?.nodeType === 'organizationRoot' ? nodeWithEdits.website ?? '' : undefined) ||
+    formData.email !==
+      (nodeWithEdits?.nodeType === 'organizationRoot' ? nodeWithEdits.email ?? '' : undefined) ||
+    formData.organizationAddress !==
+      (nodeWithEdits?.nodeType === 'organizationRoot'
+        ? nodeWithEdits.organizationAddress ?? ''
+        : undefined)
 
   // Only show discard button for actual edits (not pending creations)
   const hasPendingEdits = !isPendingCreation && !!existingEdit
@@ -110,6 +198,55 @@ export function NodeEditDrawer() {
             {/* Form */}
             {nodeWithEdits && !nodeWithEdits.isSuggested && (
               <div className="flex-1 overflow-y-auto space-y-4">
+                {shouldSelectType && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Node Type
+                    </label>
+                    <select
+                      value={formData.nodeType ?? ''}
+                      onChange={(e) => handleNodeTypeChange(e.target.value as TreeNodeType)}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-800 dark:text-white"
+                    >
+                      <option value="" disabled>
+                        Select a type
+                      </option>
+                      {Object.entries(nodeTypeSchemas).map(([value, schema]) => (
+                        <option key={value} value={value}>
+                          {schema.label}
+                        </option>
+                      ))}
+                    </select>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      Pick a type to reveal its fields.
+                    </p>
+                  </div>
+                )}
+
+                {activeSchema?.fields.length ? (
+                  <div className="space-y-4">
+                    {activeSchema.fields.map((field) => (
+                      <div key={field.key}>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                          {field.label}
+                        </label>
+                        <input
+                          type={field.type ?? 'text'}
+                          value={formData[field.key] ?? ''}
+                          onChange={(e) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              [field.key]: e.target.value,
+                            }))
+                          }
+                          placeholder={field.placeholder}
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-800 dark:text-white"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+
                 {/* Address */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -124,54 +261,6 @@ export function NodeEditDrawer() {
                   />
                 </div>
 
-                {/* Wearer Count */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Wearer Count
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    value={formData.wearerCount || 0}
-                    onChange={(e) => setFormData({ ...formData, wearerCount: parseInt(e.target.value) || 0 })}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-800 dark:text-white"
-                  />
-                </div>
-
-                {/* Max Wearers */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Max Wearers
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    value={formData.maxWearers || 1}
-                    onChange={(e) => setFormData({ ...formData, maxWearers: parseInt(e.target.value) || 1 })}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-800 dark:text-white"
-                  />
-                </div>
-
-                {/* Color */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Color
-                  </label>
-                  <div className="flex gap-2">
-                    <input
-                      type="color"
-                      value={formData.color || '#94a3b8'}
-                      onChange={(e) => setFormData({ ...formData, color: e.target.value })}
-                      className="w-12 h-10 border border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer"
-                    />
-                    <input
-                      type="text"
-                      value={formData.color || '#94a3b8'}
-                      onChange={(e) => setFormData({ ...formData, color: e.target.value })}
-                      className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-mono focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-800 dark:text-white"
-                    />
-                  </div>
-                </div>
               </div>
             )}
 

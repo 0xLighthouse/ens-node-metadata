@@ -2,7 +2,7 @@
 
 import { Drawer } from 'vaul'
 import { useTreeEditStore } from '@/stores/tree-edits'
-import { useTreeData, type DomainTreeNode } from '@/contexts/TreeDataContext'
+import { useTreeData, type DomainTreeNode, type TreeNodeType } from '@/contexts/TreeDataContext'
 import { useState, useEffect } from 'react'
 
 interface NodeCreateDrawerProps {
@@ -22,6 +22,18 @@ export function NodeCreateDrawer({
 }: NodeCreateDrawerProps) {
   const { sourceTree, previewTree } = useTreeData()
   const { queueCreation } = useTreeEditStore()
+
+  const formatNodeType = (nodeType?: TreeNodeType) => {
+    if (!nodeType) return undefined
+    const labels: Record<TreeNodeType, string> = {
+      generic: 'Generic',
+      organizationRoot: 'Organization Root',
+      treasury: 'Treasury',
+      role: 'Role',
+      team: 'Team',
+    }
+    return labels[nodeType] ?? nodeType
+  }
 
   const [selectedParent, setSelectedParent] = useState<string>(sourceTree.name)
 
@@ -75,18 +87,17 @@ export function NodeCreateDrawer({
             <div className="text-xs text-gray-600 dark:text-gray-400 mt-1 space-y-1">
               {node.title && <div>Title: {node.title}</div>}
               {node.kind && <div>Kind: {node.kind}</div>}
+              {node.nodeType && <div>Type: {formatNodeType(node.nodeType)}</div>}
               {node.description && <div>Description: {node.description}</div>}
-              {node.color && (
-                <div className="flex items-center gap-2">
-                  <span
-                    className="w-3 h-3 rounded border border-gray-300"
-                    style={{ backgroundColor: node.color }}
-                  ></span>
-                  <span>Color: {node.color}</span>
-                </div>
+              {node.nodeType === 'organizationRoot' && node.website && (
+                <div>Website: {node.website}</div>
               )}
-              {node.wearerCount !== undefined && <div>Wearer Count: {node.wearerCount}</div>}
-              {node.maxWearers !== undefined && <div>Max Wearers: {node.maxWearers}</div>}
+              {node.nodeType === 'organizationRoot' && node.organizationAddress && (
+                <div>Organization Address: {node.organizationAddress}</div>
+              )}
+              {node.nodeType === 'organizationRoot' && node.email && (
+                <div>Email: {node.email}</div>
+              )}
             </div>
           </div>
         </div>

@@ -9,7 +9,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { useTreeEditStore } from '@/stores/tree-edits'
-import { useTreeData } from '@/contexts/TreeDataContext'
+import { useTreeData, type TreeNodeType, type OrganizationRootTreeNode } from '@/contexts/TreeDataContext'
 
 interface ApplyChangesDialogProps {
   open: boolean
@@ -20,6 +20,18 @@ interface ApplyChangesDialogProps {
 export function ApplyChangesDialog({ open, onOpenChange, onConfirm }: ApplyChangesDialogProps) {
   const { pendingMutations } = useTreeEditStore()
   const { sourceTree } = useTreeData()
+
+  const formatNodeType = (nodeType?: TreeNodeType) => {
+    if (!nodeType) return 'Unknown'
+    const labels: Record<TreeNodeType, string> = {
+      generic: 'Generic',
+      organizationRoot: 'Organization Root',
+      treasury: 'Treasury',
+      role: 'Role',
+      team: 'Team',
+    }
+    return labels[nodeType] ?? nodeType
+  }
 
   // Find the original node data
   const findNode = (name: string, node = sourceTree): any => {
@@ -83,23 +95,23 @@ export function ApplyChangesDialog({ open, onOpenChange, onConfirm }: ApplyChang
                             {node.kind && (
                               <div>Kind: {node.kind}</div>
                             )}
+                            {node.nodeType && (
+                              <div>Type: {formatNodeType(node.nodeType)}</div>
+                            )}
                             {node.description && (
                               <div>Description: {node.description}</div>
                             )}
-                            {node.color && (
-                              <div className="flex items-center gap-2">
-                                <span className="w-3 h-3 rounded border border-gray-300" style={{ backgroundColor: node.color }}></span>
-                                <span>Color: {node.color}</span>
-                              </div>
-                            )}
-                            {node.wearerCount !== undefined && (
-                              <div>Wearer Count: {node.wearerCount}</div>
-                            )}
-                            {node.maxWearers !== undefined && (
-                              <div>Max Wearers: {node.maxWearers}</div>
-                            )}
                             {node.address && (
                               <div>Address: {node.address}</div>
+                            )}
+                            {node.website && (
+                              <div>Website: {node.website}</div>
+                            )}
+                            {node.organizationAddress && (
+                              <div>Organization Address: {node.organizationAddress}</div>
+                            )}
+                            {node.email && (
+                              <div>Email: {node.email}</div>
                             )}
                           </div>
                         </div>
@@ -137,6 +149,13 @@ export function ApplyChangesDialog({ open, onOpenChange, onConfirm }: ApplyChang
 
             // Render edit
             const originalNode = change.nodeName ? findNode(change.nodeName) : null
+            const originalOrgNode =
+              originalNode?.nodeType === 'organizationRoot'
+                ? (originalNode as OrganizationRootTreeNode)
+                : undefined
+            const changeOrgFields = change.changes as
+              | Partial<OrganizationRootTreeNode>
+              | undefined
             return (
               <div
                 key={change.id}
@@ -150,6 +169,21 @@ export function ApplyChangesDialog({ open, onOpenChange, onConfirm }: ApplyChang
 
                 {/* Changes list */}
                 <div className="space-y-2 text-sm">
+                  {/* Node type change */}
+                  {change.changes?.nodeType !== undefined &&
+                    change.changes?.nodeType !== originalNode?.nodeType && (
+                      <div className="grid grid-cols-[120px,1fr] gap-2">
+                        <span className="text-gray-600 dark:text-gray-400">Type:</span>
+                        <div>
+                          <span className="text-red-600 dark:text-red-400 line-through mr-2">
+                            {formatNodeType(originalNode?.nodeType)}
+                          </span>
+                          <span className="text-green-600 dark:text-green-400">
+                            {formatNodeType(change.changes?.nodeType)}
+                          </span>
+                        </div>
+                      </div>
+                    )}
                   {/* Address change */}
                   {change.changes?.address !== undefined && change.changes?.address !== originalNode?.address && (
                     <div className="grid grid-cols-[120px,1fr] gap-2">
@@ -165,63 +199,52 @@ export function ApplyChangesDialog({ open, onOpenChange, onConfirm }: ApplyChang
                     </div>
                   )}
 
-                  {/* Wearer count change */}
-                  {change.changes?.wearerCount !== undefined &&
-                    change.changes?.wearerCount !== originalNode?.wearerCount && (
+
+                  {/* Organization fields */}
+                  {changeOrgFields?.website !== undefined &&
+                    changeOrgFields.website !== originalOrgNode?.website && (
                       <div className="grid grid-cols-[120px,1fr] gap-2">
-                        <span className="text-gray-600 dark:text-gray-400">Wearer Count:</span>
+                        <span className="text-gray-600 dark:text-gray-400">Website:</span>
                         <div>
                           <span className="text-red-600 dark:text-red-400 line-through mr-2">
-                            {originalNode?.wearerCount ?? 0}
+                            {originalOrgNode?.website || '(empty)'}
                           </span>
                           <span className="text-green-600 dark:text-green-400">
-                            {change.changes?.wearerCount}
+                            {changeOrgFields.website || '(empty)'}
                           </span>
                         </div>
                       </div>
                     )}
 
-                  {/* Max wearers change */}
-                  {change.changes?.maxWearers !== undefined &&
-                    change.changes?.maxWearers !== originalNode?.maxWearers && (
+                  {changeOrgFields?.organizationAddress !== undefined &&
+                    changeOrgFields.organizationAddress !== originalOrgNode?.organizationAddress && (
                       <div className="grid grid-cols-[120px,1fr] gap-2">
-                        <span className="text-gray-600 dark:text-gray-400">Max Wearers:</span>
+                        <span className="text-gray-600 dark:text-gray-400">Organization Address:</span>
                         <div>
                           <span className="text-red-600 dark:text-red-400 line-through mr-2">
-                            {originalNode?.maxWearers ?? 1}
+                            {originalOrgNode?.organizationAddress || '(empty)'}
                           </span>
                           <span className="text-green-600 dark:text-green-400">
-                            {change.changes?.maxWearers}
+                            {changeOrgFields.organizationAddress || '(empty)'}
                           </span>
                         </div>
                       </div>
                     )}
 
-                  {/* Color change */}
-                  {change.changes?.color !== undefined && change.changes?.color !== originalNode?.color && (
-                    <div className="grid grid-cols-[120px,1fr] gap-2">
-                      <span className="text-gray-600 dark:text-gray-400">Color:</span>
-                      <div className="flex items-center gap-2">
-                        <div className="flex items-center gap-2 text-red-600 dark:text-red-400 line-through">
-                          <span
-                            className="w-4 h-4 rounded border border-gray-300"
-                            style={{ backgroundColor: originalNode?.color ?? '#94a3b8' }}
-                          />
-                          <span className="font-mono text-xs">
-                            {originalNode?.color ?? '#94a3b8'}
+                  {changeOrgFields?.email !== undefined &&
+                    changeOrgFields.email !== originalOrgNode?.email && (
+                      <div className="grid grid-cols-[120px,1fr] gap-2">
+                        <span className="text-gray-600 dark:text-gray-400">Email:</span>
+                        <div>
+                          <span className="text-red-600 dark:text-red-400 line-through mr-2">
+                            {originalOrgNode?.email || '(empty)'}
+                          </span>
+                          <span className="text-green-600 dark:text-green-400">
+                            {changeOrgFields.email || '(empty)'}
                           </span>
                         </div>
-                        <span>→</span>
-                        <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
-                          <span
-                            className="w-4 h-4 rounded border border-gray-300"
-                            style={{ backgroundColor: change.changes?.color }}
-                          />
-                          <span className="font-mono text-xs">{change.changes?.color}</span>
-                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
                 </div>
               </div>
             )
