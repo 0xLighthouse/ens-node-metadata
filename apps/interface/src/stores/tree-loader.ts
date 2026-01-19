@@ -1,6 +1,8 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { DomainTreeNode } from '@/lib/tree/types'
+import { buildRawTree } from '@/lib/tree/buildRawTree'
+import { apiStore } from '@/stores/api'
 
 interface TreeLoaderState {
   /**
@@ -19,85 +21,10 @@ interface TreeLoaderState {
   setTree: (tree: DomainTreeNode | null) => void
 }
 
-// Hardcoded sample tree for testing d3 rendering
-const sampleTree: DomainTreeNode = {
-  name: 'ens.eth',
-  address: '0x0eb5...7576',
-  children: [
-    {
-      name: 'app.ens.eth',
-      address: '0x83e3...c360',
-      children: [
-        {
-          name: 'beta.app.ens.eth',
-          address: '0xbc1e...62f9',
-        },
-        {
-          name: 'staging.app.ens.eth',
-          address: '0xde4f...82a1',
-        },
-      ],
-    },
-    {
-      name: 'docs.ens.eth',
-      address: '0x94a2...1b3c',
-      children: [
-        {
-          name: 'api.docs.ens.eth',
-          address: '0x7c8d...4e5f',
-        },
-        {
-          name: 'guides.docs.ens.eth',
-          address: '0x2f1a...9d8c',
-        },
-      ],
-    },
-    {
-      name: 'wallet.ens.eth',
-      address: '0x5e9c...3a7b',
-      children: [
-        {
-          name: 'mobile.wallet.ens.eth',
-          address: '0xa1b2...c4d5',
-        },
-        {
-          name: 'web.wallet.ens.eth',
-          address: '0x6d7e...8f9a',
-        },
-      ],
-    },
-    {
-      name: 'dao.ens.eth',
-      address: '0x3c4d...5e6f',
-    },
-  ],
-}
-
-const sampleRootName = sampleTree.name
-
-const applyRootName = (node: DomainTreeNode, rootName: string): DomainTreeNode => {
-  const rootSuffix = `.${sampleRootName}`
-  const nextName =
-    node.name === sampleRootName
-      ? rootName
-      : node.name.endsWith(rootSuffix)
-      ? `${node.name.slice(0, -rootSuffix.length)}.${rootName}`
-      : node.name
-
-  return {
-    ...node,
-    name: nextName,
-    children: node.children?.map((child) => applyRootName(child, rootName)),
-  }
-}
-
 const buildTree = async (rootName: string): Promise<DomainTreeNode> => {
-  // TODO: replace with the client-side tree generation process.
-
-  // Wait for 5 seconds
-  await new Promise((resolve) => setTimeout(resolve, 5000))
-
-  return applyRootName(sampleTree, rootName)
+  return buildRawTree(rootName, {
+    request: apiStore.ensRequest,
+  })
 }
 
 export const useTreeLoaderStore = create<TreeLoaderState>()(

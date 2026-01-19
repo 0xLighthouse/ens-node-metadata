@@ -1,8 +1,11 @@
 import { gql } from 'graphql-request'
 
-export const QUERY_DOMAINS_BY_ADDRESS = gql`
-  query QueryDomainsByAddress($address: String!) {
-    domains(where: {owner: $address}) {
+export const QUERY_DOMAINS_OWNED = gql`
+  query QueryDomainsOwned($address: String!) {
+    domains(where: {or: [
+        { owner: $address },
+        { wrappedOwnerId: $address }
+      ]}) {
       __typename
       id
       name

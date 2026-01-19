@@ -3,7 +3,7 @@ import { persist } from 'zustand/middleware'
 import Cookies from 'js-cookie'
 import { AUTH_TOKEN_COOKIE } from '@/config/constants'
 import { useApiStore } from './api'
-import { QUERY_DOMAINS_BY_ADDRESS } from '@/graphql/query.domains-by-address'
+import { QUERY_DOMAINS_OWNED } from '@/graphql/query.domains-owned'
 import { ENSRootDomain } from '@/types'
 import { User } from '@privy-io/react-auth'
 
@@ -74,7 +74,7 @@ export const useAppStore = create<AppState>()(
 
         try {
           const apiStore = useApiStore.getState()
-          const resp = await apiStore.ensRequest(QUERY_DOMAINS_BY_ADDRESS, { address: userAddress })
+          const resp = await apiStore.ensRequest(QUERY_DOMAINS_OWNED, { address: userAddress })
 
           console.log('AppStore.fetchDomains.resp', resp)
 

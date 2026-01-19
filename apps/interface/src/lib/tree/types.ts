@@ -1,11 +1,16 @@
-export type TreeNodeType = 'generic' | 'organizationRoot' | 'treasury' | 'role' | 'team'
+export type TreeNodeType = 'raw' | 'organizationRoot' | 'treasury' | 'role' | 'team'
 
 export interface BaseTreeNode {
   name: string
+  subdomainCount: number
   children?: DomainTreeNode[]
+  resolverId?: string
   // Optional metadata for display
   address?: string
+  manager?: string
+  ttl?: number | null
   icon?: string
+  attributes?: Record<string, string | null>
   // Additional fields (will be refactored to BaseNode, TreasuryNode, etc later)
   title?: string // String(255)
   kind?: string // Display label (e.g., Safe, EOA, Role, Team)
@@ -16,9 +21,9 @@ export interface BaseTreeNode {
   isPendingCreation?: boolean
 }
 
-export interface GenericTreeNode extends BaseTreeNode {
+export interface RawTreeNode extends BaseTreeNode {
   // Omit nodeType for unknown kinds to fall back to generic.
-  nodeType?: 'generic'
+  nodeType?: 'raw'
 }
 
 export interface TreasuryTreeNode extends BaseTreeNode {
@@ -41,7 +46,7 @@ export interface TeamTreeNode extends BaseTreeNode {
 }
 
 export type DomainTreeNode =
-  | GenericTreeNode
+  | RawTreeNode
   | OrganizationRootTreeNode
   | TreasuryTreeNode
   | RoleTreeNode
