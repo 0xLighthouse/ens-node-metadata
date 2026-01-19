@@ -5,9 +5,12 @@ export interface BaseTreeNode {
   subdomainCount: number
   children?: DomainTreeNode[]
   resolverId?: string
+  address: `0x${string}`
+  // TODO: Get manager
+  // manager?: `0x${string}`
+  // managerName?: string
+  owner: `0x${string}`
   // Optional metadata for display
-  address?: string
-  manager?: string
   ttl?: number | null
   icon?: string
   attributes?: Record<string, string | null>

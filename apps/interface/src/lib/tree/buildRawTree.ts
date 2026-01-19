@@ -1,21 +1,23 @@
 import { GraphQLClient, type RequestDocument, gql } from 'graphql-request'
 import type { RawTreeNode } from '@/lib/tree/types'
+import { fetchTexts } from './fetchTexts'
+
 
 const ENS_SUBGRAPH_URL = 'https://api.alpha.ensnode.io/subgraph'
 
 type ENSRecord = {
   id: string
+  ownerId: string
+  wrappedOwnerId: string
   name: string | null
   subdomainCount?: number | string
   ttl?: number | string | null
   resolvedAddress?: {
     id: string
   } | null
-  owner?: {
-    id: string
-  } | null
   resolver?: {
     id: string
+    texts: string[]
     address?: string
   } | null
 }
@@ -46,9 +48,8 @@ export const GET_DOMAIN_BY_NAME = gql`
       resolvedAddress {
         id
       }
-      owner {
-        id
-      }
+      ownerId
+      wrappedOwnerId
     }
   }
 `
@@ -75,28 +76,6 @@ const GET_CHILDREN_BY_PARENT = gql`
   }
 `
 
-const GET_TEXT_CHANGES_BY_RESOLVER = gql`
-  query GetTextChangesByResolver(
-    $resolverId: String!
-    $first: Int!
-  ) {
-    textChangeds(
-      where: { resolverId: $resolverId }
-      orderBy: blockNumber
-      orderDirection: desc
-      first: $first
-    ) {
-      key
-      value
-    }
-  }
-`
-
-type TextChangedRow = {
-  key: string
-  value: string | null
-}
-
 export async function buildRawTree(
   rootName: string,
   opts: BuildTreeOptions = {},
@@ -104,36 +83,34 @@ export async function buildRawTree(
   const endpoint = opts.endpoint ?? ENS_SUBGRAPH_URL
   const request = withRetry(createGraphRequest(endpoint))
   const pageSize = opts.pageSize ?? 1000
-  const limit = createLimiter(opts.maxConcurrency ?? 10)
 
-  const rootRes = await request<{ domains: ENSRecord[] }>(GET_DOMAIN_BY_NAME, {
+  const root = await request<{ domains: ENSRecord[] }>(GET_DOMAIN_BY_NAME, {
     name: rootName,
   })
 
-  const rootDomain = rootRes.domains?.[0]
+  const rootDomain = root.domains?.[0]
   if (!rootDomain) {
     throw new Error(`Domain not found in subgraph: ${rootName}`)
   }
 
   const buildNode = async (domain: ENSRecord): Promise<RawTreeNode> => {
-    const resolvedAddress = domain.resolvedAddress?.id
+    const resolvedAddress = domain.resolvedAddress?.id as `0x${string}`
     const resolverId = domain.resolver?.id
-    const manager = domain.owner?.id
+    const owner = (domain.wrappedOwnerId ?? domain.ownerId) as `0x${string}`
     const ttl = domain.ttl == null ? null : Number(domain.ttl)
+
 
     const node: RawTreeNode = {
       name: domain.name ?? domain.id,
       address: resolvedAddress,
-      manager,
+      owner,
       ttl,
       subdomainCount: 0,
       children: [],
     }
 
-    if (resolverId) {
-      const texts = await limit(() =>
-        fetchTextValuesFromSubgraph(request, resolverId),
-      )
+    if (domain.name && domain.resolver?.texts) {
+      const texts = await fetchTexts(domain.name, domain.resolver?.texts)
       if (Object.keys(texts).length > 0) {
         node.attributes = texts
       }
@@ -186,30 +163,6 @@ async function paginateChildren(
   return out
 }
 
-async function fetchTextValuesFromSubgraph(
-  request: RequestFn,
-  resolverId: string,
-): Promise<Record<string, string | null>> {
-  const texts: Record<string, string | null> = {}
-  // NOTE: This only fetches the most recent 100 records per resolver.
-  const res = await request<{ textChangeds: TextChangedRow[] }>(
-    GET_TEXT_CHANGES_BY_RESOLVER,
-    {
-      resolverId,
-      first: 100,
-    },
-  )
-
-  const batch = res.textChangeds ?? []
-  for (const entry of batch) {
-    if (!(entry.key in texts)) {
-      texts[entry.key] = entry.value ?? null
-    }
-  }
-
-  return texts
-}
-
 function createGraphRequest(endpoint: string): RequestFn {
   const client = new GraphQLClient(endpoint)
   return (query, variables) => client.request(query, variables)
@@ -238,30 +191,6 @@ function withRetry(request: RequestFn, options: RetryOptions = {}): RequestFn {
         await new Promise((resolve) => setTimeout(resolve, jitter))
         attempt += 1
       }
-    }
-  }
-}
-
-// Returns a limiter that caps how many async tasks run concurrently (FIFO).
-function createLimiter(max: number) {
-  let active = 0
-  const queue: Array<() => void> = []
-
-  const next = () => {
-    active = Math.max(0, active - 1)
-    const fn = queue.shift()
-    if (fn) fn()
-  }
-
-  return async <T>(fn: () => Promise<T>): Promise<T> => {
-    if (active >= max) {
-      await new Promise<void>((resolve) => queue.push(resolve))
-    }
-    active++
-    try {
-      return await fn()
-    } finally {
-      next()
     }
   }
 }

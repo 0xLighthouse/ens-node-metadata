@@ -2,7 +2,7 @@ import { describe, expect, it } from '@jest/globals'
 import { buildRawTree } from '../tree/buildRawTree'
 
 const ENS_SUBGRAPH_URL = 'https://api.alpha.ensnode.io/subgraph'
-const TEST_TIMEOUT_MS = 60000 * 3 // 1 minute
+const TEST_TIMEOUT_MS = 30000 // 30 seconds
 
 
 describe('buildRawTree integration', () => {
