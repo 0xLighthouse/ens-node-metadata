@@ -8,7 +8,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { useTreeData, type DomainTreeNode } from '@/contexts/TreeDataContext'
+import { useTreeData } from '@/hooks/useTreeData'
+import { type DomainTreeNode } from '@/lib/tree/types'
 import { Sparkles, Users, Building2, Globe2, Vault } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { NodeCreateDrawer } from './NodeCreateDrawer'
@@ -35,6 +36,10 @@ export function SuggestionsDialog({ open, onOpenChange }: SuggestionsDialogProps
     title: string
     nodes: DomainTreeNode[]
   } | null>(null)
+
+  if (!sourceTree) {
+    return null
+  }
 
   // Simple presets following convention: title, description, fields
   const suggestions: Suggestion[] = [

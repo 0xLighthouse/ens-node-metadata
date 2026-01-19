@@ -9,7 +9,8 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { useTreeEditStore } from '@/stores/tree-edits'
-import { useTreeData, type TreeNodeType, type OrganizationRootTreeNode } from '@/contexts/TreeDataContext'
+import { useTreeData } from '@/hooks/useTreeData'
+import { type TreeNodeType, type OrganizationRootTreeNode } from '@/lib/tree/types'
 
 interface ApplyChangesDialogProps {
   open: boolean
@@ -20,6 +21,10 @@ interface ApplyChangesDialogProps {
 export function ApplyChangesDialog({ open, onOpenChange, onConfirm }: ApplyChangesDialogProps) {
   const { pendingMutations } = useTreeEditStore()
   const { sourceTree } = useTreeData()
+
+  if (!sourceTree) {
+    return null
+  }
 
   const formatNodeType = (nodeType?: TreeNodeType) => {
     if (!nodeType) return 'Unknown'

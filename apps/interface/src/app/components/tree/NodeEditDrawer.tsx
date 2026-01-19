@@ -2,7 +2,8 @@
 
 import { Drawer } from 'vaul'
 import { useTreeEditStore } from '@/stores/tree-edits'
-import { useTreeData, type TreeNodeType } from '@/contexts/TreeDataContext'
+import { useTreeData } from '@/hooks/useTreeData'
+import { type TreeNodeType } from '@/lib/tree/types'
 import { useState, useEffect } from 'react'
 
 type NodeTypeFieldKey = 'website' | 'email' | 'organizationAddress'
@@ -54,6 +55,7 @@ export function NodeEditDrawer() {
 
   // Find the node data in base tree
   const findNode = (name: string, node = sourceTree): any => {
+    if (!node) return null
     if (node.name === name) return node
     if (node.children) {
       for (const child of node.children) {
@@ -66,6 +68,7 @@ export function NodeEditDrawer() {
 
   // Find the node in full tree (including pending creations with edits)
   const findNodeInTree = (name: string, node = previewTree): any => {
+    if (!node) return null
     if (node.name === name) return node
     if (node.children) {
       for (const child of node.children) {
@@ -76,7 +79,7 @@ export function NodeEditDrawer() {
     return null
   }
 
-  const nodeWithEdits = selectedNode ? findNodeInTree(selectedNode) : null
+  const nodeWithEdits = selectedNode && previewTree ? findNodeInTree(selectedNode, previewTree) : null
   const existingEdit = selectedNode ? getPendingEdit(selectedNode) : undefined
   const isPendingCreation = nodeWithEdits?.isPendingCreation || false
 
@@ -175,6 +178,10 @@ export function NodeEditDrawer() {
 
   // Only show discard button for actual edits (not pending creations)
   const hasPendingEdits = !isPendingCreation && !!existingEdit
+
+  if (!sourceTree || !previewTree) {
+    return null
+  }
 
   return (
     <Drawer.Root open={isEditDrawerOpen} onOpenChange={(open) => !open && closeEditDrawer()} direction="right">

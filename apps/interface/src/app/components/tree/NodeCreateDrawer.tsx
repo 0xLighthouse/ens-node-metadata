@@ -2,7 +2,8 @@
 
 import { Drawer } from 'vaul'
 import { useTreeEditStore } from '@/stores/tree-edits'
-import { useTreeData, type DomainTreeNode, type TreeNodeType } from '@/contexts/TreeDataContext'
+import { useTreeData } from '@/hooks/useTreeData'
+import { type DomainTreeNode, type TreeNodeType } from '@/lib/tree/types'
 import { useState, useEffect } from 'react'
 
 interface NodeCreateDrawerProps {
@@ -35,14 +36,18 @@ export function NodeCreateDrawer({
     return labels[nodeType] ?? nodeType
   }
 
-  const [selectedParent, setSelectedParent] = useState<string>(sourceTree.name)
+  const [selectedParent, setSelectedParent] = useState<string>('')
 
   // Reset to root when drawer opens
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && sourceTree) {
       setSelectedParent(sourceTree.name)
     }
-  }, [isOpen, sourceTree.name])
+  }, [isOpen, sourceTree])
+
+  if (!sourceTree || !previewTree) {
+    return null
+  }
 
   // Collect all nodes that can be parents (all existing nodes, including pending creations)
   const collectAllNodes = (node: DomainTreeNode): { name: string; depth: number }[] => {

@@ -2,7 +2,6 @@
 
 import { PageInset } from '@/app/components/containers'
 import { useAppStore } from '@/stores/app'
-import { TreeDataProvider } from '@/contexts/TreeDataContext'
 import { TreeContainer } from '@/app/components/tree'
 
 function PageContent() {
@@ -22,8 +21,6 @@ function PageContent() {
 
 export default function Page() {
   return (
-    <TreeDataProvider>
-      <PageContent />
-    </TreeDataProvider>
+    <PageContent />
   )
 }
