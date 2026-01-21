@@ -7,7 +7,7 @@ export function Unauthenticated() {
   const { authenticated } = usePrivy()
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center space-y-8 p-4">
+    <div className="flex flex-col items-center justify-center space-y-8 p-4 py-16">
       {!authenticated ? (
         <div className="text-center space-y-4">
           <h1 className="text-3xl font-bold">Welcome to Lighthouse</h1>

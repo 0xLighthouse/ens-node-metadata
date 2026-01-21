@@ -1,4 +1,5 @@
 export interface Schema {
+  github: string;
   name: string;
   version: string;
   description: string;
@@ -11,4 +12,5 @@ export interface Attribute {
   key: string;
   description: string;
   isRequired: boolean;
+  notes?: string;
 }

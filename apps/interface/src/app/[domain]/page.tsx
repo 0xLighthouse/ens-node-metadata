@@ -4,7 +4,7 @@ import { PageInset } from '@/app/components/containers'
 import { useAppStore } from '@/stores/app'
 import { TreeContainer } from '@/app/components/tree'
 
-function PageContent() {
+export default function Page() {
   const { activeDomain } = useAppStore()
 
   return (
@@ -16,11 +16,5 @@ function PageContent() {
       </PageInset>
       <TreeContainer />
     </>
-  )
-}
-
-export default function Page() {
-  return (
-    <PageContent />
   )
 }

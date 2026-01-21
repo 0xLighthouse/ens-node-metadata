@@ -24,7 +24,7 @@ const nodeTypeAccent: Record<TreeNodeType, string> = {
 }
 
 const getNodeAccent = (nodeType?: TreeNodeType) =>
-  (nodeType ? nodeTypeAccent[nodeType] : nodeTypeAccent.generic)
+  nodeType ? nodeTypeAccent[nodeType] : nodeTypeAccent.generic
 
 const DomainTreeNodeCardComponent = ({
   node,
@@ -63,26 +63,26 @@ const DomainTreeNodeCardComponent = ({
         backgroundColor: isSuggested
           ? '#f8fafc'
           : isPendingCreation
-          ? '#f0fdf4'
-          : hasPendingEdits
-          ? '#fff7ed'
-          : 'white',
+            ? '#f0fdf4'
+            : hasPendingEdits
+              ? '#fff7ed'
+              : 'white',
         border: isSuggested
           ? '2px dashed #cbd5e1'
           : isPendingCreation
-          ? '2px dashed #22c55e'
-          : hasPendingEdits
-          ? '2px dashed #fb923c'
-          : '1px solid #e2e8f0',
+            ? '2px dashed #22c55e'
+            : hasPendingEdits
+              ? '2px dashed #fb923c'
+              : '1px solid #e2e8f0',
         borderRadius: '8px',
         overflow: 'hidden',
         boxShadow: isSelected
           ? '0 4px 12px rgba(0, 0, 0, 0.15)'
           : isPendingCreation
-          ? '0 4px 12px rgba(34, 197, 94, 0.25)'
-          : hasPendingEdits
-          ? '0 4px 12px rgba(249, 115, 22, 0.25)'
-          : '0 2px 8px rgba(0, 0, 0, 0.1)',
+            ? '0 4px 12px rgba(34, 197, 94, 0.25)'
+            : hasPendingEdits
+              ? '0 4px 12px rgba(249, 115, 22, 0.25)'
+              : '0 2px 8px rgba(0, 0, 0, 0.1)',
       }}
     >
       {/* Header with icon and name */}
@@ -92,17 +92,17 @@ const DomainTreeNodeCardComponent = ({
           backgroundColor: isSuggested
             ? '#f8fafc'
             : isPendingCreation
-            ? '#f0fdf4'
-            : hasPendingEdits
-            ? '#fff7ed'
-            : 'white',
+              ? '#f0fdf4'
+              : hasPendingEdits
+                ? '#fff7ed'
+                : 'white',
           borderBottomColor: isSuggested
             ? '#e2e8f0'
             : isPendingCreation
-            ? '#bbf7d0'
-            : hasPendingEdits
-            ? '#fed7aa'
-            : '#e5e7eb',
+              ? '#bbf7d0'
+              : hasPendingEdits
+                ? '#fed7aa'
+                : '#e5e7eb',
         }}
       >
         <div
@@ -148,9 +148,7 @@ const DomainTreeNodeCardComponent = ({
         </div>
         <div className="flex-1 min-w-0">
           <div className="text-sm font-semibold text-gray-900 truncate">{displayName}</div>
-          {!isCompact && (
-            <div className="text-xs text-gray-500 truncate">{node.name}</div>
-          )}
+          {!isCompact && <div className="text-xs text-gray-500 truncate">{node.name}</div>}
         </div>
         {hasChildren && (
           <div className="flex items-center gap-1 flex-shrink-0">
@@ -191,10 +189,10 @@ const DomainTreeNodeCardComponent = ({
           backgroundColor: isSuggested
             ? '#f8fafc'
             : isPendingCreation
-            ? '#dcfce7'
-            : hasPendingEdits
-            ? '#ffedd5'
-            : `${accentColor}20`,
+              ? '#dcfce7'
+              : hasPendingEdits
+                ? '#ffedd5'
+                : `${accentColor}20`,
         }}
       >
         {isSuggested ? (
@@ -219,9 +217,7 @@ const DomainTreeNodeCardComponent = ({
                 <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
                 <path d="M7 11V7a5 5 0 0 1 10 0v4" />
               </svg>
-              <span className="font-mono text-xs truncate">
-                {node.address || '0x0000...0000'}
-              </span>
+              <span className="font-mono text-xs truncate">{node.address || '0x0000...0000'}</span>
             </div>
           </>
         )}

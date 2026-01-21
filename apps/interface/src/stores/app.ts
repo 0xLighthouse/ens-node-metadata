@@ -4,10 +4,26 @@ import Cookies from 'js-cookie'
 import { AUTH_TOKEN_COOKIE } from '@/config/constants'
 import { useApiStore } from './api'
 import { QUERY_DOMAINS_OWNED } from '@/graphql/query.domains-owned'
+import { QUERY_DOMAIN_BY_NAME } from '@/graphql/query.domain-by-name'
 import { ENSRootDomain } from '@/types'
 import { User } from '@privy-io/react-auth'
 
 type AppStatus = 'idle' | 'initializing' | 'loading-domains' | 'ready' | 'error'
+
+const normalizeDomainName = (input: string) => input.trim().toLowerCase()
+
+const toENSRootDomain = (item: any, fallbackName?: string): ENSRootDomain => {
+  const name = item.name ?? fallbackName ?? item.id
+  return {
+    id: item.id,
+    label: item.labelName ?? name,
+    name,
+    namehash: item.id,
+    createdAt: item.createdAt,
+    expiryDate: item.expiryDate,
+    isMigrated: item.isMigrated,
+  }
+}
 
 interface AppState {
   isInitialized: boolean
@@ -26,6 +42,7 @@ interface AppState {
   setActiveDomain: (domain: ENSRootDomain) => void
   clearActiveDomain: () => void
   fetchDomains: (userAddress: string) => Promise<void>
+  loadDomain: (domainName: string) => Promise<ENSRootDomain>
   logout: () => void
   reset: () => void
 }
@@ -81,15 +98,7 @@ export const useAppStore = create<AppState>()(
           // Transform shitty subgraph response to our types
           const domains: ENSRootDomain[] = []
           for (const item of resp.domains) {
-            domains.push({
-              id: item.id,
-              label: item.labelName,
-              name: item.name,
-              namehash: item.id,
-              createdAt: item.createdAt,
-              expiryDate: item.expiryDate,
-              isMigrated: item.isMigrated,
-            })
+            domains.push(toENSRootDomain(item))
           }
 
           set({
@@ -102,6 +111,22 @@ export const useAppStore = create<AppState>()(
             error: error instanceof Error ? error.message : 'Failed to fetch domains',
           })
         }
+      },
+
+      loadDomain: async (domainName: string) => {
+        const name = normalizeDomainName(domainName)
+        if (!name) {
+          throw new Error('Enter a domain name to load.')
+        }
+
+        const apiStore = useApiStore.getState()
+        const resp = await apiStore.ensRequest(QUERY_DOMAIN_BY_NAME, { name })
+        const domain = resp.domains?.[0]
+        if (!domain) {
+          throw new Error(`Domain not found: ${name}`)
+        }
+
+        return toENSRootDomain(domain, name)
       },
 
       logout: () => {

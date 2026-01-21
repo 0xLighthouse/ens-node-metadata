@@ -100,9 +100,7 @@ export function NodeCreateDrawer({
               {node.nodeType === 'organizationRoot' && node.organizationAddress && (
                 <div>Organization Address: {node.organizationAddress}</div>
               )}
-              {node.nodeType === 'organizationRoot' && node.email && (
-                <div>Email: {node.email}</div>
-              )}
+              {node.nodeType === 'organizationRoot' && node.email && <div>Email: {node.email}</div>}
             </div>
           </div>
         </div>
