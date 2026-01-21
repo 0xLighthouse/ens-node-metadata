@@ -1,6 +1,8 @@
 import { Schema } from "./types";
+import { GITHUB_URL } from "./config/constants";
 
 export const LOCATION_SCHEMA: Schema = {
+  github: GITHUB_URL,
   name: 'Location',
   version: '1.0.0',
   description: 'A physical location in the real world which houses an office.',

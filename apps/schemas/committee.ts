@@ -1,10 +1,11 @@
 import { Schema } from "./types";
 import { ENSIP5 } from "./utils/ensip5";
+import { GITHUB_URL } from "./config/constants";
 
 export const COMMITTEE_SCHEMA: Schema = {
-  github: 'https://github.com/lighthouse-labs/ens-org-registrar',
-  version: '1.0.0',
+  github: GITHUB_URL,
   name: 'Committee',
+  version: '1.0.0',
   description: 'A group of entities that have been empowered by a larger organization to undertake some activity.',
   attributes: [
     ...ENSIP5.attributes,
