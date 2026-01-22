@@ -3,7 +3,7 @@
 import { Drawer } from 'vaul'
 import { useTreeEditStore } from '@/stores/tree-edits'
 import { useTreeData } from '@/hooks/useTreeData'
-import { type DomainTreeNode, type TreeNodeType } from '@/lib/tree/types'
+import { type TreeNodes, type TreeNodeType } from '@/lib/tree/types'
 import { useState, useEffect } from 'react'
 
 interface NodeCreateDrawerProps {
@@ -11,7 +11,7 @@ interface NodeCreateDrawerProps {
   onClose: () => void
   suggestionId: string
   suggestionTitle: string
-  nodes: DomainTreeNode[]
+  nodes: TreeNodes[]
 }
 
 export function NodeCreateDrawer({
@@ -50,10 +50,10 @@ export function NodeCreateDrawer({
   }
 
   // Collect all nodes that can be parents (all existing nodes, including pending creations)
-  const collectAllNodes = (node: DomainTreeNode): { name: string; depth: number }[] => {
+  const collectAllNodes = (node: TreeNodes): { name: string; depth: number }[] => {
     const nodes: { name: string; depth: number }[] = []
 
-    const traverse = (n: DomainTreeNode, depth: number) => {
+    const traverse = (n: TreeNodes, depth: number) => {
       nodes.push({ name: n.name, depth })
       if (n.children) {
         for (const child of n.children) {
@@ -74,14 +74,14 @@ export function NodeCreateDrawer({
   }
 
   // Helper to count all nodes recursively
-  const countNodes = (nodesToCount: DomainTreeNode[]): number => {
+  const countNodes = (nodesToCount: TreeNodes[]): number => {
     return nodesToCount.reduce((count, node) => {
       return count + 1 + (node.children ? countNodes(node.children) : 0)
     }, 0)
   }
 
   // Helper to render node tree preview
-  const renderNodePreview = (nodesToRender: DomainTreeNode[], depth = 0) => {
+  const renderNodePreview = (nodesToRender: TreeNodes[], depth = 0) => {
     return nodesToRender.map((node, idx) => (
       <div key={idx} className={`${depth > 0 ? 'ml-6' : ''} space-y-2`}>
         <div className="text-green-700 dark:text-green-300 flex items-start gap-2">
@@ -117,12 +117,12 @@ export function NodeCreateDrawer({
   return (
     <Drawer.Root open={isOpen} onOpenChange={(open) => !open && onClose()} direction="right">
       <Drawer.Portal>
-        <Drawer.Overlay className="fixed inset-0 bg-black/40 z-40" />
+        <Drawer.Overlay className="fixed inset-0 z-40 pointer-events-none" />
         <Drawer.Content
-          className="right-2 top-2 bottom-2 fixed z-50 outline-none w-[500px] flex"
-          style={{ '--initial-transform': 'calc(100% + 8px)' } as React.CSSProperties}
+          className="right-4 top-20 bottom-4 fixed z-50 outline-none w-[500px] flex"
+          style={{ '--initial-transform': 'calc(100% + 16px)' } as React.CSSProperties}
         >
-          <div className="bg-white dark:bg-gray-900 h-full w-full grow p-6 flex flex-col rounded-[16px] shadow-xl">
+          <div className="h-full w-full grow p-6 flex flex-col rounded-r-[16px] border-l border-white bg-[rgb(247,247,248)] dark:bg-neutral-900">
             {/* Header */}
             <div className="mb-6">
               <Drawer.Title className="font-semibold text-lg text-gray-900 dark:text-white mb-1">

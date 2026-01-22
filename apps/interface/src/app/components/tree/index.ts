@@ -1,4 +1,3 @@
-export { DomainTree } from './DomainTree'
+export { Tree } from './Tree'
 export { TreeContainer } from './TreeContainer'
 export { TreeControls } from './TreeControls'
-export { DomainTreeNodeCard } from './DomainTreeNode'

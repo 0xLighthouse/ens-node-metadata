@@ -186,12 +186,12 @@ export function NodeEditDrawer() {
   return (
     <Drawer.Root open={isEditDrawerOpen} onOpenChange={(open) => !open && closeEditDrawer()} direction="right">
       <Drawer.Portal>
-        <Drawer.Overlay className="fixed inset-0 bg-black/40 z-40" />
+        <Drawer.Overlay className="fixed inset-0 z-40 pointer-events-none" />
         <Drawer.Content
-          className="right-2 top-2 bottom-2 fixed z-50 outline-none w-[400px] flex"
-          style={{ '--initial-transform': 'calc(100% + 8px)' } as React.CSSProperties}
+          className="right-4 top-20 bottom-4 fixed z-50 outline-none w-[400px] flex"
+          style={{ '--initial-transform': 'calc(100% + 16px)' } as React.CSSProperties}
         >
-          <div className="bg-white dark:bg-gray-900 h-full w-full grow p-6 flex flex-col rounded-[16px] shadow-xl">
+          <div className="h-full w-full grow p-6 flex flex-col rounded-r-[16px] border-l border-white bg-[rgb(247,247,248)] dark:bg-neutral-900">
             {/* Header */}
             <div className="mb-6">
               <Drawer.Title className="font-semibold text-lg text-gray-900 dark:text-white mb-1">

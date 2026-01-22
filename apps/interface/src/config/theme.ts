@@ -145,6 +145,7 @@ export const colorSystem = {
   },
   bg: {
     primary: 'bg-white dark:bg-neutral-950',
+    panel: 'bg-[rgb(247,247,248)] dark:bg-neutral-900',
     secondary: 'bg-neutral-100 dark:bg-neutral-900',
     tertiary: 'bg-neutral-200 dark:bg-neutral-800',
     brand: 'bg-blue-500 dark:bg-blue-600',

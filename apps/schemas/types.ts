@@ -1,5 +1,5 @@
 export interface Schema {
-  github: string;
+  source: string;
   name: string;
   version: string;
   description: string;

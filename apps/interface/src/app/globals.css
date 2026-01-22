@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "@xyflow/react/dist/style.css";
 
 /* Custom variant for dark mode */
 @custom-variant dark (&:where(.dark, .dark *));
@@ -117,6 +118,46 @@
 
   .handle-class {
     @apply relative z-60;
+  }
+
+  /* Override React Flow default selection styling */
+  .react-flow__node.selected {
+    outline: none !important;
+  }
+
+  /* Remove all focus outlines from React Flow nodes */
+  .react-flow__node:focus,
+  .react-flow__node:focus-visible,
+  .react-flow__node.selected:focus,
+  .react-flow__node.selected:focus-visible {
+    outline: none !important;
+  }
+
+  /* Position React Flow controls in middle left */
+  .react-flow__controls {
+    left: 0 !important;
+    bottom: auto !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    height: auto !important;
+  }
+
+  /* React Flow background styling */
+  .react-flow__background {
+    background-color: white;
+  }
+
+  .dark .react-flow__background {
+    background-color: rgb(3 7 18); /* gray-950 */
+  }
+
+  /* Adjust dot color for better visibility */
+  .react-flow__background-pattern {
+    stroke: rgb(229 231 235); /* gray-200 for light mode */
+  }
+
+  .dark .react-flow__background-pattern {
+    stroke: rgb(31 41 55); /* gray-800 for dark mode */
   }
 
   /* Mobile navigation offset adjustment */

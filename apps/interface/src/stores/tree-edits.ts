@@ -1,15 +1,15 @@
 import { create } from 'zustand'
-import type { DomainTreeNode } from '@/lib/tree/types'
+import type { TreeNodes } from '@/lib/tree/types'
 
 export interface TreeMutation {
   id: string
   isCreate: boolean
   // For edits
   nodeName?: string
-  changes?: Partial<Omit<DomainTreeNode, 'name' | 'children'>>
+  changes?: Partial<Omit<TreeNodes, 'name' | 'children'>>
   // For creations
   parentName?: string
-  nodes?: DomainTreeNode[]
+  nodes?: TreeNodes[]
 }
 
 interface TreeEditState {
@@ -21,8 +21,8 @@ interface TreeEditState {
   isEditDrawerOpen: boolean
 
   // Actions
-  upsertEdit: (nodeName: string, changes: Partial<Omit<DomainTreeNode, 'name' | 'children'>>) => void
-  queueCreation: (id: string, parentName: string, nodes: DomainTreeNode[]) => void
+  upsertEdit: (nodeName: string, changes: Partial<Omit<TreeNodes, 'name' | 'children'>>) => void
+  queueCreation: (id: string, parentName: string, nodes: TreeNodes[]) => void
   discardPendingMutation: (id: string) => void
   clearPendingMutations: () => void
   setSelectedNode: (nodeName: string | null) => void

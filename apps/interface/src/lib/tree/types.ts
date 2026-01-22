@@ -1,9 +1,9 @@
-export type TreeNodeType = 'raw' | 'organizationRoot' | 'treasury' | 'role' | 'team'
+export type TreeNodeType = 'default' | 'organizationRoot' | 'treasury' | 'role' | 'team'
 
 export interface BaseTreeNode {
   name: string
   subdomainCount: number
-  children?: DomainTreeNode[]
+  children?: TreeNodes[]
   resolverId?: string
   address: `0x${string}`
   // TODO: Get manager
@@ -24,9 +24,9 @@ export interface BaseTreeNode {
   isPendingCreation?: boolean
 }
 
-export interface RawTreeNode extends BaseTreeNode {
+export interface DefaultTreeNode extends BaseTreeNode {
   // Omit nodeType for unknown kinds to fall back to generic.
-  nodeType?: 'raw'
+  nodeType?: 'default'
 }
 
 export interface TreasuryTreeNode extends BaseTreeNode {
@@ -48,8 +48,8 @@ export interface TeamTreeNode extends BaseTreeNode {
   nodeType: 'team'
 }
 
-export type DomainTreeNode =
-  | RawTreeNode
+export type TreeNode =
+  | DefaultTreeNode
   | OrganizationRootTreeNode
   | TreasuryTreeNode
   | RoleTreeNode

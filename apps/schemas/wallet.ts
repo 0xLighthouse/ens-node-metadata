@@ -2,7 +2,7 @@ import { Schema } from "./types";
 import { GITHUB_URL } from "./config/constants";
 
 export const WALLET_SCHEMA: Schema = {
-  github: GITHUB_URL,
+  source: GITHUB_URL,
   name: 'Wallet',
   version: '1.0.0',
   description: 'A wallet for holding or managing assets.',

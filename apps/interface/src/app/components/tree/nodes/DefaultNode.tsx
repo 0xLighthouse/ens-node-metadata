@@ -1,13 +1,24 @@
 'use client'
 
 import { memo } from 'react'
-import type { DomainTreeNode, TreeNodeType } from '@/lib/tree/types'
+import type { NodeProps } from '@xyflow/react'
+import type { TreeNode, TreeNodeType } from '@/lib/tree/types'
+import { NodeContainer } from './NodeContainer'
+
+interface DomainTreeNodeData {
+  node: TreeNode
+  isSelected: boolean
+  hasChildren: boolean
+  isCollapsed: boolean
+  hasPendingEdits: boolean
+  childrenCount: number
+  orientation: 'vertical' | 'horizontal'
+  onToggleCollapse: () => void
+}
 
 interface DomainTreeNodeProps {
-  node: DomainTreeNode
+  node: TreeNode
   isSelected: boolean
-  onClick: () => void
-  isCompact?: boolean
   hasChildren?: boolean
   isCollapsed?: boolean
   hasPendingEdits?: boolean
@@ -16,7 +27,7 @@ interface DomainTreeNodeProps {
 }
 
 const nodeTypeAccent: Record<TreeNodeType, string> = {
-  generic: '#94a3b8',
+  default: '#94a3b8',
   organizationRoot: '#0ea5e9',
   treasury: '#f59e0b',
   role: '#8b5cf6',
@@ -24,13 +35,11 @@ const nodeTypeAccent: Record<TreeNodeType, string> = {
 }
 
 const getNodeAccent = (nodeType?: TreeNodeType) =>
-  nodeType ? nodeTypeAccent[nodeType] : nodeTypeAccent.generic
+  nodeType ? nodeTypeAccent[nodeType] : nodeTypeAccent.default
 
-const DomainTreeNodeCardComponent = ({
+const DefaultNodeCard = ({
   node,
   isSelected,
-  onClick,
-  isCompact = false,
   hasChildren = false,
   isCollapsed = false,
   hasPendingEdits = false,
@@ -50,8 +59,7 @@ const DomainTreeNodeCardComponent = ({
   const isPendingCreation = node.isPendingCreation || false
 
   return (
-    <div
-      onClick={onClick}
+    <NodeContainer
       className={`
         cursor-pointer transition-all duration-200
         ${isSelected ? 'ring-2 ring-indigo-500 ring-offset-2' : ''}
@@ -59,7 +67,7 @@ const DomainTreeNodeCardComponent = ({
         ${isSuggested ? 'opacity-50' : ''}
       `}
       style={{
-        width: isCompact ? '200px' : '280px',
+        width: '280px',
         backgroundColor: isSuggested
           ? '#f8fafc'
           : isPendingCreation
@@ -148,7 +156,7 @@ const DomainTreeNodeCardComponent = ({
         </div>
         <div className="flex-1 min-w-0">
           <div className="text-sm font-semibold text-gray-900 truncate">{displayName}</div>
-          {!isCompact && <div className="text-xs text-gray-500 truncate">{node.name}</div>}
+          <div className="text-xs text-gray-500 truncate">{node.name}</div>
         </div>
         {hasChildren && (
           <div className="flex items-center gap-1 flex-shrink-0">
@@ -222,8 +230,23 @@ const DomainTreeNodeCardComponent = ({
           </>
         )}
       </div>
-    </div>
+    </NodeContainer>
   )
 }
 
-export const DomainTreeNodeCard = memo(DomainTreeNodeCardComponent)
+// Wrapper component for React Flow
+const DefaultNodeWrapper = ({ data }: NodeProps<DomainTreeNodeData>) => {
+  return (
+    <DefaultNodeCard
+      node={data.node}
+      isSelected={data.isSelected}
+      hasChildren={data.hasChildren}
+      isCollapsed={data.isCollapsed}
+      hasPendingEdits={data.hasPendingEdits}
+      onToggleCollapse={data.onToggleCollapse}
+      childrenCount={data.childrenCount}
+    />
+  )
+}
+
+export const DefaultNode = memo(DefaultNodeWrapper)

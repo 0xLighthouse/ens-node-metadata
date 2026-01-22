@@ -1,7 +1,12 @@
 import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
 
 export type TreeOrientation = 'vertical' | 'horizontal'
-export type TreeViewMode = 'full' | 'compact'
+
+export interface NodePosition {
+  x: number
+  y: number
+}
 
 interface TreeControlsState {
   // Selected node
@@ -9,93 +14,112 @@ interface TreeControlsState {
 
   // View settings
   orientation: TreeOrientation
-  viewMode: TreeViewMode
 
-  // Zoom state
-  zoomLevel: number
-
-  // Collapsed nodes (for future expand/collapse feature)
+  // Collapsed nodes
   collapsedNodes: Set<string>
+
+  // Custom node positions (for drag persistence)
+  nodePositions: Map<string, NodePosition>
 
   // Actions
   setSelectedNode: (nodeName: string | null) => void
   setOrientation: (orientation: TreeOrientation) => void
-  setViewMode: (viewMode: TreeViewMode) => void
-  setZoomLevel: (zoomLevel: number) => void
-  zoomIn: () => void
-  zoomOut: () => void
-  resetZoom: () => void
   toggleNodeCollapsed: (nodeName: string) => void
   collapseAll: (nodeNames: string[]) => void
   expandAll: () => void
+  setNodePosition: (nodeId: string, position: NodePosition) => void
+  clearNodePositions: () => void
   reset: () => void
 }
 
 const initialState = {
   selectedNodeName: null,
   orientation: 'vertical' as TreeOrientation,
-  viewMode: 'full' as TreeViewMode,
-  zoomLevel: 1,
   collapsedNodes: new Set<string>(),
+  nodePositions: new Map<string, NodePosition>(),
 }
 
-export const useTreeControlsStore = create<TreeControlsState>()((set, get) => ({
-  ...initialState,
+export const useTreeControlsStore = create<TreeControlsState>()(
+  persist(
+    (set, get) => ({
+      ...initialState,
 
-  setSelectedNode: (nodeName) => {
-    set({ selectedNodeName: nodeName })
-  },
+      setSelectedNode: (nodeName) => {
+        set({ selectedNodeName: nodeName })
+      },
 
-  setOrientation: (orientation) => {
-    set({ orientation })
-  },
+      setOrientation: (orientation) => {
+        set({ orientation })
+      },
 
-  setViewMode: (viewMode) => {
-    set({ viewMode })
-  },
+      toggleNodeCollapsed: (nodeName) => {
+        const { collapsedNodes } = get()
+        const newCollapsed = new Set(collapsedNodes)
 
-  setZoomLevel: (zoomLevel) => {
-    // Clamp zoom between 0.1 and 3
-    const clampedZoom = Math.min(Math.max(zoomLevel, 0.1), 3)
-    set({ zoomLevel: clampedZoom })
-  },
+        if (newCollapsed.has(nodeName)) {
+          newCollapsed.delete(nodeName)
+        } else {
+          newCollapsed.add(nodeName)
+        }
 
-  zoomIn: () => {
-    const { zoomLevel } = get()
-    get().setZoomLevel(zoomLevel + 0.2)
-  },
+        set({ collapsedNodes: newCollapsed })
+      },
 
-  zoomOut: () => {
-    const { zoomLevel } = get()
-    get().setZoomLevel(zoomLevel - 0.2)
-  },
+      collapseAll: (nodeNames) => {
+        set({ collapsedNodes: new Set(nodeNames) })
+      },
 
-  resetZoom: () => {
-    set({ zoomLevel: 1 })
-  },
+      expandAll: () => {
+        set({ collapsedNodes: new Set() })
+      },
 
-  toggleNodeCollapsed: (nodeName) => {
-    const { collapsedNodes } = get()
-    const newCollapsed = new Set(collapsedNodes)
+      setNodePosition: (nodeId, position) => {
+        const { nodePositions } = get()
+        const newPositions = new Map(nodePositions)
+        newPositions.set(nodeId, position)
+        set({ nodePositions: newPositions })
+      },
 
-    if (newCollapsed.has(nodeName)) {
-      newCollapsed.delete(nodeName)
-    } else {
-      newCollapsed.add(nodeName)
-    }
+      clearNodePositions: () => {
+        set({ nodePositions: new Map() })
+      },
 
-    set({ collapsedNodes: newCollapsed })
-  },
-
-  collapseAll: (nodeNames) => {
-    set({ collapsedNodes: new Set(nodeNames) })
-  },
-
-  expandAll: () => {
-    set({ collapsedNodes: new Set() })
-  },
-
-  reset: () => {
-    set(initialState)
-  },
-}))
+      reset: () => {
+        set(initialState)
+      },
+    }),
+    {
+      name: 'tree-controls-storage',
+      storage: {
+        getItem: (name) => {
+          const str = localStorage.getItem(name)
+          if (!str) return null
+          const { state } = JSON.parse(str)
+          return {
+            state: {
+              ...state,
+              collapsedNodes: new Set(state.collapsedNodes || []),
+              nodePositions: new Map(Object.entries(state.nodePositions || {})),
+            },
+          }
+        },
+        setItem: (name, newValue) => {
+          const str = JSON.stringify({
+            state: {
+              ...newValue.state,
+              collapsedNodes: Array.from(newValue.state.collapsedNodes),
+              nodePositions: Object.fromEntries(newValue.state.nodePositions),
+            },
+          })
+          localStorage.setItem(name, str)
+        },
+        removeItem: (name) => localStorage.removeItem(name),
+      },
+      partialize: (state) => ({
+        orientation: state.orientation,
+        collapsedNodes: state.collapsedNodes,
+        nodePositions: state.nodePositions,
+      }),
+    },
+  ),
+)
