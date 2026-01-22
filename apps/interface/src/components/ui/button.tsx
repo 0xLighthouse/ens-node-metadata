@@ -31,7 +31,8 @@ const buttonVariants = tv({
       md: 'h-10 rounded-md px-6',
       lg: 'h-11 rounded-md px-8',
       // Clear default size for icon
-      icon: '', //h-10 w-10
+      icon: 'h-10 w-10',
+      'icon-lg': 'h-11 w-11',
     },
     full: {
       true: 'h-full dark:h-full',

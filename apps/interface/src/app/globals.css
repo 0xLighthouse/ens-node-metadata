@@ -27,6 +27,12 @@
     /* Line colors */
     --line: 0 0% 92%;
     --line-strong: 0 0% 88%;
+
+    /* ENS brand */
+    --color-ens-blue: #5298ff;
+    --color-ens-purple: #a099ff;
+    --color-ens-gradient-start: #5298ff;
+    --color-ens-gradient-end: #a099ff;
   }
 
   .dark {

@@ -8,59 +8,76 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
-import { useAppStore } from '@/stores/app'
+import { Fragment } from 'react'
 import { usePathname } from 'next/navigation'
-import { SpaceAvatar } from './ui/space-avatar'
-import { useEffect, useState } from 'react'
 
 export const PageBreadcrumbs = () => {
-  const activeSpace = useAppStore((state) => state.activeSpace)
   const pathname = usePathname()
-  const [isHydrated, setIsHydrated] = useState(false)
-
   const pathSegments = pathname.split('/').filter(Boolean)
-  const rawTitle = pathSegments[pathSegments.length - 1] || ''
-  const title = rawTitle
-    .split('-')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ')
-  const isAdminRoute = pathSegments[0] === 'admin'
 
-  // Wait for client-side hydration
-  useEffect(() => {
-    setIsHydrated(true)
-  }, [])
-
-  // Don't render space breadcrumb during SSR or before hydration
-  if (!isHydrated) {
-    return (
-      <Breadcrumb>
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbPage>{title}</BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
-    )
+  const formatSegment = (segment: string) => {
+    const decoded = decodeURIComponent(segment)
+    if (decoded.includes('.')) return decoded
+    return decoded
+      .split('-')
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ')
   }
+
+  const breadcrumbs = pathSegments.length
+    ? pathSegments.map((segment, index) => {
+        const href = '/' + pathSegments.slice(0, index + 1).join('/')
+        return {
+          href,
+          label: formatSegment(segment),
+          isRoot: index === 0,
+          isLast: index === pathSegments.length - 1,
+        }
+      })
+    : [
+        {
+          href: '/',
+          label: 'Home',
+          isRoot: true,
+          isLast: true,
+        },
+      ]
 
   return (
     <Breadcrumb>
-      <BreadcrumbList>
-        {activeSpace && (
-          <>
-            <BreadcrumbItem className="hidden md:block">
-              <BreadcrumbLink href="/onboarding/select-space" className="flex items-center gap-2">
-                <SpaceAvatar space={activeSpace} size="sm" />
-                {activeSpace.title || activeSpace.ens || activeSpace.spaceId}
-              </BreadcrumbLink>
+      <BreadcrumbList className="text-base text-neutral-600 leading-none">
+        {breadcrumbs.map((crumb) => (
+          <Fragment key={crumb.href}>
+            <BreadcrumbItem className="gap-2">
+              {crumb.isRoot && (
+                <span
+                  className="flex h-6 w-6 items-center justify-center rounded-md border border-neutral-200"
+                  style={{
+                    background:
+                      'linear-gradient(135deg, var(--color-ens-gradient-start), var(--color-ens-gradient-end))',
+                  }}
+                >
+                  <img src="/images/ens-icon.svg" alt="ENS" className="h-3.5 w-3.5" />
+                </span>
+              )}
+              {crumb.isLast ? (
+                <BreadcrumbPage className="text-neutral-700">{crumb.label}</BreadcrumbPage>
+              ) : (
+                <BreadcrumbLink
+                  href={crumb.href}
+                  className={
+                    crumb.isRoot
+                      ? 'font-medium text-neutral-800 underline decoration-2 underline-offset-4'
+                      : 'font-medium text-neutral-600 hover:text-neutral-800'
+                  }
+                >
+                  {crumb.label}
+                </BreadcrumbLink>
+              )}
             </BreadcrumbItem>
-            <BreadcrumbSeparator className="hidden md:block" />
-          </>
-        )}
-        <BreadcrumbItem>
-          <BreadcrumbPage>{title}</BreadcrumbPage>
-        </BreadcrumbItem>
+            {!crumb.isLast && <BreadcrumbSeparator className="text-neutral-400" />}
+          </Fragment>
+        ))}
       </BreadcrumbList>
     </Breadcrumb>
   )

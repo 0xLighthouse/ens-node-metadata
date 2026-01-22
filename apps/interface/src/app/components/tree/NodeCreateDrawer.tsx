@@ -1,6 +1,7 @@
 'use client'
 
 import { Drawer } from 'vaul'
+import { X } from 'lucide-react'
 import { useTreeEditStore } from '@/stores/tree-edits'
 import { useTreeData } from '@/hooks/useTreeData'
 import { type TreeNodes, type TreeNodeType } from '@/lib/tree/types'
@@ -124,7 +125,14 @@ export function NodeCreateDrawer({
         >
           <div className="h-full w-full grow p-6 flex flex-col rounded-r-[16px] border-l border-white bg-[rgb(247,247,248)] dark:bg-neutral-900">
             {/* Header */}
-            <div className="mb-6">
+            <div className="mb-6 relative">
+              <button
+                onClick={onClose}
+                className="absolute -top-2 -right-2 p-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                aria-label="Close drawer"
+              >
+                <X size={20} />
+              </button>
               <Drawer.Title className="font-semibold text-lg text-gray-900 dark:text-white mb-1">
                 Create Nodes
               </Drawer.Title>

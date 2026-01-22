@@ -10,13 +10,13 @@ import { resolveAvatar, shortAddress } from '@/lib/utils'
 import { useAccount } from '@/hooks/useAccount'
 import { useAppStore } from '@/stores/app'
 
-interface AuthProps {
+interface Props {
   className?: string
   showUserInfo?: boolean
   variant?: 'default' | 'minimal'
 }
 
-export const Auth: React.FC<AuthProps> = ({
+export const ConnectButton: React.FC<Props> = ({
   className,
   showUserInfo = true,
   variant = 'default',

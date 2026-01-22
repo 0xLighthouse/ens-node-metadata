@@ -9,7 +9,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { useTreeData } from '@/hooks/useTreeData'
-import { type TreeNodes } from '@/lib/tree/types'
+import { type TreeNode } from '@/lib/tree/types'
 import { Sparkles, Vault } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { NodeCreateDrawer } from './NodeCreateDrawer'
@@ -19,7 +19,7 @@ interface Suggestion {
   title: string
   description: string
   icon: LucideIcon
-  getNodes: (rootName: string) => TreeNodes[]
+  getNodes: (rootName: string) => TreeNode[]
 }
 
 interface SuggestionsDialogProps {
@@ -34,7 +34,7 @@ export function SuggestionsDialog({ open, onOpenChange }: SuggestionsDialogProps
   const [selectedSuggestion, setSelectedSuggestion] = useState<{
     id: string
     title: string
-    nodes: TreeNodes[]
+    nodes: TreeNode[]
   } | null>(null)
 
   if (!sourceTree) {
