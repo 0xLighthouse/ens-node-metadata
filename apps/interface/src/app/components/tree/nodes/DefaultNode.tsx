@@ -4,6 +4,7 @@ import { memo } from 'react'
 import type { NodeProps } from '@xyflow/react'
 import type { TreeNode, TreeNodeType } from '@/lib/tree/types'
 import { NodeContainer } from './NodeContainer'
+import { resolveLink } from '@/lib/links'
 
 interface DomainTreeNodeData {
   node: TreeNode
@@ -58,40 +59,18 @@ const DefaultNodeCard = ({
   const isSuggested = node.isSuggested || false
   const isPendingCreation = node.isPendingCreation || false
 
+  // Resolve the appropriate link for this node
+  const link = resolveLink(node)
+
   return (
     <NodeContainer
-      className={`
-        cursor-pointer transition-all duration-200
-        ${isSelected ? 'ring-2 ring-indigo-500 ring-offset-2' : ''}
-        ${isCollapsed && hasChildren && !isSelected && !hasPendingEdits && !isPendingCreation ? 'ring-2 ring-indigo-200' : ''}
-        ${isSuggested ? 'opacity-50' : ''}
-      `}
-      style={{
-        width: '280px',
-        backgroundColor: isSuggested
-          ? '#f8fafc'
-          : isPendingCreation
-            ? '#f0fdf4'
-            : hasPendingEdits
-              ? '#fff7ed'
-              : 'white',
-        border: isSuggested
-          ? '2px dashed #cbd5e1'
-          : isPendingCreation
-            ? '2px dashed #22c55e'
-            : hasPendingEdits
-              ? '2px dashed #fb923c'
-              : '1px solid #e2e8f0',
-        borderRadius: '8px',
-        overflow: 'hidden',
-        boxShadow: isSelected
-          ? '0 4px 12px rgba(0, 0, 0, 0.15)'
-          : isPendingCreation
-            ? '0 4px 12px rgba(34, 197, 94, 0.25)'
-            : hasPendingEdits
-              ? '0 4px 12px rgba(249, 115, 22, 0.25)'
-              : '0 2px 8px rgba(0, 0, 0, 0.1)',
-      }}
+      isSelected={isSelected}
+      isPendingCreation={isPendingCreation}
+      hasPendingEdits={hasPendingEdits}
+      isSuggested={isSuggested}
+      isCollapsed={isCollapsed}
+      hasChildren={hasChildren}
+      accentColor={accentColor}
     >
       {/* Header with icon and name */}
       <div
@@ -225,7 +204,15 @@ const DefaultNodeCard = ({
                 <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
                 <path d="M7 11V7a5 5 0 0 1 10 0v4" />
               </svg>
-              <span className="font-mono text-xs truncate">{node.address || '0x0000...0000'}</span>
+              <a
+                href={link.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                title={link.label}
+                className="font-mono text-xs truncate hover:underline"
+              >
+                {node.address || '0x0000...0000'}
+              </a>
             </div>
           </>
         )}

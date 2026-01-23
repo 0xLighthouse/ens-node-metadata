@@ -6,9 +6,9 @@ import { useTreeEditStore } from '@/stores/tree-edits'
 import { useTreeData } from '@/hooks/useTreeData'
 import { type TreeNodes, type TreeNodeType } from '@/lib/tree/types'
 import { useState, useEffect } from 'react'
-import { SchemaVersion } from './SchemaVersion'
+import { SchemaVersion } from '../SchemaVersion'
 
-interface NodeCreateDrawerProps {
+interface Props {
   isOpen: boolean
   onClose: () => void
   suggestionId: string
@@ -16,13 +16,7 @@ interface NodeCreateDrawerProps {
   nodes: TreeNodes[]
 }
 
-export function NodeCreateDrawer({
-  isOpen,
-  onClose,
-  suggestionId,
-  suggestionTitle,
-  nodes,
-}: NodeCreateDrawerProps) {
+export function CreateNodeDrawer({ isOpen, onClose, suggestionId, suggestionTitle, nodes }: Props) {
   const { sourceTree, previewTree } = useTreeData()
   const { queueCreation } = useTreeEditStore()
 

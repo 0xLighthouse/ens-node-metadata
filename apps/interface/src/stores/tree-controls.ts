@@ -1,3 +1,8 @@
+/**
+ * Tree Controls Store
+ *
+ * Manages tree visualization state using Zustand with localStorage persistence.
+ */
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
@@ -9,7 +14,6 @@ export interface NodePosition {
 }
 
 interface TreeControlsState {
-  // Selected node
   selectedNodeName: string | null
 
   // View settings

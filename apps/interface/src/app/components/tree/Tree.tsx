@@ -20,7 +20,7 @@ import type { TreeNode } from '@/lib/tree/types'
 import { DefaultNode, TreasuryNode, SignerNode } from './nodes'
 
 const NODE_HEIGHT = 100
-const NODE_WIDTH = 280
+const NODE_WIDTH = 256
 const MIN_ZOOM = 0.1
 const MAX_ZOOM = 3
 
@@ -78,6 +78,24 @@ const layoutTree = (
         } : undefined,
         type: isComputedChild ? 'straight' : 'default',
       })
+    }
+
+    // Add edges for computed references (existing nodes)
+    const computedRefs = (node as any).inspectionData?.computedReferences
+    if (computedRefs && Array.isArray(computedRefs)) {
+      for (const refNodeName of computedRefs) {
+        edges.push({
+          id: `edge-ref-${node.name}-${refNodeName}`,
+          source: node.name,
+          target: refNodeName,
+          animated: true,
+          style: {
+            stroke: '#f59e0b',
+            strokeWidth: 2,
+          },
+          type: 'straight',
+        })
+      }
     }
 
     if (collapsedNodes.has(node.name)) return
@@ -147,11 +165,31 @@ export function Tree({ data }: Props) {
   const pendingMutationCount = useTreeEditStore((state) => state.pendingMutations.size)
   const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null)
 
+  // Two-pass layout: measuring -> visible (for smooth transitions)
+  const [layoutPhase, setLayoutPhase] = useState<'measuring' | 'visible'>('measuring')
+
   const descendantCounts = useMemo(() => buildDescendantCountMap(data), [data])
   const layout = useMemo(
     () => layoutTree(data, collapsedNodes, orientation),
     [collapsedNodes, data, orientation],
   )
+
+  // Two-pass layout: brief delay for React Flow to initialize, then show nodes
+  useEffect(() => {
+    if (!reactFlowInstance) return
+    if (layoutPhase !== 'measuring') return
+
+    const timer = setTimeout(() => {
+      setLayoutPhase('visible')
+    }, 100)
+
+    return () => clearTimeout(timer)
+  }, [reactFlowInstance, layoutPhase])
+
+  // Reset to measuring phase when data or layout structure changes
+  useEffect(() => {
+    setLayoutPhase('measuring')
+  }, [data, collapsedNodes, orientation])
 
   const initialNodes = useMemo(() => {
     return layout.layoutedNodes.map((node) => {
@@ -171,6 +209,7 @@ export function Tree({ data }: Props) {
           padding: 0,
           border: 'none',
           background: 'transparent',
+          visibility: layoutPhase === 'measuring' ? 'hidden' : 'visible',
         },
         data: {
           node: treeNode,
@@ -197,6 +236,7 @@ export function Tree({ data }: Props) {
     setSelectedNode,
     toggleNodeCollapsed,
     nodePositions,
+    layoutPhase,
   ])
 
   const [nodes, setNodes, onNodesChangeInternal] = useNodesState(initialNodes)
@@ -236,10 +276,11 @@ export function Tree({ data }: Props) {
     }
   }, [orientation, clearNodePositions])
 
-  // Only fit view on initial load and orientation changes, not on collapse
+  // Only fit view after layout is visible (second pass complete)
   useEffect(() => {
     if (layout.layoutedNodes.length === 0) return
     if (!reactFlowInstance) return
+    if (layoutPhase !== 'visible') return
 
     const frame = requestAnimationFrame(() => {
       reactFlowInstance.fitView({ padding: 0.15, maxZoom: 1 })
@@ -248,12 +289,13 @@ export function Tree({ data }: Props) {
     return () => {
       cancelAnimationFrame(frame)
     }
-  }, [reactFlowInstance, orientation])
+  }, [reactFlowInstance, orientation, layoutPhase, layout.layoutedNodes.length])
 
-  // Trigger layout recompute when explicitly requested (e.g., after adding computed nodes)
+  // Trigger layout recompute when explicitly requested (e.g., after adding computed nodes or inspection data)
   useEffect(() => {
     if (layoutTrigger === 0) return // Skip initial state
     if (!reactFlowInstance) return
+    if (layoutPhase !== 'visible') return
 
     const frame = requestAnimationFrame(() => {
       reactFlowInstance.fitView({ padding: 0.15, maxZoom: 1 })
@@ -262,7 +304,7 @@ export function Tree({ data }: Props) {
     return () => {
       cancelAnimationFrame(frame)
     }
-  }, [layoutTrigger, reactFlowInstance])
+  }, [layoutTrigger, reactFlowInstance, layoutPhase])
 
   return (
     <ReactFlow
@@ -300,6 +342,9 @@ export function Tree({ data }: Props) {
           <div>Selected: {selectedNodeName || 'None'}</div>
           <div>Orientation: {orientation}</div>
           <div>Collapsed: {collapsedNodes.size}</div>
+          {layoutPhase === 'measuring' && (
+            <div className="text-amber-600 font-semibold">Computing layout...</div>
+          )}
         </div>
       </Panel>
     </ReactFlow>

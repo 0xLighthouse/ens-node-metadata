@@ -1,4 +1,6 @@
-# Signals
+# ENS Metadata Manager
+
+The goal of this interface is to surface as much derived onchain as information.
 
 ## Getting Started
 

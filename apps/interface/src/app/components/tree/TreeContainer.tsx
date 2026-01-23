@@ -3,7 +3,7 @@
 import { useEffect } from 'react'
 import { Tree } from './Tree'
 import { TreeControls } from './TreeControls'
-import { NodeEditDrawer } from './NodeEditDrawer'
+import { EditNodeDrawer } from './drawers/EditNodeDrawer'
 import { ChangesBar } from './ChangesBar'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { useTreeData } from '@/hooks/useTreeData'
@@ -31,7 +31,7 @@ export function TreeContainer() {
           </div>
         )}
       </div>
-      <NodeEditDrawer />
+      <EditNodeDrawer />
     </div>
   )
 }

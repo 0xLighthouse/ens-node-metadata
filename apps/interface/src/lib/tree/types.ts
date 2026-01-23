@@ -32,7 +32,8 @@ export interface BaseTreeNode {
     metadata?: Record<string, any>
     inspectedAt?: string
     isInspecting?: boolean
-    computedChildren?: TreeNodes[] // Computed child nodes (e.g., signers)
+    computedChildren?: TreeNodes[] // New computed child nodes (e.g., signers)
+    computedReferences?: string[] // References to existing nodes by name (edges only, no new nodes)
   }
 }
 
@@ -66,3 +67,6 @@ export type TreeNode =
   | TreasuryTreeNode
   | RoleTreeNode
   | TeamTreeNode
+
+// Alias for compatibility
+export type TreeNodes = TreeNode

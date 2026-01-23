@@ -6,6 +6,9 @@ import type { TreeNode } from '@/lib/tree/types'
 import { NodeContainer } from './NodeContainer'
 import { useTreeEditStore } from '@/stores/tree-edits'
 import { useTreeControlsStore } from '@/stores/tree-controls'
+import { useTreeData } from '@/hooks/useTreeData'
+import { findNodeByAddress, findAllNodesByAddress } from '@/lib/tree/utils'
+import { resolveLink } from '@/lib/links'
 import { DollarSign, Plus, Lock, ChevronUp, Search, Loader2 } from 'lucide-react'
 
 interface DomainTreeNodeData {
@@ -42,6 +45,7 @@ const TreasuryNodeCard = ({
   const [isInspecting, setIsInspecting] = useState(false)
   const { upsertEdit } = useTreeEditStore()
   const { triggerLayout } = useTreeControlsStore()
+  const { previewTree } = useTreeData()
 
   const handleToggleCollapse = (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -69,33 +73,57 @@ const TreasuryNodeCard = ({
 
       // Create computed signer nodes if Safe multisig detected
       let computedChildren: any[] | undefined
+      let computedReferences: string[] | undefined
+
       if (result.detectedType === 'Safe Multisig' && result.metadata?.signers) {
-        computedChildren = result.metadata.signers.map((signer: any, index: number) => ({
-          name: `signer-${index + 1}.${node.name}`,
-          address: signer.address as `0x${string}`,
-          owner: signer.address as `0x${string}`,
-          subdomainCount: 0,
-          type: 'Signer',
-          title: signer.ensName || `Signer ${index + 1}`,
-          description: 'Safe multisig signer',
-          ensName: signer.ensName,
-          ensAvatar: signer.ensAvatar,
-          isComputed: true,
-        }))
+        const newChildren: any[] = []
+        const existingRefs: string[] = []
+
+        for (const [index, signer] of result.metadata.signers.entries()) {
+          const signerAddress = signer.address as `0x${string}`
+
+          // Check if a Signer node with this address already exists in the tree
+          const existingNodes = findAllNodesByAddress(previewTree, signerAddress)
+          const existingSignerNode = existingNodes.find((n) => (n as any).type === 'Signer')
+
+          if (existingSignerNode) {
+            // A Signer node with this address exists - create a reference edge
+            existingRefs.push(existingSignerNode.name)
+          } else {
+            // No Signer node with this address - create a new Signer node
+            // (even if address exists as a different node type)
+            newChildren.push({
+              name: `signer-${index + 1}.${node.name}`,
+              address: signerAddress,
+              owner: signerAddress,
+              subdomainCount: 0,
+              type: 'Signer',
+              title: signer.ensName || `Signer ${index + 1}`,
+              description: 'Safe multisig signer',
+              ensName: signer.ensName,
+              ensAvatar: signer.ensAvatar,
+              isComputed: true,
+            })
+          }
+        }
+
+        computedChildren = newChildren.length > 0 ? newChildren : undefined
+        computedReferences = existingRefs.length > 0 ? existingRefs : undefined
       }
 
-      // Update node with inspection data and computed children
+      // Update node with inspection data and computed children/references
       upsertEdit(node.name, {
         inspectionData: {
           detectedType: result.detectedType,
           metadata: result.metadata,
           inspectedAt: new Date().toISOString(),
           computedChildren,
+          computedReferences,
         },
       })
 
-      // Trigger layout recompute if computed children were added
-      if (computedChildren && computedChildren.length > 0) {
+      // Trigger layout recompute if computed children or references were added
+      if ((computedChildren && computedChildren.length > 0) || (computedReferences && computedReferences.length > 0)) {
         // Delay to allow preview tree to update first
         setTimeout(() => {
           triggerLayout()
@@ -113,45 +141,23 @@ const TreasuryNodeCard = ({
   const isSuggested = node.isSuggested || false
   const isPendingCreation = node.isPendingCreation || false
 
+  // Resolve the appropriate link for this node
+  const link = resolveLink(node)
+
   return (
     <NodeContainer
-      className={`
-        relative
-        cursor-pointer transition-all duration-200
-        ${isSelected ? 'ring-2 ring-amber-500 ring-offset-2' : ''}
-        ${isCollapsed && hasChildren && !isSelected && !hasPendingEdits && !isPendingCreation ? 'ring-2 ring-amber-200' : ''}
-        ${isSuggested ? 'opacity-50' : ''}
-      `}
-      style={{
-        width: '560px',
-        backgroundColor: isSuggested
-          ? '#f8fafc'
-          : isPendingCreation
-            ? '#fffbeb'
-            : hasPendingEdits
-              ? '#fff7ed'
-              : 'white',
-        border: isSuggested
-          ? '2px dashed #cbd5e1'
-          : isPendingCreation
-            ? '2px dashed #f59e0b'
-            : hasPendingEdits
-              ? '2px dashed #fb923c'
-              : '1px solid #fde68a',
-        borderRadius: '8px',
-        overflow: 'visible',
-        boxShadow: isSelected
-          ? '0 4px 12px rgba(245, 158, 11, 0.3)'
-          : isPendingCreation
-            ? '0 4px 12px rgba(245, 158, 11, 0.25)'
-            : hasPendingEdits
-              ? '0 4px 12px rgba(249, 115, 22, 0.25)'
-              : '0 2px 8px rgba(245, 158, 11, 0.15)',
-      }}
+      isSelected={isSelected}
+      isPendingCreation={isPendingCreation}
+      hasPendingEdits={hasPendingEdits}
+      isSuggested={isSuggested}
+      isCollapsed={isCollapsed}
+      hasChildren={hasChildren}
+      accentColor={accentColor}
+      overflow="visible"
     >
       {/* Header with icon and name */}
       <div
-        className="flex items-center gap-4 p-6 border-b"
+        className="flex items-center gap-3 p-3 border-b"
         style={{
           backgroundColor: isSuggested
             ? '#f8fafc'
@@ -172,41 +178,41 @@ const TreasuryNodeCard = ({
         <div
           className="flex items-center justify-center rounded-md flex-shrink-0"
           style={{
-            width: '80px',
-            height: '80px',
+            width: '40px',
+            height: '40px',
             backgroundColor: isSuggested ? '#e2e8f0' : accentColor,
           }}
         >
           {isSuggested ? (
-            <Plus size={48} color="#64748b" strokeWidth={2} />
+            <Plus size={24} color="#64748b" strokeWidth={2} />
           ) : (
-            <DollarSign size={48} color="white" strokeWidth={2} />
+            <DollarSign size={24} color="white" strokeWidth={2} />
           )}
         </div>
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-3">
-            <div className="text-2xl font-bold text-gray-900 truncate">{displayName}</div>
-            <span className="px-3 py-1 text-sm font-bold bg-amber-100 text-amber-800 rounded">
+          <div className="flex items-center gap-2">
+            <div className="text-sm font-semibold text-gray-900 truncate">{displayName}</div>
+            <span className="px-2 py-0.5 text-xs font-bold bg-amber-100 text-amber-800 rounded">
               TREASURY
             </span>
           </div>
-          <div className="text-base text-gray-500 truncate mt-1">{node.name}</div>
+          <div className="text-xs text-gray-500 truncate">{node.name}</div>
         </div>
         {hasChildren && (
-          <div className="flex items-center gap-2 flex-shrink-0">
+          <div className="flex items-center gap-1 flex-shrink-0">
             {isCollapsed && childrenCount > 0 && (
-              <span className="px-3 py-1 text-sm font-semibold bg-amber-100 text-amber-700 rounded-full">
+              <span className="px-2 py-0.5 text-xs font-semibold bg-amber-100 text-amber-700 rounded-full">
                 +{childrenCount}
               </span>
             )}
             <button
               onClick={handleToggleCollapse}
-              className="p-2 rounded hover:bg-amber-50 transition-colors"
+              className="p-1 rounded hover:bg-amber-50 transition-colors"
               aria-label={isCollapsed ? 'Expand' : 'Collapse'}
               title={isCollapsed ? 'Expand children' : 'Collapse children'}
             >
               <ChevronUp
-                size={32}
+                size={20}
                 className={`transition-transform ${isCollapsed ? 'rotate-0' : 'rotate-180'}`}
               />
             </button>
@@ -216,7 +222,7 @@ const TreasuryNodeCard = ({
 
       {/* Address info */}
       <div
-        className="px-6 py-4 flex items-center justify-between text-base"
+        className="px-3 py-2 flex items-center justify-between text-sm"
         style={{
           backgroundColor: isSuggested
             ? '#f8fafc'
@@ -233,81 +239,39 @@ const TreasuryNodeCard = ({
           </div>
         ) : (
           <>
-            <div className="flex items-center gap-3 min-w-0">
-              <Lock size={20} className="flex-shrink-0" />
-              <span className="font-mono text-sm truncate">{node.address || '0x0000...0000'}</span>
+            <div className="flex items-center gap-2 min-w-0">
+              <Lock size={14} className="flex-shrink-0" />
+              <a
+                href={link.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                title={link.label}
+                className="font-mono text-xs truncate hover:underline"
+              >
+                {node.address || '0x0000...0000'}
+              </a>
             </div>
           </>
         )}
       </div>
 
-      {/* Inspection Results */}
-      {!isSuggested && node.inspectionData && (
-        <div className="px-6 py-4 border-t border-amber-200 bg-amber-50">
-          <div className="space-y-2">
-            {/* Detected Type */}
-            {node.inspectionData.detectedType && (
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-semibold text-amber-900">Type:</span>
-                <span className="text-sm text-amber-800 bg-amber-100 px-2 py-0.5 rounded">
-                  {node.inspectionData.detectedType}
-                </span>
-              </div>
-            )}
-
-            {/* Metadata */}
-            {node.inspectionData.metadata && Object.keys(node.inspectionData.metadata).length > 0 && (
-              <div className="space-y-1">
-                {node.inspectionData.metadata.thresholdRatio && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-semibold text-amber-900">Threshold:</span>
-                    <span className="text-sm text-amber-800 font-mono">
-                      {node.inspectionData.metadata.thresholdRatio}
-                    </span>
-                  </div>
-                )}
-                {node.inspectionData.metadata.signerCount !== undefined && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-semibold text-amber-900">Signers:</span>
-                    <span className="text-sm text-amber-800">
-                      {node.inspectionData.metadata.signerCount}
-                    </span>
-                  </div>
-                )}
-                {node.inspectionData.metadata.note && (
-                  <div className="text-xs text-amber-700 italic">
-                    {node.inspectionData.metadata.note}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Inspected timestamp */}
-            {node.inspectionData.inspectedAt && (
-              <div className="text-xs text-amber-600 pt-1">
-                Inspected: {new Date(node.inspectionData.inspectedAt).toLocaleString()}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
 
       {/* Inspect Button - Positioned at bottom center edge */}
       {!isSuggested && (
         <button
           onClick={handleInspect}
           disabled={isInspecting}
-          className="absolute left-1/2 -translate-x-1/2 -bottom-6 w-12 h-12 rounded-full bg-amber-500 hover:bg-amber-600 transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center z-10"
+          className="absolute left-1/2 -translate-x-1/2 -bottom-4 w-8 h-8 rounded-full bg-amber-500 hover:bg-amber-600 transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center z-10"
           aria-label="Inspect contract"
           title="Detect contract type and metadata"
           style={{
-            border: '3px solid white',
+            border: '2px solid white',
           }}
         >
           {isInspecting ? (
-            <Loader2 size={24} color="white" className="animate-spin" />
+            <Loader2 size={16} color="white" className="animate-spin" />
           ) : (
-            <Search size={24} color="white" />
+            <Search size={16} color="white" />
           )}
         </button>
       )}

@@ -6,12 +6,12 @@ import { useTreeEditStore } from '@/stores/tree-edits'
 import { useTreeData } from '@/hooks/useTreeData'
 import { type TreeNodeType } from '@/lib/tree/types'
 import { useState, useEffect } from 'react'
-import { SchemaVersion } from './SchemaVersion'
+import { SchemaVersion } from '../SchemaVersion'
 import { useSchemaStore } from '@/stores/schemas'
 
 type NodeEditFormData = Record<string, any>
 
-export function NodeEditDrawer() {
+export function EditNodeDrawer() {
   const { sourceTree, previewTree } = useTreeData()
   const { getSelectedSchema } = useSchemaStore()
   const selectedSchema = getSelectedSchema()

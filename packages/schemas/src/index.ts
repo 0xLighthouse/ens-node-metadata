@@ -1,5 +1,6 @@
 import { Schema } from "./types";
 
+import { APPLICATION_SCHEMA } from "./application";
 import { COMMITTEE_SCHEMA } from "./committee";
 import { CONTRACT_SCHEMA } from "./contract";
 import { LOCATION_SCHEMA } from "./location";
@@ -11,6 +12,7 @@ import { WALLET_SCHEMA } from "./wallet";
 import { WORKGROUP_SCHEMA } from "./workgroup";
 
 export const SCHEMAS: Schema[] = [
+  APPLICATION_SCHEMA,
   CONTRACT_SCHEMA,
   PERSON_SCHEMA,
   LOCATION_SCHEMA,

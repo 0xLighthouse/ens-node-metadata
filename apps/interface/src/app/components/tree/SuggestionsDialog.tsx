@@ -12,7 +12,7 @@ import { useTreeData } from '@/hooks/useTreeData'
 import { type TreeNode } from '@/lib/tree/types'
 import { Sparkles, Vault } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
-import { NodeCreateDrawer } from './NodeCreateDrawer'
+import { CreateNodeDrawer } from './drawers/CreateNodeDrawer'
 
 interface Suggestion {
   id: string
@@ -138,7 +138,7 @@ export function SuggestionsDialog({ open, onOpenChange }: SuggestionsDialogProps
       </Dialog>
 
       {selectedSuggestion && (
-        <NodeCreateDrawer
+        <CreateNodeDrawer
           isOpen={createDrawerOpen}
           onClose={handleCloseCreateDrawer}
           suggestionId={selectedSuggestion.id}
