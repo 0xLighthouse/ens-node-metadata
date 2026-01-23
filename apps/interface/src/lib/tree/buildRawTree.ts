@@ -1,5 +1,5 @@
 import { GraphQLClient, type RequestDocument, gql } from 'graphql-request'
-import type { RawTreeNode } from '@/lib/tree/types'
+import type { NormalizedTreeNode, TreeNode } from '@/lib/tree/types'
 import { fetchTexts } from './fetchTexts'
 
 
@@ -14,12 +14,12 @@ type ENSRecord = {
   ttl?: number | string | null
   resolvedAddress?: {
     id: string
-  } | null
-  resolver?: {
+  }
+  resolver: {
     id: string
+    address: string
     texts: string[]
-    address?: string
-  } | null
+  }
 }
 
 type RequestFn = <T>(
@@ -33,8 +33,8 @@ export type BuildTreeOptions = {
   pageSize?: number
 }
 
-export const GET_DOMAIN_BY_NAME = gql`
-  query GetDomainByName($name: String!) {
+export const RESOLVE_DOMAIN_BY_NAME = gql`
+  query ResolveDomainByName($name: String!) {
     domains(where: { name: $name }) {
       id
       name
@@ -54,8 +54,8 @@ export const GET_DOMAIN_BY_NAME = gql`
   }
 `
 
-const GET_CHILDREN_BY_PARENT = gql`
-  query GetChildrenByParent($parentId: String!, $first: Int!, $skip: Int!) {
+const RESSOLVE_CHILDREN_BY_PARENT_ID = gql`
+  query ResolveChildrenByParentId($parentId: String!, $first: Int!, $skip: Int!) {
     domains(where: { parent: $parentId }, first: $first, skip: $skip) {
       id
       name
@@ -76,15 +76,12 @@ const GET_CHILDREN_BY_PARENT = gql`
   }
 `
 
-export async function buildRawTree(
-  rootName: string,
-  opts: BuildTreeOptions = {},
-): Promise<RawTreeNode> {
-  const endpoint = opts.endpoint ?? ENS_SUBGRAPH_URL
+export async function buildRawTree(rootName: string,): Promise<TreeNode> {
+  const endpoint = ENS_SUBGRAPH_URL
   const request = withRetry(createGraphRequest(endpoint))
-  const pageSize = opts.pageSize ?? 1000
+  const pageSize = 1000
 
-  const root = await request<{ domains: ENSRecord[] }>(GET_DOMAIN_BY_NAME, {
+  const root = await request<{ domains: ENSRecord[] }>(RESOLVE_DOMAIN_BY_NAME, {
     name: rootName,
   })
 
@@ -93,40 +90,50 @@ export async function buildRawTree(
     throw new Error(`Domain not found in subgraph: ${rootName}`)
   }
 
-  const buildNode = async (domain: ENSRecord): Promise<RawTreeNode> => {
-    const resolvedAddress = domain.resolvedAddress?.id as `0x${string}`
-    const resolverId = domain.resolver?.id
-    const owner = (domain.wrappedOwnerId ?? domain.ownerId) as `0x${string}`
-    const ttl = domain.ttl == null ? null : Number(domain.ttl)
+  const buildNode = async (indexed: ENSRecord): Promise<NormalizedTreeNode | undefined> => {
+    const resolvedAddress = indexed.resolvedAddress?.id as `0x${string}`
+    const owner = (indexed.wrappedOwnerId ?? indexed.ownerId) as `0x${string}`
+    const ttl = indexed.ttl == null ? null : Number(indexed.ttl)
 
+    // If a node does not have a resolve treat is as deleted
+    if (!indexed.resolver) {
+      return undefined
+    }
 
-    const node: RawTreeNode = {
-      name: domain.name ?? domain.id,
-      address: resolvedAddress,
+    const node: NormalizedTreeNode = {
+      id: indexed.id,
+      name: indexed.name ?? indexed.id,
+      address: resolvedAddress === '0x0000000000000000000000000000000000000000' ? null : resolvedAddress,
+      resolverId: indexed.resolver.id,
+      resolverAddress: indexed.resolver.address,
       owner,
       ttl,
       subdomainCount: 0,
       children: [],
     }
 
-    if (domain.name && domain.resolver?.texts) {
-      const texts = await fetchTexts(domain.name, domain.resolver?.texts)
+    // If the resolver has texts, fetch them and add them to the node's attributes
+    if (indexed.name && indexed.resolver.texts) {
+      const texts = await fetchTexts(indexed.name, indexed.resolver?.texts)
       if (Object.keys(texts).length > 0) {
         node.attributes = texts
       }
     }
 
-    const subdomainCount = Number(domain.subdomainCount ?? 0)
+    const subdomainCount = Number(indexed.subdomainCount ?? 0)
     if (subdomainCount > 0) {
-      const children = await paginateChildren(request, domain.id, pageSize)
+      const children = await paginateChildren(request, indexed.id, pageSize)
 
       for await (const child of children) {
         const childNode = await buildNode(child)
-        node.children?.push(childNode)
+        if (childNode) {
+          node.children?.push(childNode)
+        }
       }
     }
 
-    node.resolverId = resolverId
+    node.resolverId = indexed.resolver.id
+    node.resolverAddress = indexed.resolver.address
     node.subdomainCount = subdomainCount
 
     return node
@@ -146,7 +153,7 @@ async function paginateChildren(
   let skip = 0
 
   while (true) {
-    const res = await request<{ domains: ENSRecord[] }>(GET_CHILDREN_BY_PARENT, {
+    const res = await request<{ domains: ENSRecord[] }>(RESSOLVE_CHILDREN_BY_PARENT_ID, {
       parentId,
       first: pageSize,
       skip,

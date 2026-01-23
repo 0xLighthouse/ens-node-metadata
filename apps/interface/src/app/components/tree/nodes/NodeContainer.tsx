@@ -128,6 +128,8 @@ export const NodeContainer = memo(({
     cursor-pointer
     transition-all
     duration-200
+    outline-none
+    focus:outline-none
     ${getRingStyle(isSelected, isCollapsed, hasChildren, hasPendingEdits, isPendingCreation, accentColor)}
     ${isSuggested ? 'opacity-50' : ''}
     ${className || ''}

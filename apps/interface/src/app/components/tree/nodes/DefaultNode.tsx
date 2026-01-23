@@ -185,7 +185,7 @@ const DefaultNodeCard = ({
       {/* Address info bar */}
       {!isSuggested && (
         <>
-          <div className="px-4 py-3 border-t border-gray-100">
+          <div className="px-4 py-3">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2.5 min-w-0 flex-1">
                 <Link2 className="size-3.5 flex-shrink-0 text-gray-400" />

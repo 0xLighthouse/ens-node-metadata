@@ -1,15 +1,14 @@
 'use client'
 
 import { Drawer } from 'vaul'
-import { X, ExternalLink, Link2, ChevronDown, Search, RefreshCw } from 'lucide-react'
+import { X, ExternalLink, Link2, ChevronDown, Search, RefreshCw, Trash2 } from 'lucide-react'
 import { useTreeEditStore } from '@/stores/tree-edits'
 import { useTreeData } from '@/hooks/useTreeData'
 import { type TreeNodeType } from '@/lib/tree/types'
 import { useState, useEffect, useRef } from 'react'
 import { SchemaVersion } from '../SchemaVersion'
 import { useSchemaStore } from '@/stores/schemas'
-
-type NodeEditFormData = Record<string, any>
+import { useNodeEditorStore } from '@/stores/node-editor'
 
 export function EditNodeDrawer() {
   const { sourceTree, previewTree } = useTreeData()
@@ -22,6 +21,37 @@ export function EditNodeDrawer() {
     getPendingEdit,
     discardPendingMutation,
   } = useTreeEditStore()
+
+  const {
+    formData,
+    currentSchemaId,
+    visibleOptionalFields,
+    isAddingCustomAttribute,
+    newAttributeKey,
+    isSchemaDropdownOpen,
+    schemaSearchQuery,
+    isLoadingSchemas,
+    isOptionalFieldDropdownOpen,
+    initializeEditor,
+    resetEditor,
+    updateField,
+    setCurrentSchema,
+    addOptionalField,
+    removeOptionalField,
+    toggleSchemaDropdown,
+    setSchemaSearchQuery,
+    setIsLoadingSchemas,
+    toggleOptionalFieldDropdown,
+    setIsAddingCustomAttribute,
+    setNewAttributeKey,
+    addCustomAttribute,
+    removeCustomAttribute,
+    getFormData,
+    hasChanges: storeHasChanges,
+  } = useNodeEditorStore()
+
+  const schemaDropdownRef = useRef<HTMLDivElement>(null)
+  const optionalFieldDropdownRef = useRef<HTMLDivElement>(null)
 
   // Find the node data in base tree
   const findNode = (name: string, node = sourceTree): any => {
@@ -49,35 +79,25 @@ export function EditNodeDrawer() {
     return null
   }
 
-  const nodeWithEdits = selectedNode && previewTree ? findNodeInTree(selectedNode, previewTree) : null
+  const nodeWithEdits =
+    selectedNode && previewTree ? findNodeInTree(selectedNode, previewTree) : null
   const existingEdit = selectedNode ? getPendingEdit(selectedNode) : undefined
   const isPendingCreation = nodeWithEdits?.isPendingCreation || false
 
-  // Form state
-  const [formData, setFormData] = useState<NodeEditFormData>({})
-
-  // Track the currently selected schema for this drawer session
-  const [currentSchemaId, setCurrentSchemaId] = useState<string | null>(null)
-
-  // Schema selector state
-  const [isSchemaDropdownOpen, setIsSchemaDropdownOpen] = useState(false)
-  const [schemaSearchQuery, setSchemaSearchQuery] = useState('')
-  const [isLoadingSchemas, setIsLoadingSchemas] = useState(false)
-  const schemaDropdownRef = useRef<HTMLDivElement>(null)
-
   // Get the active schema - either the one selected in this session or the node's existing schema
   const activeSchema = currentSchemaId
-    ? schemas.find(s => s.id === currentSchemaId)
+    ? schemas.find((s) => s.id === currentSchemaId)
     : nodeWithEdits?.schema
-      ? schemas.find(s => s.id === nodeWithEdits.schema)
+      ? schemas.find((s) => s.id === nodeWithEdits.schema)
       : null
 
   // Close schema dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (schemaDropdownRef.current && !schemaDropdownRef.current.contains(event.target as Node)) {
-        setIsSchemaDropdownOpen(false)
-        setSchemaSearchQuery('')
+        if (isSchemaDropdownOpen) {
+          toggleSchemaDropdown()
+        }
       }
     }
 
@@ -85,7 +105,26 @@ export function EditNodeDrawer() {
       document.addEventListener('mousedown', handleClickOutside)
       return () => document.removeEventListener('mousedown', handleClickOutside)
     }
-  }, [isSchemaDropdownOpen])
+  }, [isSchemaDropdownOpen, toggleSchemaDropdown])
+
+  // Close optional field dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        optionalFieldDropdownRef.current &&
+        !optionalFieldDropdownRef.current.contains(event.target as Node)
+      ) {
+        if (isOptionalFieldDropdownOpen) {
+          toggleOptionalFieldDropdown()
+        }
+      }
+    }
+
+    if (isOptionalFieldDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [isOptionalFieldDropdownOpen, toggleOptionalFieldDropdown])
 
   // Fetch schemas on mount if not loaded
   useEffect(() => {
@@ -93,36 +132,16 @@ export function EditNodeDrawer() {
       setIsLoadingSchemas(true)
       fetchSchemas().finally(() => setIsLoadingSchemas(false))
     }
-  }, [schemas.length, fetchSchemas, isLoadingSchemas])
+  }, [schemas.length, fetchSchemas, isLoadingSchemas, setIsLoadingSchemas])
 
   const filteredSchemas = schemas.filter((schema) =>
-    schema.name.toLowerCase().includes(schemaSearchQuery.toLowerCase())
+    schema.name.toLowerCase().includes(schemaSearchQuery.toLowerCase()),
   )
 
   const handleSelectSchema = (schemaId: string) => {
-    const schema = schemas.find(s => s.id === schemaId)
+    const schema = schemas.find((s) => s.id === schemaId)
     if (!schema) return
-
-    // Update local state
-    setCurrentSchemaId(schemaId)
-
-    // Update form data with schema info and initialize fields
-    const nextFormData: NodeEditFormData = {
-      ...formData,
-      schema: schema.id,
-      type: schema.name,
-    }
-
-    // Initialize schema attributes
-    schema.attributes?.forEach((attr) => {
-      if (!(attr.key in nextFormData)) {
-        nextFormData[attr.key] = (nodeWithEdits as any)?.[attr.key] ?? ''
-      }
-    })
-
-    setFormData(nextFormData)
-    setIsSchemaDropdownOpen(false)
-    setSchemaSearchQuery('')
+    setCurrentSchema(schemaId, schema, nodeWithEdits)
   }
 
   const handleRefreshSchemas = async () => {
@@ -140,46 +159,21 @@ export function EditNodeDrawer() {
     console.log('Existing edit:', existingEdit)
     console.log('Is pending creation:', isPendingCreation)
 
-    // Initialize the current schema from the node
-    setCurrentSchemaId(nodeWithEdits.schema || null)
-
-    const nextFormData: NodeEditFormData = {}
-
-    // Add schema and type to form data ONLY if the node already has a schema
-    if (nodeWithEdits.schema && activeSchema) {
-      nextFormData.schema = activeSchema.id
-      nextFormData.type = activeSchema.name
-    }
-
-    // Initialize from node data and schema attributes ONLY if node has a schema
-    if (nodeWithEdits.schema && activeSchema?.attributes) {
-      activeSchema.attributes.forEach((attr) => {
-        nextFormData[attr.key] = (nodeWithEdits as any)[attr.key] ?? ''
-      })
-    }
-
-    // Apply any pending edits
-    if (existingEdit?.changes) {
-      for (const [key, value] of Object.entries(existingEdit.changes)) {
-        if (value !== undefined) {
-          nextFormData[key] = value
-        }
-      }
-    }
-
-    setFormData(nextFormData)
-  }, [existingEdit, nodeWithEdits, isPendingCreation])
+    initializeEditor(nodeWithEdits, existingEdit, schemas)
+  }, [existingEdit, nodeWithEdits, isPendingCreation, schemas, initializeEditor])
 
   const handleSave = () => {
     if (!selectedNode) return
 
+    const currentFormData = getFormData()
     console.log('----- SAVING NODE CHANGES -----')
     console.log('Node:', selectedNode)
-    console.log('Form data to save:', formData)
+    console.log('Form data to save:', currentFormData)
 
     // formData already includes schema and type if a schema is selected
-    upsertEdit(selectedNode, formData)
+    upsertEdit(selectedNode, currentFormData)
     closeEditDrawer()
+    resetEditor()
   }
 
   const handleDiscard = () => {
@@ -187,36 +181,10 @@ export function EditNodeDrawer() {
 
     discardPendingMutation(selectedNode)
     closeEditDrawer()
+    resetEditor()
   }
 
-  const hasChanges = (() => {
-    // Check schema and type changes
-    const schemaTypeChanges =
-      formData.schema !== (nodeWithEdits as any)?.schema ||
-      formData.type !== (nodeWithEdits as any)?.type
-
-    // Check schema attributes for changes
-    const schemaChanges = activeSchema?.attributes?.some((attr) => {
-      const currentValue = formData[attr.key] ?? ''
-      const originalValue = (nodeWithEdits as any)?.[attr.key] ?? ''
-      return currentValue !== originalValue
-    }) ?? false
-
-    // Check extra attributes for changes (including cleared ones)
-    const extraChanges = Object.keys(formData).some((key) => {
-      // Skip schema and type as we already checked them
-      if (key === 'schema' || key === 'type') return false
-
-      const schemaKeys = new Set(activeSchema?.attributes?.map(a => a.key) || [])
-      if (schemaKeys.has(key)) return false // Already checked above
-
-      const currentValue = formData[key]
-      const originalValue = (nodeWithEdits as any)?.[key]
-      return currentValue !== originalValue
-    })
-
-    return schemaTypeChanges || schemaChanges || extraChanges
-  })()
+  const hasChanges = storeHasChanges(nodeWithEdits, activeSchema)
 
   // Only show discard button for actual edits (not pending creations)
   const hasPendingEdits = !isPendingCreation && !!existingEdit
@@ -225,8 +193,17 @@ export function EditNodeDrawer() {
     return null
   }
 
+  const handleDrawerClose = () => {
+    closeEditDrawer()
+    resetEditor()
+  }
+
   return (
-    <Drawer.Root open={isEditDrawerOpen} onOpenChange={(open) => !open && closeEditDrawer()} direction="right">
+    <Drawer.Root
+      open={isEditDrawerOpen}
+      onOpenChange={(open) => !open && handleDrawerClose()}
+      direction="right"
+    >
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 z-40 pointer-events-none" />
         <Drawer.Content
@@ -237,7 +214,7 @@ export function EditNodeDrawer() {
             {/* Header */}
             <div className="mb-4 relative">
               <button
-                onClick={closeEditDrawer}
+                onClick={handleDrawerClose}
                 className="absolute -top-2 -right-2 p-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
                 aria-label="Close drawer"
               >
@@ -275,19 +252,24 @@ export function EditNodeDrawer() {
 
             {/* Form */}
             {nodeWithEdits && !nodeWithEdits.isSuggested && (
-              <div className="flex-1 overflow-y-auto space-y-6">
+              <div className="flex-1 overflow-y-auto space-y-6 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                 {/* Schema-based Fields */}
                 {activeSchema?.attributes && activeSchema.attributes.length > 0 ? (
                   <fieldset className="bg-white dark:bg-gray-800 rounded-xl p-4">
                     {/* Schema selector at top */}
-                    <div className="mb-4 pb-4 border-b border-gray-200 dark:border-gray-700 relative" ref={schemaDropdownRef}>
+                    <div
+                      className="mb-4 pb-4 border-b border-gray-200 dark:border-gray-700 relative"
+                      ref={schemaDropdownRef}
+                    >
                       <button
                         type="button"
-                        onClick={() => setIsSchemaDropdownOpen(!isSchemaDropdownOpen)}
+                        onClick={toggleSchemaDropdown}
                         className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:underline transition-colors mb-1"
                       >
                         <Link2 className="size-4" />
-                        <span>{activeSchema.name} - v{activeSchema.version}</span>
+                        <span>
+                          {activeSchema.name} - v{activeSchema.version}
+                        </span>
                       </button>
                       {activeSchema.description && (
                         <p className="text-xs text-gray-500 dark:text-gray-400 pl-6">
@@ -323,13 +305,16 @@ export function EditNodeDrawer() {
                                 className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
                                 title="Refresh schemas"
                               >
-                                <RefreshCw size={14} className={isLoadingSchemas ? 'animate-spin' : ''} />
+                                <RefreshCw
+                                  size={14}
+                                  className={isLoadingSchemas ? 'animate-spin' : ''}
+                                />
                               </button>
                             </div>
                           </div>
 
                           {/* Schema List */}
-                          <div className="max-h-64 overflow-y-auto">
+                          <div className="max-h-64 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                             {isLoadingSchemas ? (
                               <div className="p-4 text-center text-sm text-gray-500 dark:text-gray-400">
                                 Loading schemas...
@@ -364,55 +349,118 @@ export function EditNodeDrawer() {
                     </div>
 
                     <div className="space-y-4">
-                      {activeSchema.attributes.map((attribute) => {
-                        const isTextArea = attribute.type === 'text' || attribute.key === 'description'
+                      {activeSchema.attributes
+                        .filter((attr) => attr.isRequired || visibleOptionalFields.has(attr.key))
+                        .map((attribute) => {
+                          const isTextArea =
+                            attribute.type === 'text' || attribute.key === 'description'
 
-                        return (
-                          <div key={attribute.key}>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                              {attribute.name}
-                              {attribute.isRequired && (
-                                <span className="text-red-500 ml-1">*</span>
+                          return (
+                            <div key={attribute.key}>
+                              <div className="flex items-center justify-between mb-1.5">
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                  {attribute.name}
+                                  {attribute.isRequired && (
+                                    <span className="text-red-500 ml-1">*</span>
+                                  )}
+                                </label>
+                                {!attribute.isRequired && (
+                                  <button
+                                    type="button"
+                                    onClick={() => removeOptionalField(attribute.key)}
+                                    className="text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                                  >
+                                    Remove
+                                  </button>
+                                )}
+                              </div>
+                              {isTextArea ? (
+                                <textarea
+                                  value={formData[attribute.key] ?? ''}
+                                  onChange={(e) => updateField(attribute.key, e.target.value)}
+                                  placeholder={attribute.description}
+                                  required={attribute.isRequired}
+                                  rows={4}
+                                  className="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-gray-900 dark:text-white resize-y"
+                                />
+                              ) : (
+                                <input
+                                  type={attribute.type === 'string' ? 'text' : attribute.type}
+                                  value={formData[attribute.key] ?? ''}
+                                  onChange={(e) => updateField(attribute.key, e.target.value)}
+                                  placeholder={attribute.description}
+                                  required={attribute.isRequired}
+                                  className="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-gray-900 dark:text-white"
+                                />
                               )}
-                            </label>
-                            {isTextArea ? (
-                              <textarea
-                                value={formData[attribute.key] ?? ''}
-                                onChange={(e) =>
-                                  setFormData((prev) => ({
-                                    ...prev,
-                                    [attribute.key]: e.target.value,
-                                  }))
-                                }
-                                placeholder={attribute.description}
-                                required={attribute.isRequired}
-                                rows={4}
-                                className="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-gray-900 dark:text-white resize-y"
-                              />
-                            ) : (
-                              <input
-                                type={attribute.type === 'string' ? 'text' : attribute.type}
-                                value={formData[attribute.key] ?? ''}
-                                onChange={(e) =>
-                                  setFormData((prev) => ({
-                                    ...prev,
-                                    [attribute.key]: e.target.value,
-                                  }))
-                                }
-                                placeholder={attribute.description}
-                                required={attribute.isRequired}
-                                className="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-gray-900 dark:text-white"
-                              />
-                            )}
-                            {attribute.notes && (
-                              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                {attribute.notes}
-                              </p>
-                            )}
-                          </div>
-                        )
-                      })}
+                              {attribute.notes && (
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                  {attribute.notes}
+                                </p>
+                              )}
+                            </div>
+                          )
+                        })}
                     </div>
+
+                    {/* Add Optional Field Button */}
+                    {activeSchema.attributes.some(
+                      (attr) => !attr.isRequired && !visibleOptionalFields.has(attr.key),
+                    ) && (
+                      <div
+                        className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 relative"
+                        ref={optionalFieldDropdownRef}
+                      >
+                        <button
+                          type="button"
+                          onClick={toggleOptionalFieldDropdown}
+                          className="w-full px-3 py-2 text-sm text-gray-600 dark:text-gray-400 border border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-gray-400 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors flex items-center justify-center gap-2"
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <line x1="12" y1="5" x2="12" y2="19" />
+                            <line x1="5" y1="12" x2="19" y2="12" />
+                          </svg>
+                          Add optional field
+                        </button>
+
+                        {/* Optional Field Dropdown */}
+                        {isOptionalFieldDropdownOpen && (
+                          <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg z-50 max-h-64 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                            {activeSchema.attributes
+                              .filter(
+                                (attr) => !attr.isRequired && !visibleOptionalFields.has(attr.key),
+                              )
+                              .map((attribute) => (
+                                <button
+                                  key={attribute.key}
+                                  type="button"
+                                  onClick={() => addOptionalField(attribute.key)}
+                                  className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                                >
+                                  <div className="font-medium text-gray-900 dark:text-white">
+                                    {attribute.name}
+                                  </div>
+                                  {attribute.description && (
+                                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                                      {attribute.description}
+                                    </div>
+                                  )}
+                                </button>
+                              ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </fieldset>
                 ) : (
                   <div className="bg-white dark:bg-gray-800 rounded-xl p-6">
@@ -424,7 +472,7 @@ export function EditNodeDrawer() {
                     {/* Schema selector when no schema */}
                     <div className="relative" ref={schemaDropdownRef}>
                       <button
-                        onClick={() => setIsSchemaDropdownOpen(!isSchemaDropdownOpen)}
+                        onClick={toggleSchemaDropdown}
                         className="w-full flex items-center justify-between px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 hover:border-gray-400 dark:hover:border-gray-500 transition-colors"
                       >
                         <span className="text-gray-500 dark:text-gray-400">Select a schema...</span>
@@ -459,13 +507,16 @@ export function EditNodeDrawer() {
                                 className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
                                 title="Refresh schemas"
                               >
-                                <RefreshCw size={14} className={isLoadingSchemas ? 'animate-spin' : ''} />
+                                <RefreshCw
+                                  size={14}
+                                  className={isLoadingSchemas ? 'animate-spin' : ''}
+                                />
                               </button>
                             </div>
                           </div>
 
                           {/* Schema List */}
-                          <div className="max-h-64 overflow-y-auto">
+                          <div className="max-h-64 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                             {isLoadingSchemas ? (
                               <div className="p-4 text-center text-sm text-gray-500 dark:text-gray-400">
                                 Loading schemas...
@@ -497,78 +548,175 @@ export function EditNodeDrawer() {
                   </div>
                 )}
 
-                {/* Extra Attributes Not in Schema */}
-                {activeSchema && nodeWithEdits && (() => {
-                  const schemaKeys = new Set(activeSchema.attributes?.map(a => a.key) || [])
-                  const nodeKeys = Object.keys(nodeWithEdits).filter(key =>
-                    !['name', 'children', 'subdomainCount', 'resolverId', 'address', 'owner', 'ttl', 'icon', 'isSuggested', 'isPendingCreation'].includes(key)
-                  )
-                  const extraKeys = nodeKeys.filter(key => !schemaKeys.has(key) && nodeWithEdits[key as keyof typeof nodeWithEdits] !== undefined)
+                {/* Text Records Section */}
+                {nodeWithEdits &&
+                  (() => {
+                    const schemaKeys = new Set(
+                      activeSchema?.attributes?.map((a) => {
+                        // Handle keys like '_.focus' by removing the prefix
+                        return a.key.replace(/^_\./, '')
+                      }) || [],
+                    )
 
-                  if (extraKeys.length === 0) return null
+                    // Collect extra keys from both top-level and nested attributes
+                    const extraKeys: string[] = []
 
-                  return (
-                    <div className="pt-4 border-t border-orange-200 dark:border-orange-800">
-                      <div className="flex items-center gap-2 mb-3">
-                        <svg
-                          className="w-4 h-4 text-orange-500"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                          />
-                        </svg>
-                        <h3 className="text-sm font-medium text-orange-700 dark:text-orange-400">
-                          Extra Attributes (Not in Schema)
-                        </h3>
-                      </div>
-                      <p className="text-xs text-orange-600 dark:text-orange-500 mb-3">
-                        These attributes exist on the node but are not part of the selected schema. You may want to remove them.
-                      </p>
-                      <div className="space-y-3">
-                        {extraKeys.map((key) => (
-                          <div key={key} className="bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800 rounded-lg p-3">
-                            <div className="flex items-start justify-between gap-2 mb-2">
-                              <label className="block text-sm font-medium text-orange-900 dark:text-orange-300">
-                                {key}
-                              </label>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setFormData((prev) => {
-                                    const next = { ...prev }
-                                    next[key] = null
-                                    return next
-                                  })
-                                }}
-                                className="text-xs text-orange-600 dark:text-orange-400 hover:text-orange-800 dark:hover:text-orange-200 underline"
-                              >
-                                Clear
-                              </button>
+                    // Check top-level keys
+                    Object.keys(nodeWithEdits).forEach((key) => {
+                      if (
+                        [
+                          'name',
+                          'children',
+                          'subdomainCount',
+                          'resolverId',
+                          'address',
+                          'owner',
+                          'ttl',
+                          'icon',
+                          'isSuggested',
+                          'isPendingCreation',
+                          'schema',
+                          'type',
+                        ].includes(key)
+                      ) {
+                        return
+                      }
+
+                      // Skip 'attributes' object itself, we'll look inside it
+                      if (key === 'attributes' && typeof nodeWithEdits[key] === 'object') {
+                        return
+                      }
+
+                      if (
+                        !schemaKeys.has(key) &&
+                        nodeWithEdits[key as keyof typeof nodeWithEdits] !== undefined
+                      ) {
+                        extraKeys.push(key)
+                      }
+                    })
+
+                    // Check nested attributes (e.g., attributes.focus)
+                    if (nodeWithEdits.attributes && typeof nodeWithEdits.attributes === 'object') {
+                      Object.keys(nodeWithEdits.attributes).forEach((key) => {
+                        if (!schemaKeys.has(key)) {
+                          extraKeys.push(`attributes.${key}`)
+                        }
+                      })
+                    }
+
+                    return (
+                      <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                        <div className="flex items-center justify-between mb-3">
+                          <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Text Records
+                          </h3>
+                          {!isAddingCustomAttribute && (
+                            <button
+                              type="button"
+                              onClick={() => setIsAddingCustomAttribute(true)}
+                              className="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium"
+                            >
+                              + Record
+                            </button>
+                          )}
+                        </div>
+
+                        <div className="space-y-2">
+                          {/* Empty state */}
+                          {extraKeys.length === 0 && !isAddingCustomAttribute && (
+                            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                              <p className="text-sm">No text records yet</p>
+                              <p className="text-xs mt-1">Add custom ENSIP-5 text records</p>
                             </div>
-                            <input
-                              type="text"
-                              value={formData[key] ?? nodeWithEdits[key as keyof typeof nodeWithEdits] ?? ''}
-                              onChange={(e) =>
-                                setFormData((prev) => ({
-                                  ...prev,
-                                  [key]: e.target.value,
-                                }))
-                              }
-                              className="w-full px-3 py-2 border border-orange-300 dark:border-orange-700 rounded-lg text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )
-                })()}
+                          )}
 
+                          {/* Existing custom attributes */}
+                          {extraKeys.map((key) => {
+                            // Get the value, handling nested attributes
+                            const getValue = () => {
+                              if (key.startsWith('attributes.')) {
+                                const nestedKey = key.replace('attributes.', '')
+                                return (
+                                  formData[key] ??
+                                  (nodeWithEdits.attributes as any)?.[nestedKey] ??
+                                  ''
+                                )
+                              }
+                              return (
+                                formData[key] ??
+                                nodeWithEdits[key as keyof typeof nodeWithEdits] ??
+                                ''
+                              )
+                            }
+
+                            return (
+                              <div
+                                key={key}
+                                className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3"
+                              >
+                                <div className="flex items-center justify-between gap-2 mb-2">
+                                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    {key}
+                                  </label>
+                                  <button
+                                    type="button"
+                                    onClick={() => removeCustomAttribute(key)}
+                                    className="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                                  >
+                                    Remove
+                                  </button>
+                                </div>
+                                <input
+                                  type="text"
+                                  value={getValue()}
+                                  onChange={(e) => updateField(key, e.target.value)}
+                                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                />
+                              </div>
+                            )
+                          })}
+
+                          {/* Add new custom attribute form */}
+                          {isAddingCustomAttribute && (
+                            <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3">
+                              <div className="flex items-center gap-2 mb-2">
+                                <input
+                                  type="text"
+                                  value={newAttributeKey}
+                                  onChange={(e) => setNewAttributeKey(e.target.value)}
+                                  placeholder="Attribute key (e.g., com.twitter)"
+                                  className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                  autoFocus
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    if (newAttributeKey.trim()) {
+                                      addCustomAttribute(newAttributeKey)
+                                    }
+                                  }}
+                                  disabled={!newAttributeKey.trim()}
+                                  className="px-3 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                  Add
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setIsAddingCustomAttribute(false)}
+                                  className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                              <p className="text-xs text-gray-500 dark:text-gray-400">
+                                Add a custom text record following ENSIP-5 naming conventions
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )
+                  })()}
               </div>
             )}
 
@@ -583,32 +731,10 @@ export function EditNodeDrawer() {
             )}
 
             {/* Actions */}
-            <div className="flex flex-col gap-2 mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
-              {hasPendingEdits && (
-                <button
-                  onClick={handleDiscard}
-                  className="w-full px-4 py-2 bg-orange-50 border border-orange-300 text-orange-700 rounded-lg text-sm font-medium hover:bg-orange-100 transition-colors flex items-center justify-center gap-2"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <polyline points="3 6 5 6 21 6" />
-                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                  </svg>
-                  Discard Changes
-                </button>
-              )}
+            <div className="flex flex-col gap-3 mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
               <div className="flex gap-2">
                 <button
-                  onClick={closeEditDrawer}
+                  onClick={handleDrawerClose}
                   className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                 >
                   Cancel
@@ -618,9 +744,18 @@ export function EditNodeDrawer() {
                   disabled={!hasChanges || nodeWithEdits?.isSuggested}
                   className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
-                  Add to Changes
+                  Apply changes
                 </button>
               </div>
+              {hasPendingEdits && (
+                <button
+                  onClick={handleDiscard}
+                  className="w-full px-4 py-2 text-red-600 dark:text-red-400 rounded-lg text-sm font-medium hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors flex items-center justify-center gap-2"
+                >
+                  <Trash2 size={16} />
+                  Discard changes
+                </button>
+              )}
             </div>
           </div>
         </Drawer.Content>

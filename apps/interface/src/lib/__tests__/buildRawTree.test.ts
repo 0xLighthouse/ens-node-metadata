@@ -1,26 +1,35 @@
 import { describe, expect, it } from '@jest/globals'
 import { buildRawTree } from '../tree/buildRawTree'
+import { TreeNode } from '../tree/types'
 
-const ENS_SUBGRAPH_URL = 'https://api.alpha.ensnode.io/subgraph'
 const TEST_TIMEOUT_MS = 30000 // 30 seconds
 
 
 describe('buildRawTree integration', () => {
-  it('fetches a real domain tree from the ENS subgraph ', async () => {
 
-    const tree = await buildRawTree('ens.eth', {
-      endpoint: ENS_SUBGRAPH_URL,
-      pageSize: 500,
-      maxConcurrency: 5,
+  let tree: TreeNode
+
+  beforeAll(async () => {
+    tree = await buildRawTree('ensdao.eth')
+    console.log(JSON.stringify(tree, null, 2))
+  }, TEST_TIMEOUT_MS)
+
+
+  describe('fetch [ensdao.eth]', () => {
+    it('fetches a real domain tree from the ENS subgraph ', async () => {
+      expect(tree.children?.length ?? 0).toBeGreaterThan(0)
     })
 
-    console.log(JSON.stringify(tree, null, 2))
+    /**
+     * paint.ensdao.eth does not have a resolver or owner
+     */
+    it('omits nodes that do not have a resolver', async () => {
+      expect(tree.children?.some(o => o.name === 'paint.ensdao.eth')).toBe(false)
+    })
 
-    // Assertions
-    expect(tree.children?.length ?? 0).toBeGreaterThan(0)
-  },
-    TEST_TIMEOUT_MS,
-  )
-
+    it('marks nodes without an address as null', async () => {
+      expect(tree.address).toBeNull()
+    })
+  })
 
 })

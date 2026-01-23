@@ -21,11 +21,7 @@ interface TreeLoaderState {
   setTree: (tree: TreeNodes | null) => void
 }
 
-const buildTree = async (rootName: string): Promise<TreeNodes> => {
-  return buildRawTree(rootName, {
-    request: apiStore.ensRequest,
-  })
-}
+
 
 export const useTreeLoaderStore = create<TreeLoaderState>()(
   persist(
@@ -60,7 +56,7 @@ export const useTreeLoaderStore = create<TreeLoaderState>()(
 
         set({ isLoading: true })
         try {
-          const tree = await buildTree(rootName)
+          const tree = await buildRawTree(rootName)
           set({ sourceTree: tree, treeRootName: rootName, lastFetchedAt: Date.now() })
         } finally {
           set({ isLoading: false })
@@ -82,7 +78,7 @@ export const useTreeLoaderStore = create<TreeLoaderState>()(
 
         set({ isRefreshing: true, isLoading: shouldReset || !sourceTree })
         try {
-          const tree = await buildTree(rootName)
+          const tree = await buildRawTree(rootName)
           set({ sourceTree: tree, treeRootName: rootName, lastFetchedAt: Date.now() })
         } finally {
           set({ isRefreshing: false, isLoading: false })

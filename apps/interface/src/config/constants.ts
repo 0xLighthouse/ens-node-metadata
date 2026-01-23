@@ -4,6 +4,8 @@
  */
 export const AUTH_TOKEN_COOKIE = 'privy-token'
 
+export const APP_NAME = 'ENSIP-XX Metadata Registrar'
+
 export const API_ENDPOINT = process.env.NEXT_PUBLIC_API_ENDPOINT as string
 
 console.info('NEXT_PUBLIC_API_ENDPOINT', API_ENDPOINT)

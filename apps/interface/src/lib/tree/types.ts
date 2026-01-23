@@ -1,18 +1,39 @@
 export type TreeNodeType = 'default' | 'organizationRoot' | 'treasury' | 'role' | 'team'
 
-export interface BaseTreeNode {
+
+/**
+ * An ENS record/subdomain fetched from the subgraph and normalized into a tree node
+ */
+export interface NormalizedTreeNode {
+  /**
+   * The ID of the node as expressed on-chain
+   */
+  id: string
+  /**
+   * The name of the node as expressed on-chain (e.g. "ens.eth")
+   */
   name: string
+  /**
+   * The number of subdomains this node has
+   */
   subdomainCount: number
-  children?: TreeNodes[]
-  resolverId?: string
-  address: `0x${string}`
-  // TODO: Get manager
-  // manager?: `0x${string}`
-  // managerName?: string
+  resolverId: string
+  resolverAddress: string
+  /**
+   * (Optional) address this node points to
+   */
+  address?: `0x${string}` | null
+  /**
+   * The address of the owner of the node derived from [ownerId] or [wrappedOwnerId]
+   */
   owner: `0x${string}`
   // Optional metadata for display
   ttl?: number | null
   icon?: string
+  /**
+   * (Optional) children of this node
+   */
+  children?: TreeNodes[]
   attributes?: Record<string, string | null>
   // Additional fields (will be refactored to BaseNode, TreasuryNode, etc later)
   title?: string // String(255)
@@ -37,27 +58,27 @@ export interface BaseTreeNode {
   }
 }
 
-export interface DefaultTreeNode extends BaseTreeNode {
+export interface DefaultTreeNode extends NormalizedTreeNode {
   // Omit nodeType for unknown kinds to fall back to generic.
   nodeType?: 'default'
 }
 
-export interface TreasuryTreeNode extends BaseTreeNode {
+export interface TreasuryTreeNode extends NormalizedTreeNode {
   nodeType: 'treasury'
 }
 
-export interface OrganizationRootTreeNode extends BaseTreeNode {
+export interface OrganizationRootTreeNode extends NormalizedTreeNode {
   nodeType: 'organizationRoot'
   website?: string
   email?: string
   organizationAddress?: string
 }
 
-export interface RoleTreeNode extends BaseTreeNode {
+export interface RoleTreeNode extends NormalizedTreeNode {
   nodeType: 'role'
 }
 
-export interface TeamTreeNode extends BaseTreeNode {
+export interface TeamTreeNode extends NormalizedTreeNode {
   nodeType: 'team'
 }
 
