@@ -54,7 +54,9 @@ export const RESOLVE_DOMAIN_BY_NAME = gql`
   }
 `
 
-const RESSOLVE_CHILDREN_BY_PARENT_ID = gql`
+const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
+
+const RESOLVE_CHILDREN_BY_PARENT_ID = gql`
   query ResolveChildrenByParentId($parentId: String!, $first: Int!, $skip: Int!) {
     domains(where: { parent: $parentId }, first: $first, skip: $skip) {
       id
@@ -69,9 +71,8 @@ const RESSOLVE_CHILDREN_BY_PARENT_ID = gql`
       resolvedAddress {
         id
       }
-      owner {
-        id
-      }
+      ownerId
+      wrappedOwnerId
     }
   }
 `
@@ -95,7 +96,12 @@ export async function buildRawTree(rootName: string,): Promise<TreeNode> {
     const owner = (indexed.wrappedOwnerId ?? indexed.ownerId) as `0x${string}`
     const ttl = indexed.ttl == null ? null : Number(indexed.ttl)
 
-    // If a node does not have a resolve treat is as deleted
+    // If the node is owned by the zero address, omit it
+    if (owner === ZERO_ADDRESS) {
+      return undefined
+    }
+
+    // If a node does not have a resolver, omit it
     if (!indexed.resolver) {
       return undefined
     }
@@ -103,7 +109,7 @@ export async function buildRawTree(rootName: string,): Promise<TreeNode> {
     const node: NormalizedTreeNode = {
       id: indexed.id,
       name: indexed.name ?? indexed.id,
-      address: resolvedAddress === '0x0000000000000000000000000000000000000000' ? null : resolvedAddress,
+      address: resolvedAddress === ZERO_ADDRESS ? null : resolvedAddress,
       resolverId: indexed.resolver.id,
       resolverAddress: indexed.resolver.address,
       owner,
@@ -127,6 +133,7 @@ export async function buildRawTree(rootName: string,): Promise<TreeNode> {
       for await (const child of children) {
         const childNode = await buildNode(child)
         if (childNode) {
+          childNode.parentId = indexed.id
           node.children?.push(childNode)
         }
       }
@@ -153,7 +160,7 @@ async function paginateChildren(
   let skip = 0
 
   while (true) {
-    const res = await request<{ domains: ENSRecord[] }>(RESSOLVE_CHILDREN_BY_PARENT_ID, {
+    const res = await request<{ domains: ENSRecord[] }>(RESOLVE_CHILDREN_BY_PARENT_ID, {
       parentId,
       first: pageSize,
       skip,

@@ -558,44 +558,11 @@ export function EditNodeDrawer() {
                       }) || [],
                     )
 
-                    // Collect extra keys from both top-level and nested attributes
+                    // Collect extra keys ONLY from attributes (not top-level system fields)
+                    // Text Records should only show custom ENSIP-5 attributes
                     const extraKeys: string[] = []
 
-                    // Check top-level keys
-                    Object.keys(nodeWithEdits).forEach((key) => {
-                      if (
-                        [
-                          'name',
-                          'children',
-                          'subdomainCount',
-                          'resolverId',
-                          'address',
-                          'owner',
-                          'ttl',
-                          'icon',
-                          'isSuggested',
-                          'isPendingCreation',
-                          'schema',
-                          'type',
-                        ].includes(key)
-                      ) {
-                        return
-                      }
-
-                      // Skip 'attributes' object itself, we'll look inside it
-                      if (key === 'attributes' && typeof nodeWithEdits[key] === 'object') {
-                        return
-                      }
-
-                      if (
-                        !schemaKeys.has(key) &&
-                        nodeWithEdits[key as keyof typeof nodeWithEdits] !== undefined
-                      ) {
-                        extraKeys.push(key)
-                      }
-                    })
-
-                    // Check nested attributes (e.g., attributes.focus)
+                    // Only check nested attributes (e.g., attributes.avatar, attributes.com.twitter)
                     if (nodeWithEdits.attributes && typeof nodeWithEdits.attributes === 'object') {
                       Object.keys(nodeWithEdits.attributes).forEach((key) => {
                         if (!schemaKeys.has(key)) {
@@ -649,6 +616,11 @@ export function EditNodeDrawer() {
                               )
                             }
 
+                            // Display key without "attributes." prefix
+                            const displayKey = key.startsWith('attributes.')
+                              ? key.replace('attributes.', '')
+                              : key
+
                             return (
                               <div
                                 key={key}
@@ -656,7 +628,7 @@ export function EditNodeDrawer() {
                               >
                                 <div className="flex items-center justify-between gap-2 mb-2">
                                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    {key}
+                                    {displayKey}
                                   </label>
                                   <button
                                     type="button"

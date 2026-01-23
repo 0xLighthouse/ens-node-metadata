@@ -20,6 +20,10 @@ export interface NormalizedTreeNode {
   resolverId: string
   resolverAddress: string
   /**
+   * The ID of the parent node
+   */
+  parentId?: string
+  /**
    * (Optional) address this node points to
    */
   address?: `0x${string}` | null
