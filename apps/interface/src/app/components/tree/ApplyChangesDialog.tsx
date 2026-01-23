@@ -173,83 +173,77 @@ export function ApplyChangesDialog({ open, onOpenChange, onConfirm }: ApplyChang
                 </div>
 
                 {/* Changes list */}
-                <div className="space-y-2 text-sm">
-                  {/* Node type change */}
-                  {change.changes?.nodeType !== undefined &&
-                    change.changes?.nodeType !== originalNode?.nodeType && (
-                      <div className="grid grid-cols-[120px,1fr] gap-2">
-                        <span className="text-gray-600 dark:text-gray-400">Type:</span>
-                        <div>
-                          <span className="text-red-600 dark:text-red-400 line-through mr-2">
-                            {formatNodeType(originalNode?.nodeType)}
-                          </span>
-                          <span className="text-green-600 dark:text-green-400">
-                            {formatNodeType(change.changes?.nodeType)}
-                          </span>
-                        </div>
-                      </div>
-                    )}
-                  {/* Address change */}
-                  {change.changes?.address !== undefined && change.changes?.address !== originalNode?.address && (
-                    <div className="grid grid-cols-[120px,1fr] gap-2">
-                      <span className="text-gray-600 dark:text-gray-400">Address:</span>
-                      <div className="font-mono">
-                        <div className="text-red-600 dark:text-red-400 line-through">
-                          {originalNode?.address || '(empty)'}
-                        </div>
-                        <div className="text-green-600 dark:text-green-400">
-                          {change.changes?.address || '(empty)'}
-                        </div>
-                      </div>
-                    </div>
-                  )}
+                <div className="space-y-1 text-sm">
+                  {/* Show all changes dynamically */}
+                  {change.changes && (() => {
+                    const entries = Object.entries(change.changes).filter(([key, newValue]) => {
+                      const originalValue = (originalNode as any)?.[key]
+                      // Skip if values are the same
+                      if (newValue === originalValue) return false
+                      // Skip empty values
+                      if (newValue === null || newValue === undefined || newValue === '') return false
+                      // Skip inspectionData (we'll show it separately)
+                      if (key === 'inspectionData') return false
+                      return true
+                    })
 
+                    const addedFields = entries.filter(([key, newValue]) => {
+                      const originalValue = (originalNode as any)?.[key]
+                      return originalValue === undefined || originalValue === null || originalValue === ''
+                    })
 
-                  {/* Organization fields */}
-                  {changeOrgFields?.website !== undefined &&
-                    changeOrgFields.website !== originalOrgNode?.website && (
-                      <div className="grid grid-cols-[120px,1fr] gap-2">
-                        <span className="text-gray-600 dark:text-gray-400">Website:</span>
-                        <div>
-                          <span className="text-red-600 dark:text-red-400 line-through mr-2">
-                            {originalOrgNode?.website || '(empty)'}
-                          </span>
-                          <span className="text-green-600 dark:text-green-400">
-                            {changeOrgFields.website || '(empty)'}
-                          </span>
-                        </div>
-                      </div>
-                    )}
+                    const modifiedFields = entries.filter(([key, newValue]) => {
+                      const originalValue = (originalNode as any)?.[key]
+                      return originalValue !== undefined && originalValue !== null && originalValue !== ''
+                    })
 
-                  {changeOrgFields?.organizationAddress !== undefined &&
-                    changeOrgFields.organizationAddress !== originalOrgNode?.organizationAddress && (
-                      <div className="grid grid-cols-[120px,1fr] gap-2">
-                        <span className="text-gray-600 dark:text-gray-400">Organization Address:</span>
-                        <div>
-                          <span className="text-red-600 dark:text-red-400 line-through mr-2">
-                            {originalOrgNode?.organizationAddress || '(empty)'}
-                          </span>
-                          <span className="text-green-600 dark:text-green-400">
-                            {changeOrgFields.organizationAddress || '(empty)'}
-                          </span>
-                        </div>
-                      </div>
-                    )}
+                    return (
+                      <>
+                        {/* Added fields section */}
+                        {addedFields.length > 0 && (
+                          <div className="mb-3">
+                            <div className="text-xs text-green-600 dark:text-green-500 font-semibold mb-2 flex items-center gap-1">
+                              <span className="bg-green-50 dark:bg-green-950/30 px-2 py-0.5 rounded">Added</span>
+                            </div>
+                            {addedFields.map(([key, newValue]) => {
+                              const displayKey = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())
+                              return (
+                                <div key={key} className="flex items-center gap-3 py-1 ml-4">
+                                  <span className="text-gray-600 dark:text-gray-400 w-32 flex-shrink-0">{displayKey}:</span>
+                                  <span className={`flex-1 text-green-600 dark:text-green-400 font-medium ${key === 'address' ? 'font-mono' : ''}`}>
+                                    {String(newValue)}
+                                  </span>
+                                </div>
+                              )
+                            })}
+                          </div>
+                        )}
 
-                  {changeOrgFields?.email !== undefined &&
-                    changeOrgFields.email !== originalOrgNode?.email && (
-                      <div className="grid grid-cols-[120px,1fr] gap-2">
-                        <span className="text-gray-600 dark:text-gray-400">Email:</span>
-                        <div>
-                          <span className="text-red-600 dark:text-red-400 line-through mr-2">
-                            {originalOrgNode?.email || '(empty)'}
-                          </span>
-                          <span className="text-green-600 dark:text-green-400">
-                            {changeOrgFields.email || '(empty)'}
-                          </span>
-                        </div>
-                      </div>
-                    )}
+                        {/* Modified fields section */}
+                        {modifiedFields.length > 0 && (
+                          <div>
+                            {modifiedFields.map(([key, newValue]) => {
+                              const originalValue = (originalNode as any)?.[key]
+                              const displayKey = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())
+                              return (
+                                <div key={key} className="flex items-center gap-3 py-1">
+                                  <span className="text-gray-600 dark:text-gray-400 w-32 flex-shrink-0">{displayKey}:</span>
+                                  <span className={`flex-1 ${key === 'address' ? 'font-mono' : ''}`}>
+                                    <span className="text-red-600 dark:text-red-400 line-through mr-2">
+                                      {String(originalValue)}
+                                    </span>
+                                    <span className="text-green-600 dark:text-green-400 font-medium">
+                                      {String(newValue)}
+                                    </span>
+                                  </span>
+                                </div>
+                              )
+                            })}
+                          </div>
+                        )}
+                      </>
+                    )
+                  })()}
                 </div>
               </div>
             )

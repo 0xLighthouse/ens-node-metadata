@@ -6,45 +6,15 @@ import { useTreeEditStore } from '@/stores/tree-edits'
 import { useTreeData } from '@/hooks/useTreeData'
 import { type TreeNodeType } from '@/lib/tree/types'
 import { useState, useEffect } from 'react'
+import { SchemaVersion } from './SchemaVersion'
+import { useSchemaStore } from '@/stores/schemas'
 
-type NodeTypeFieldKey = 'website' | 'email' | 'organizationAddress'
-
-interface NodeTypeSchema {
-  label: string
-  fields: Array<{
-    key: NodeTypeFieldKey
-    label: string
-    type?: string
-    placeholder?: string
-  }>
-}
-
-const nodeTypeSchemas: Record<TreeNodeType, NodeTypeSchema> = {
-  generic: { label: 'Generic', fields: [] },
-  organizationRoot: {
-    label: 'Organization Root',
-    fields: [
-      { key: 'website', label: 'Website', type: 'url', placeholder: 'https://example.org' },
-      { key: 'organizationAddress', label: 'Organization Address', placeholder: '123 Main St' },
-      { key: 'email', label: 'Email', type: 'email', placeholder: 'contact@example.org' },
-    ],
-  },
-  treasury: { label: 'Treasury', fields: [] },
-  role: { label: 'Role', fields: [] },
-  team: { label: 'Team', fields: [] },
-}
-
-type NodeEditFormData = {
-  nodeType?: TreeNodeType
-  kind?: string
-  address?: string
-  website?: string
-  email?: string
-  organizationAddress?: string
-}
+type NodeEditFormData = Record<string, any>
 
 export function NodeEditDrawer() {
   const { sourceTree, previewTree } = useTreeData()
+  const { getSelectedSchema } = useSchemaStore()
+  const selectedSchema = getSelectedSchema()
   const {
     isEditDrawerOpen,
     selectedNode,
@@ -91,68 +61,47 @@ export function NodeEditDrawer() {
   useEffect(() => {
     if (!nodeWithEdits) return
 
-    const editableKeys: Array<keyof NodeEditFormData> = [
-      'nodeType',
-      'kind',
-      'address',
-      'website',
-      'email',
-      'organizationAddress',
-    ]
+    console.log('----- NODE EDIT DRAWER -----')
+    console.log('Node data:', nodeWithEdits)
+    console.log('Existing edit:', existingEdit)
+    console.log('Is pending creation:', isPendingCreation)
+    console.log('Selected schema:', selectedSchema)
 
-    const nextFormData: NodeEditFormData = {
-      address: nodeWithEdits.address ?? '',
+    const nextFormData: NodeEditFormData = {}
+
+    // Add schema and type to form data if schema is selected
+    if (selectedSchema) {
+      nextFormData.schema = selectedSchema.id
+      nextFormData.type = selectedSchema.name
     }
 
-    if (nodeWithEdits.nodeType) {
-      nextFormData.nodeType = nodeWithEdits.nodeType
-      nextFormData.kind = nodeWithEdits.kind
+    // Initialize from node data and schema attributes
+    if (selectedSchema?.attributes) {
+      selectedSchema.attributes.forEach((attr) => {
+        nextFormData[attr.key] = (nodeWithEdits as any)[attr.key] ?? ''
+      })
     }
 
-    if (nodeWithEdits.nodeType === 'organizationRoot') {
-      nextFormData.website = nodeWithEdits.website ?? ''
-      nextFormData.email = nodeWithEdits.email ?? ''
-      nextFormData.organizationAddress = nodeWithEdits.organizationAddress ?? ''
-    }
-
+    // Apply any pending edits
     if (existingEdit?.changes) {
       for (const [key, value] of Object.entries(existingEdit.changes)) {
-        if (value === undefined) continue
-        if (editableKeys.includes(key as keyof NodeEditFormData)) {
-          nextFormData[key as keyof NodeEditFormData] = value as NodeEditFormData[keyof NodeEditFormData]
+        if (value !== undefined) {
+          nextFormData[key] = value
         }
       }
     }
 
     setFormData(nextFormData)
-  }, [existingEdit, nodeWithEdits])
-
-  const handleNodeTypeChange = (nextType: TreeNodeType) => {
-    const schema = nodeTypeSchemas[nextType]
-    setFormData((prev) => {
-      const next: NodeEditFormData = {
-        ...prev,
-        nodeType: nextType,
-        kind: prev.kind ?? schema.label,
-      }
-
-      schema.fields.forEach((field) => {
-        if (next[field.key] === undefined) {
-          next[field.key] = ''
-        }
-      })
-
-      return next
-    })
-  }
-
-  const activeNodeType = formData.nodeType ?? nodeWithEdits?.nodeType
-  const activeSchema = activeNodeType ? nodeTypeSchemas[activeNodeType] : null
-  const shouldSelectType = !nodeWithEdits?.kind
+  }, [existingEdit, nodeWithEdits, selectedSchema])
 
   const handleSave = () => {
     if (!selectedNode) return
 
+    console.log('----- SAVING NODE CHANGES -----')
+    console.log('Node:', selectedNode)
+    console.log('Form data to save:', formData)
+
+    // formData already includes schema and type if a schema is selected
     upsertEdit(selectedNode, formData)
     closeEditDrawer()
   }
@@ -164,18 +113,34 @@ export function NodeEditDrawer() {
     closeEditDrawer()
   }
 
-  const hasChanges =
-    formData.address !== (nodeWithEdits?.address ?? '') ||
-    formData.nodeType !== nodeWithEdits?.nodeType ||
-    formData.kind !== nodeWithEdits?.kind ||
-    formData.website !==
-      (nodeWithEdits?.nodeType === 'organizationRoot' ? nodeWithEdits.website ?? '' : undefined) ||
-    formData.email !==
-      (nodeWithEdits?.nodeType === 'organizationRoot' ? nodeWithEdits.email ?? '' : undefined) ||
-    formData.organizationAddress !==
-      (nodeWithEdits?.nodeType === 'organizationRoot'
-        ? nodeWithEdits.organizationAddress ?? ''
-        : undefined)
+  const hasChanges = (() => {
+    // Check schema and type changes
+    const schemaTypeChanges =
+      formData.schema !== (nodeWithEdits as any)?.schema ||
+      formData.type !== (nodeWithEdits as any)?.type
+
+    // Check schema attributes for changes
+    const schemaChanges = selectedSchema?.attributes?.some((attr) => {
+      const currentValue = formData[attr.key] ?? ''
+      const originalValue = (nodeWithEdits as any)?.[attr.key] ?? ''
+      return currentValue !== originalValue
+    }) ?? false
+
+    // Check extra attributes for changes (including cleared ones)
+    const extraChanges = Object.keys(formData).some((key) => {
+      // Skip schema and type as we already checked them
+      if (key === 'schema' || key === 'type') return false
+
+      const schemaKeys = new Set(selectedSchema?.attributes?.map(a => a.key) || [])
+      if (schemaKeys.has(key)) return false // Already checked above
+
+      const currentValue = formData[key]
+      const originalValue = (nodeWithEdits as any)?.[key]
+      return currentValue !== originalValue
+    })
+
+    return schemaTypeChanges || schemaChanges || extraChanges
+  })()
 
   // Only show discard button for actual edits (not pending creations)
   const hasPendingEdits = !isPendingCreation && !!existingEdit
@@ -194,7 +159,7 @@ export function NodeEditDrawer() {
         >
           <div className="h-full w-full grow p-6 flex flex-col rounded-r-[16px] border-l border-white bg-[rgb(247,247,248)] dark:bg-neutral-900">
             {/* Header */}
-            <div className="mb-6 relative">
+            <div className="mb-4 relative">
               <button
                 onClick={closeEditDrawer}
                 className="absolute -top-2 -right-2 p-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
@@ -210,71 +175,124 @@ export function NodeEditDrawer() {
               </Drawer.Description>
             </div>
 
+            {/* Schema Version */}
+            <div className="mb-6 pb-4 border-b border-gray-200 dark:border-gray-700">
+              <SchemaVersion />
+            </div>
+
             {/* Form */}
             {nodeWithEdits && !nodeWithEdits.isSuggested && (
-              <div className="flex-1 overflow-y-auto space-y-4">
-                {shouldSelectType && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Node Type
-                    </label>
-                    <select
-                      value={formData.nodeType ?? ''}
-                      onChange={(e) => handleNodeTypeChange(e.target.value as TreeNodeType)}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-800 dark:text-white"
-                    >
-                      <option value="" disabled>
-                        Select a type
-                      </option>
-                      {Object.entries(nodeTypeSchemas).map(([value, schema]) => (
-                        <option key={value} value={value}>
-                          {schema.label}
-                        </option>
-                      ))}
-                    </select>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                      Pick a type to reveal its fields.
-                    </p>
-                  </div>
-                )}
-
-                {activeSchema?.fields.length ? (
+              <div className="flex-1 overflow-y-auto space-y-6">
+                {/* Schema-based Fields */}
+                {selectedSchema?.attributes && selectedSchema.attributes.length > 0 ? (
                   <div className="space-y-4">
-                    {activeSchema.fields.map((field) => (
-                      <div key={field.key}>
+                    {selectedSchema.attributes.map((attribute) => (
+                      <div key={attribute.key}>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                          {field.label}
+                          {attribute.name}
+                          {attribute.isRequired && (
+                            <span className="text-red-500 ml-1">*</span>
+                          )}
                         </label>
                         <input
-                          type={field.type ?? 'text'}
-                          value={formData[field.key] ?? ''}
+                          type={attribute.type === 'string' ? 'text' : attribute.type}
+                          value={formData[attribute.key] ?? ''}
                           onChange={(e) =>
                             setFormData((prev) => ({
                               ...prev,
-                              [field.key]: e.target.value,
+                              [attribute.key]: e.target.value,
                             }))
                           }
-                          placeholder={field.placeholder}
+                          placeholder={attribute.description}
+                          required={attribute.isRequired}
                           className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-800 dark:text-white"
                         />
+                        {attribute.notes && (
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            {attribute.notes}
+                          </p>
+                        )}
                       </div>
                     ))}
                   </div>
-                ) : null}
+                ) : (
+                  <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                    <p className="text-sm">No schema selected</p>
+                    <p className="text-xs mt-1">Select a schema to see available fields</p>
+                  </div>
+                )}
 
-                {/* Address */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Address
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.address || ''}
-                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-mono focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-800 dark:text-white"
-                    placeholder="0x0000...0000"
-                  />
-                </div>
+                {/* Extra Attributes Not in Schema */}
+                {selectedSchema && nodeWithEdits && (() => {
+                  const schemaKeys = new Set(selectedSchema.attributes?.map(a => a.key) || [])
+                  const nodeKeys = Object.keys(nodeWithEdits).filter(key =>
+                    !['name', 'children', 'subdomainCount', 'resolverId', 'address', 'owner', 'ttl', 'icon', 'isSuggested', 'isPendingCreation'].includes(key)
+                  )
+                  const extraKeys = nodeKeys.filter(key => !schemaKeys.has(key) && nodeWithEdits[key as keyof typeof nodeWithEdits] !== undefined)
+
+                  if (extraKeys.length === 0) return null
+
+                  return (
+                    <div className="pt-4 border-t border-orange-200 dark:border-orange-800">
+                      <div className="flex items-center gap-2 mb-3">
+                        <svg
+                          className="w-4 h-4 text-orange-500"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                          />
+                        </svg>
+                        <h3 className="text-sm font-medium text-orange-700 dark:text-orange-400">
+                          Extra Attributes (Not in Schema)
+                        </h3>
+                      </div>
+                      <p className="text-xs text-orange-600 dark:text-orange-500 mb-3">
+                        These attributes exist on the node but are not part of the selected schema. You may want to remove them.
+                      </p>
+                      <div className="space-y-3">
+                        {extraKeys.map((key) => (
+                          <div key={key} className="bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800 rounded-lg p-3">
+                            <div className="flex items-start justify-between gap-2 mb-2">
+                              <label className="block text-sm font-medium text-orange-900 dark:text-orange-300">
+                                {key}
+                              </label>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setFormData((prev) => {
+                                    const next = { ...prev }
+                                    next[key] = null
+                                    return next
+                                  })
+                                }}
+                                className="text-xs text-orange-600 dark:text-orange-400 hover:text-orange-800 dark:hover:text-orange-200 underline"
+                              >
+                                Clear
+                              </button>
+                            </div>
+                            <input
+                              type="text"
+                              value={formData[key] ?? nodeWithEdits[key as keyof typeof nodeWithEdits] ?? ''}
+                              onChange={(e) =>
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  [key]: e.target.value,
+                                }))
+                              }
+                              className="w-full px-3 py-2 border border-orange-300 dark:border-orange-700 rounded-lg text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                })()}
 
               </div>
             )}

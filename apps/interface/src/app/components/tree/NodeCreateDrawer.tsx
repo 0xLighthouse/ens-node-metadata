@@ -6,6 +6,7 @@ import { useTreeEditStore } from '@/stores/tree-edits'
 import { useTreeData } from '@/hooks/useTreeData'
 import { type TreeNodes, type TreeNodeType } from '@/lib/tree/types'
 import { useState, useEffect } from 'react'
+import { SchemaVersion } from './SchemaVersion'
 
 interface NodeCreateDrawerProps {
   isOpen: boolean
@@ -42,9 +43,13 @@ export function NodeCreateDrawer({
   // Reset to root when drawer opens
   useEffect(() => {
     if (isOpen && sourceTree) {
+      console.log('----- NODE CREATE DRAWER -----')
+      console.log('Suggestion ID:', suggestionId)
+      console.log('Suggestion Title:', suggestionTitle)
+      console.log('Nodes to create:', nodes)
       setSelectedParent(sourceTree.name)
     }
-  }, [isOpen, sourceTree])
+  }, [isOpen, sourceTree, suggestionId, suggestionTitle, nodes])
 
   if (!sourceTree || !previewTree) {
     return null
@@ -125,7 +130,7 @@ export function NodeCreateDrawer({
         >
           <div className="h-full w-full grow p-6 flex flex-col rounded-r-[16px] border-l border-white bg-[rgb(247,247,248)] dark:bg-neutral-900">
             {/* Header */}
-            <div className="mb-6 relative">
+            <div className="mb-4 relative">
               <button
                 onClick={onClose}
                 className="absolute -top-2 -right-2 p-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
@@ -139,6 +144,11 @@ export function NodeCreateDrawer({
               <Drawer.Description className="text-sm text-gray-600 dark:text-gray-400">
                 {suggestionTitle}
               </Drawer.Description>
+            </div>
+
+            {/* Schema Version */}
+            <div className="mb-6 pb-4 border-b border-gray-200 dark:border-gray-700">
+              <SchemaVersion />
             </div>
 
             {/* Form */}

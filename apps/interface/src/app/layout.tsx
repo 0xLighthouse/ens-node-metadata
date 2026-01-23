@@ -10,6 +10,7 @@ import { ThemeProvider } from '@/contexts/ThemeContext'
 import { Web3Provider } from '@/contexts/Web3Provider'
 
 import DefaultLayout from './components/layouts/default'
+import { RouteTracker } from './components/RouteTracker'
 
 // const geistSans = localFont({
 //   src: './fonts/GeistVF.woff',
@@ -38,6 +39,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={theme}>
       <body>
+        <RouteTracker />
         <ThemeProvider initialTheme={theme}>
           <Web3Provider>
             <DefaultLayout>{children}</DefaultLayout>

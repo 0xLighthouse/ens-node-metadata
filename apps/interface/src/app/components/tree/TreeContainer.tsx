@@ -9,10 +9,7 @@ import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { useTreeData } from '@/hooks/useTreeData'
 
 export function TreeContainer() {
-  const { sourceTree, previewTree, isLoading, hasHydrated, loadTree } = useTreeData()
-
-  console.log('----- PREVIEW TREE -----')
-  console.log('sourceTree', sourceTree)
+  const { previewTree, isLoading, hasHydrated, loadTree } = useTreeData()
 
   useEffect(() => {
     if (!hasHydrated) return
@@ -26,13 +23,11 @@ export function TreeContainer() {
       <ChangesBar />
       <div className="relative flex-1 min-h-0 w-full overflow-hidden">
         <TreeControls />
-        <div className="absolute inset-0">
-          {previewTree && <Tree data={previewTree} />}
-        </div>
+        <div className="absolute inset-0">{previewTree && <Tree data={previewTree} />}</div>
         {showLoader && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-gray-600 dark:text-gray-300">
             <LoadingSpinner size={54} />
-            <span className="text-sm font-medium">Loading tree...</span>
+            <span className="text-sm font-medium">Fetching nodes...</span>
           </div>
         )}
       </div>

@@ -3,7 +3,7 @@ import { ENSIP5 } from "./utils/ensip5";
 import { GITHUB_URL } from "./config/constants";
 
 export const COMMITTEE_SCHEMA: Schema = {
-  github: GITHUB_URL,
+  source: GITHUB_URL,
   name: 'Committee',
   version: '1.0.0',
   description: 'A group of entities that have been empowered by a larger organization to undertake some activity.',

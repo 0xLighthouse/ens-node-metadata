@@ -1,6 +1,7 @@
 import { Schema } from "../types";
 
 export const ENSIP5: Schema = {
+  source: 'https://docs.ens.domains/ensip/5',
   name: 'ENSIP-5',
   version: '1.0.0',
   description: 'A group of entities that have been empowered by a larger organization to undertake some activity.',

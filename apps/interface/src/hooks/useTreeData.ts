@@ -60,7 +60,7 @@ export const useTreeData = () => {
   )
 
   /**
-   * The tree data that is displayed to the user, including pending creations.
+   * The tree data that is displayed to the user, including pending creations and edits.
    * This is used to render the tree in the UI.
    */
   const previewTree = useMemo(() => {
@@ -72,7 +72,17 @@ export const useTreeData = () => {
       children: node.children?.map(markAsPending),
     })
 
-    const mergePendingCreations = (node: TreeNodes): TreeNodes => {
+    const mergePendingChanges = (node: TreeNodes): TreeNodes => {
+      // Apply any pending edits to this node
+      const pendingEdit = Array.from(pendingMutations.values()).find(
+        (change) => !change.isCreate && change.nodeName === node.name,
+      )
+
+      let mergedNode = { ...node }
+      if (pendingEdit?.changes) {
+        mergedNode = { ...mergedNode, ...pendingEdit.changes }
+      }
+
       // Find any pending creations for this node
       const creationsForThisNode = Array.from(pendingMutations.values()).filter(
         (change) => change.isCreate && change.parentName === node.name,
@@ -92,19 +102,22 @@ export const useTreeData = () => {
         }
       }
 
-      // Recursively process existing children
-      const processedChildren = node.children?.map(mergePendingCreations) || []
+      // Add computed children from inspection data (e.g., signers from Safe multisig)
+      const computedChildren = mergedNode.inspectionData?.computedChildren || []
 
-      // Combine existing children with new pending nodes
-      const allChildren = [...processedChildren, ...nodesToAdd]
+      // Recursively process existing children
+      const processedChildren = node.children?.map(mergePendingChanges) || []
+
+      // Combine existing children with pending nodes and computed nodes
+      const allChildren = [...processedChildren, ...nodesToAdd, ...computedChildren]
 
       return {
-        ...node,
+        ...mergedNode,
         children: allChildren.length > 0 ? allChildren : undefined,
       }
     }
 
-    return mergePendingCreations(sourceTree)
+    return mergePendingChanges(sourceTree)
   }, [sourceTree, pendingMutations])
 
   return {

@@ -21,6 +21,9 @@ interface TreeControlsState {
   // Custom node positions (for drag persistence)
   nodePositions: Map<string, NodePosition>
 
+  // Layout recompute trigger
+  layoutTrigger: number
+
   // Actions
   setSelectedNode: (nodeName: string | null) => void
   setOrientation: (orientation: TreeOrientation) => void
@@ -29,6 +32,7 @@ interface TreeControlsState {
   expandAll: () => void
   setNodePosition: (nodeId: string, position: NodePosition) => void
   clearNodePositions: () => void
+  triggerLayout: () => void
   reset: () => void
 }
 
@@ -37,6 +41,7 @@ const initialState = {
   orientation: 'vertical' as TreeOrientation,
   collapsedNodes: new Set<string>(),
   nodePositions: new Map<string, NodePosition>(),
+  layoutTrigger: 0,
 }
 
 export const useTreeControlsStore = create<TreeControlsState>()(
@@ -84,6 +89,10 @@ export const useTreeControlsStore = create<TreeControlsState>()(
         set({ nodePositions: new Map() })
       },
 
+      triggerLayout: () => {
+        set((state) => ({ layoutTrigger: state.layoutTrigger + 1 }))
+      },
+
       reset: () => {
         set(initialState)
       },
@@ -119,6 +128,7 @@ export const useTreeControlsStore = create<TreeControlsState>()(
         orientation: state.orientation,
         collapsedNodes: state.collapsedNodes,
         nodePositions: state.nodePositions,
+        // Don't persist layoutTrigger - it's just a trigger value
       }),
     },
   ),

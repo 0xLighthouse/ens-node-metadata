@@ -17,7 +17,7 @@ import dagre from '@dagrejs/dagre'
 import { useTreeControlsStore } from '@/stores/tree-controls'
 import { useTreeEditStore } from '@/stores/tree-edits'
 import type { TreeNode } from '@/lib/tree/types'
-import { DefaultNode } from './nodes'
+import { DefaultNode, TreasuryNode, SignerNode } from './nodes'
 
 const NODE_HEIGHT = 100
 const NODE_WIDTH = 280
@@ -53,18 +53,30 @@ const layoutTree = (
 
   const walk = (node: TreeNode, parentId?: string) => {
     nodeById.set(node.name, node)
+    // Use the node's type field if available, otherwise default
+    const nodeType = (node as any).type || 'default'
     nodes.push({
       id: node.name,
-      type: 'default',
+      type: nodeType,
       position: { x: 0, y: 0 },
       data: node,
     })
 
     if (parentId) {
+      const parentNode = nodeById.get(parentId)
+      const isComputedChild = (node as any).isComputed
+      const isTreasuryToSigner = parentNode && (parentNode as any).type === 'Treasury' && (node as any).type === 'Signer'
+
       edges.push({
         id: `edge-${parentId}-${node.name}`,
         source: parentId,
         target: node.name,
+        animated: isComputedChild,
+        style: isTreasuryToSigner ? {
+          stroke: '#f59e0b',
+          strokeWidth: 2,
+        } : undefined,
+        type: isComputedChild ? 'straight' : 'default',
       })
     }
 
@@ -109,7 +121,11 @@ const layoutTree = (
   return { layoutedNodes, edges, nodeById }
 }
 
-const nodeTypes = { default: DefaultNode }
+const nodeTypes = {
+  default: DefaultNode,
+  Treasury: TreasuryNode,
+  Signer: SignerNode,
+}
 
 interface Props {
   data: TreeNode
@@ -125,6 +141,7 @@ export function Tree({ data }: Props) {
     nodePositions,
     setNodePosition,
     clearNodePositions,
+    layoutTrigger,
   } = useTreeControlsStore()
   const { openEditDrawer, hasPendingEdit } = useTreeEditStore()
   const pendingMutationCount = useTreeEditStore((state) => state.pendingMutations.size)
@@ -232,6 +249,20 @@ export function Tree({ data }: Props) {
       cancelAnimationFrame(frame)
     }
   }, [reactFlowInstance, orientation])
+
+  // Trigger layout recompute when explicitly requested (e.g., after adding computed nodes)
+  useEffect(() => {
+    if (layoutTrigger === 0) return // Skip initial state
+    if (!reactFlowInstance) return
+
+    const frame = requestAnimationFrame(() => {
+      reactFlowInstance.fitView({ padding: 0.15, maxZoom: 1 })
+    })
+
+    return () => {
+      cancelAnimationFrame(frame)
+    }
+  }, [layoutTrigger, reactFlowInstance])
 
   return (
     <ReactFlow

@@ -6,6 +6,7 @@ import { formatApiError } from '@/lib/api/utils/formatApiError'
 import { ErrorCode } from '@/lib/api/utils/ErrorCode'
 
 interface AppRouteHistory {
+  currentPath?: string
   lastPath?: string
   lastRoute?: string
 }
@@ -68,6 +69,7 @@ export const useUiStore = create<UiState>()(
       gatedError: { showModal: false, ref: undefined },
 
       routeHistory: {
+        currentPath: undefined,
         lastPath: undefined,
         lastRoute: undefined,
       },
