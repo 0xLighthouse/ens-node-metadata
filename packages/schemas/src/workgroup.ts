@@ -1,5 +1,6 @@
 import { Schema } from "./types";
 import { GITHUB_URL } from "./config/constants";
+import { ENSIP5 } from "./utils/ensip5";
 
 export const WORKGROUP_SCHEMA: Schema = {
   source: GITHUB_URL,
@@ -15,11 +16,11 @@ export const WORKGROUP_SCHEMA: Schema = {
       isRequired: true,
     },
     {
-      name: 'focus',
-      type: 'string',
-      key: '_.focus',
-      description: 'Primary focus area',
-      isRequired: false,
+      name: 'description',
+      type: 'text',
+      key: 'description',
+      description: 'Workgroup description',
+      isRequired: true,
     },
     {
       name: 'lead',
@@ -28,5 +29,7 @@ export const WORKGROUP_SCHEMA: Schema = {
       description: 'Workgroup lead',
       isRequired: false,
     },
+    // Include other ENSIP-5 attributes
+    ...ENSIP5.attributes.filter(attr => attr.key !== 'description'),
   ],
 }

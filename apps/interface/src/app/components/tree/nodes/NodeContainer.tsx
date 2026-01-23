@@ -137,7 +137,7 @@ export const NodeContainer = memo(({
     width,
     backgroundColor: getBackgroundColor(isSuggested, isPendingCreation, hasPendingEdits, accentColor),
     border: getBorderStyle(isSuggested, isPendingCreation, hasPendingEdits, accentColor),
-    borderRadius: '8px',
+    borderRadius: '12px',
     overflow,
     boxShadow: getBoxShadow(isSelected, isPendingCreation, hasPendingEdits, accentColor),
     ...style,
