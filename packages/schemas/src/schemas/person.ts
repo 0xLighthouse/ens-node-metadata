@@ -1,5 +1,5 @@
-import { Schema } from "./types";
-import { GITHUB_URL } from "./config/constants";
+import { Schema } from "../types";
+import { GITHUB_URL } from "../config/constants";
 
 
 export const PERSON_SCHEMA: Schema = {

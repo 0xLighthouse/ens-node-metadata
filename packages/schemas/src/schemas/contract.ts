@@ -1,5 +1,5 @@
-import { Schema } from "./types"
-import { GITHUB_URL } from "./config/constants"
+import { Schema } from "../types"
+import { GITHUB_URL } from "../config/constants"
 
 /**
  * TODO: Look at what enscribe is doing.

@@ -134,9 +134,11 @@ export function EditNodeDrawer() {
     }
   }, [schemas.length, fetchSchemas, isLoadingSchemas, setIsLoadingSchemas])
 
-  const filteredSchemas = schemas.filter((schema) =>
-    schema.name.toLowerCase().includes(schemaSearchQuery.toLowerCase()),
-  )
+  const filteredSchemas = schemas
+    .filter((schema) => schema.isLatest)
+    .filter((schema) =>
+      schema.name.toLowerCase().includes(schemaSearchQuery.toLowerCase()),
+    )
 
   const handleSelectSchema = (schemaId: string) => {
     const schema = schemas.find((s) => s.id === schemaId)

@@ -1,17 +1,12 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { fetchSchemas as fetchSchemasAPI } from '@/lib/api/schemas'
-import type { Attribute } from '@ens-registrar/schemas/types'
+import type { Schema as BaseSchema } from '@ensipXX/schemas/types'
 
-export interface Schema {
+export interface Schema extends BaseSchema {
   id: string
-  source: string
-  name: string
-  version: string
-  description: string
-  attributes: Attribute[]
-  directory?: string
-  branch?: string
+  title: string
+  isLatest: boolean
 }
 
 interface SchemaState {

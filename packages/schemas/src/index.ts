@@ -1,15 +1,15 @@
 import { Schema } from "./types";
 
-import { APPLICATION_SCHEMA } from "./application";
-import { COMMITTEE_SCHEMA } from "./committee";
-import { CONTRACT_SCHEMA } from "./contract";
-import { LOCATION_SCHEMA } from "./location";
-import { OFFICE_SCHEMA } from "./office";
-import { ORGANIZATION_SCHEMA } from "./org";
-import { PERSON_SCHEMA } from "./person";
-import { TREASURY_SCHEMA } from "./treasury";
-import { WALLET_SCHEMA } from "./wallet";
-import { WORKGROUP_SCHEMA } from "./workgroup";
+import { APPLICATION_SCHEMA } from "./schemas/application";
+import { COMMITTEE_SCHEMA } from "./schemas/committee";
+import { CONTRACT_SCHEMA } from "./schemas/contract";
+import { LOCATION_SCHEMA } from "./schemas/location";
+import { OFFICE_SCHEMA } from "./schemas/office";
+import { ORGANIZATION_SCHEMA } from "./schemas/org";
+import { PERSON_SCHEMA } from "./schemas/person";
+import { TREASURY_SCHEMA } from "./schemas/treasury";
+import { WALLET_SCHEMA } from "./schemas/wallet";
+import { WORKGROUP_SCHEMA } from "./schemas/workgroup";
 
 export const SCHEMAS: Schema[] = [
   APPLICATION_SCHEMA,

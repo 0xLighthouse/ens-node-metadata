@@ -5,8 +5,18 @@
   "type": "module",
   "main": "./src/index.ts",
   "types": "./src/index.ts",
+  "scripts": {
+    "publish:schema": "tsx ./scripts/publish-schema.ts"
+  },
   "exports": {
     ".": "./src/index.ts",
-    "./types": "./src/types.ts"
+    "./types": "./src/types.ts",
+    "./published": "./src/published.ts",
+    "./registry": "./published/_registry.json",
+    "./latest": "./published/_latest.json"
+  },
+  "devDependencies": {
+    "tsx": "^4.7.0",
+    "viem": "2.23.15"
   }
 }

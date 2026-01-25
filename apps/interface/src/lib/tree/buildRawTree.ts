@@ -1,6 +1,7 @@
 import { GraphQLClient, type RequestDocument, gql } from 'graphql-request'
 import type { NormalizedTreeNode, TreeNode } from '@/lib/tree/types'
 import { fetchTexts } from './fetchTexts'
+import { mapNamesByAddress } from './mapNamesByAddress'
 
 
 const ENS_SUBGRAPH_URL = 'https://api.alpha.ensnode.io/subgraph'
@@ -77,7 +78,36 @@ const RESOLVE_CHILDREN_BY_PARENT_ID = gql`
   }
 `
 
-export async function buildRawTree(rootName: string,): Promise<TreeNode> {
+// Helper to collect all unique owner addresses from the tree
+function collectOwnerAddresses(node: NormalizedTreeNode): Set<`0x${string}`> {
+  const addresses = new Set<`0x${string}`>()
+  addresses.add(node.owner)
+
+  if (node.children) {
+    for (const child of node.children) {
+      const childAddresses = collectOwnerAddresses(child)
+      childAddresses.forEach((addr) => addresses.add(addr))
+    }
+  }
+
+  return addresses
+}
+
+// Helper to assign ENS names to nodes
+function assignEnsNames(
+  node: NormalizedTreeNode,
+  nameMap: Map<`0x${string}`, string | null>,
+): void {
+  node.ownerEnsName = nameMap.get(node.owner) ?? null
+
+  if (node.children) {
+    for (const child of node.children) {
+      assignEnsNames(child, nameMap)
+    }
+  }
+}
+
+export async function buildRawTree(rootName: string,): Promise<TreeNode | undefined> {
   const endpoint = ENS_SUBGRAPH_URL
   const request = withRetry(createGraphRequest(endpoint))
   const pageSize = 1000
@@ -147,6 +177,19 @@ export async function buildRawTree(rootName: string,): Promise<TreeNode> {
   }
 
   const tree = await buildNode(rootDomain)
+
+  if (!tree) {
+    return undefined
+  }
+
+  // Collect all unique owner addresses
+  const ownerAddresses = collectOwnerAddresses(tree)
+
+  // Fetch ENS names for all addresses
+  const ensNameMap = await mapNamesByAddress(Array.from(ownerAddresses))
+
+  // Assign ENS names to all nodes
+  assignEnsNames(tree, ensNameMap)
 
   return tree
 }

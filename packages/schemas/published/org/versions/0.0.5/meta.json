@@ -1,0 +1,67 @@
+{
+  "schemaId": "org",
+  "version": "0.0.5",
+  "name": "Organizational Unit",
+  "description": "The base template for an organization. Can be used to group together other entities to represent departments, committees, groups, or even entire organizations.",
+  "source": "https://github.com/lighthouse-labs/ens-org-registrar",
+  "cid": "QmbWHYrYJBNNVTj8RkGLAygJrGngnD848eEu6bQyf7vVyN",
+  "checksum": "sha256:83332691e16191b7204b0732b108bd194b7f20aa844a73d5f9e4aa2ce7a26498",
+  "timestamp": 1769340949,
+  "schemaPath": "packages/schemas/published/org/versions/0.0.5/schema.json",
+  "publisher": "pinata",
+  "signer": "0x6837047F46Da1d5d9A79846b25810b92adF456F6",
+  "signature": "0x0779906f5435b47571806c0b1118ff6baa52eb479f1df43304fc32c0cd08da27094baba6c5146c08eebf108eab67a5025cc2b8dbf5aec274971db1dad52be2e11b",
+  "eip712": {
+    "domain": {
+      "name": "ENS Schema Publisher",
+      "version": "1"
+    },
+    "types": {
+      "PublishedSchema": [
+        {
+          "name": "schemaId",
+          "type": "string"
+        },
+        {
+          "name": "version",
+          "type": "string"
+        },
+        {
+          "name": "cid",
+          "type": "string"
+        },
+        {
+          "name": "checksum",
+          "type": "string"
+        },
+        {
+          "name": "timestamp",
+          "type": "uint256"
+        },
+        {
+          "name": "schemaPath",
+          "type": "string"
+        },
+        {
+          "name": "publisher",
+          "type": "string"
+        },
+        {
+          "name": "notes",
+          "type": "string"
+        }
+      ]
+    },
+    "primaryType": "PublishedSchema",
+    "message": {
+      "schemaId": "org",
+      "version": "0.0.5",
+      "cid": "QmbWHYrYJBNNVTj8RkGLAygJrGngnD848eEu6bQyf7vVyN",
+      "checksum": "sha256:83332691e16191b7204b0732b108bd194b7f20aa844a73d5f9e4aa2ce7a26498",
+      "timestamp": 1769340949,
+      "schemaPath": "packages/schemas/published/org/versions/0.0.5/schema.json",
+      "publisher": "pinata",
+      "notes": ""
+    }
+  }
+}

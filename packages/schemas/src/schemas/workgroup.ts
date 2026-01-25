@@ -1,5 +1,5 @@
-import { Schema } from "./types";
-import { GITHUB_URL } from "./config/constants";
+import { Schema } from "../types";
+import { GITHUB_URL } from "../config/constants";
 import { ENSIP5 } from "./utils/ensip5";
 
 export const WORKGROUP_SCHEMA: Schema = {

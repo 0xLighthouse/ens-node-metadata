@@ -1,37 +1,37 @@
-import { Schema } from "./types";
-import { GITHUB_URL } from "./config/constants";
+import { Schema } from "../types";
+import { GITHUB_URL } from "../config/constants";
 
 export const ORGANIZATION_SCHEMA: Schema = {
   source: GITHUB_URL,
   name: 'Organizational Unit',
-  version: '1.0.0',
+  version: '0.1.3',
   description: 'The base template for an organization. Can be used to group together other entities to represent departments, committees, groups, or even entire organizations.',
   attributes: [
     {
       name: 'name',
       type: 'string',
-      key: '_.name',
+      key: 'name',
       description: 'The name of the organizational unit',
       isRequired: true,
     },
     {
       name: 'description',
       type: 'string',
-      key: '_.description',
+      key: 'description',
       description: 'The description of the organizational unit',
       isRequired: true,
     },
     {
       name: 'website',
       type: 'string',
-      key: '_.website',
+      key: 'website',
       description: 'Primary website URL',
-      isRequired: false,
+      isRequired: true,
     },
     {
       name: 'email',
       type: 'string',
-      key: '_.email',
+      key: 'email',
       description: 'Primary contact email',
       isRequired: false,
     },

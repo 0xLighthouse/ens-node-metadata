@@ -39,9 +39,11 @@ export function SchemaVersion({ className = '' }: SchemaVersionProps) {
     }
   }, [isOpen])
 
-  const filteredSchemas = schemas.filter((schema) =>
-    schema.name.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+  const filteredSchemas = schemas
+    .filter((schema) => schema.isLatest)
+    .filter((schema) =>
+      schema.name.toLowerCase().includes(searchQuery.toLowerCase())
+    )
 
   const handleSelectSchema = (schemaId: string) => {
     const schema = schemas.find((s) => s.id === schemaId)

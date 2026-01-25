@@ -1,5 +1,5 @@
-import { Schema } from "./types";
-import { GITHUB_URL } from "./config/constants";
+import { Schema } from "../types";
+import { GITHUB_URL } from "../config/constants";
 
 export const APPLICATION_SCHEMA: Schema = {
   source: GITHUB_URL,

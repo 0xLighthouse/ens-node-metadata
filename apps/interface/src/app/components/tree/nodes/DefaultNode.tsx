@@ -147,8 +147,18 @@ const DefaultNodeCard = ({
           )}
         </div>
         <div className="flex-1 min-w-0">
-          <div className="text-base font-semibold text-gray-900 truncate">{displayName}</div>
-          <div className="text-sm text-gray-500 truncate">{node.name}</div>
+          <div className="text-base font-semibold text-gray-900 truncate text-left">
+            {displayName}
+          </div>
+          <a
+            href={`https://app.ens.domains/${node.name}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sm text-blue-600 hover:text-blue-700 hover:underline truncate flex items-center gap-1.5"
+          >
+            {node.name}
+            <ExternalLink className="size-3 flex-shrink-0" />
+          </a>
         </div>
         {hasChildren && (
           <div className="flex items-center gap-1.5 flex-shrink-0">
@@ -185,28 +195,23 @@ const DefaultNodeCard = ({
       {/* Address info bar */}
       {!isSuggested && (
         <>
-          <div className="px-4 py-3">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                <Link2 className="size-3.5 flex-shrink-0 text-gray-400" />
-                <span className="text-sm text-gray-700 font-mono">
-                  {truncateAddress(node.address || '0x0000...0000')}
-                </span>
-              </div>
+          <div className="px-4 py-3 border-b border-gray-100 text-left">
+            {node.address ? (
               <a
-                href={link.url}
+                href={`https://etherscan.io/address/${node.address}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                title={link.label}
-                className="text-sm text-blue-600 hover:text-blue-700 hover:underline flex-shrink-0 font-medium"
+                className="text-sm text-gray-700 font-mono hover:text-blue-600 hover:underline truncate block"
               >
-                View →
+                {truncateAddress(node.address)}
               </a>
-            </div>
+            ) : (
+              <span className="text-sm text-gray-500 uppercase tracking-wide">No address set</span>
+            )}
           </div>
 
           {/* Manager row */}
-          <div className="px-4 py-2 border-t border-gray-100 bg-gray-50/50">
+          <div className="px-4 py-2.5 bg-gray-50/50">
             <a
               href={`https://etherscan.io/address/${node.owner}`}
               target="_blank"
@@ -220,8 +225,11 @@ const DefaultNodeCard = ({
                   {getAvatarFallback(node.owner)}
                 </AvatarFallback>
               </Avatar>
-              <span className="text-xs text-gray-700 font-mono truncate leading-none">
-                {truncateAddress(node.owner)}
+              <span
+                className="text-sm text-gray-700 truncate leading-none"
+                style={{ fontFamily: node.ownerEnsName ? 'inherit' : 'monospace' }}
+              >
+                {node.ownerEnsName || truncateAddress(node.owner)}
               </span>
               <ExternalLink className="size-3 text-gray-400 group-hover:text-gray-600 flex-shrink-0" />
             </a>

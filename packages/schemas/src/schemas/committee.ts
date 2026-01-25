@@ -1,6 +1,6 @@
-import { Schema } from "./types";
+import { Schema } from "../types";
 import { ENSIP5 } from "./utils/ensip5";
-import { GITHUB_URL } from "./config/constants";
+import { GITHUB_URL } from "../config/constants";
 
 export const COMMITTEE_SCHEMA: Schema = {
   source: GITHUB_URL,

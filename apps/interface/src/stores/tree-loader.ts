@@ -2,7 +2,6 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { TreeNodes } from '@/lib/tree/types'
 import { buildRawTree } from '@/lib/tree/buildRawTree'
-import { apiStore } from '@/stores/api'
 
 interface TreeLoaderState {
   /**

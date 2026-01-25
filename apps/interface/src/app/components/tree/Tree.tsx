@@ -19,10 +19,36 @@ import { useTreeEditStore } from '@/stores/tree-edits'
 import type { TreeNode } from '@/lib/tree/types'
 import { DefaultNode, TreasuryNode, SignerNode } from './nodes'
 
-const NODE_HEIGHT = 100
-const NODE_WIDTH = 256
-const MIN_ZOOM = 0.1
-const MAX_ZOOM = 3
+const MIN_ZOOM = 0.3
+const MAX_ZOOM = 2
+
+type NodeDimensions = {
+  width: number
+  height: number
+}
+
+const FALLBACK_NODE_SIZES: Record<string, NodeDimensions> = {
+  default: { width: 320, height: 180 },
+  Treasury: { width: 320, height: 180 },
+  Signer: { width: 320, height: 180 },
+}
+
+const getFlowNodeType = (node: TreeNode): string => {
+  const explicitType = (node as any).type
+  if (explicitType) return explicitType
+
+  switch (node.nodeType) {
+    case 'treasury':
+      return 'Treasury'
+    default:
+      return 'default'
+  }
+}
+
+const getFallbackNodeSize = (node: TreeNode): NodeDimensions => {
+  const flowType = getFlowNodeType(node)
+  return FALLBACK_NODE_SIZES[flowType] ?? FALLBACK_NODE_SIZES.default
+}
 
 const buildDescendantCountMap = (root: TreeNode) => {
   const counts = new Map<string, number>()
@@ -46,15 +72,17 @@ const layoutTree = (
   root: TreeNode,
   collapsedNodes: Set<string>,
   orientation: 'vertical' | 'horizontal',
+  nodeSizes: Map<string, NodeDimensions>,
 ) => {
   const nodes: Array<Node<TreeNode>> = []
   const edges: Array<Edge> = []
+  const layoutEdges: Array<{ source: string; target: string }> = []
   const nodeById = new Map<string, TreeNode>()
 
   const walk = (node: TreeNode, parentId?: string) => {
     nodeById.set(node.name, node)
     // Use the node's type field if available, otherwise default
-    const nodeType = (node as any).type || 'default'
+    const nodeType = getFlowNodeType(node)
     nodes.push({
       id: node.name,
       type: nodeType,
@@ -65,17 +93,23 @@ const layoutTree = (
     if (parentId) {
       const parentNode = nodeById.get(parentId)
       const isComputedChild = (node as any).isComputed
-      const isTreasuryToSigner = parentNode && (parentNode as any).type === 'Treasury' && (node as any).type === 'Signer'
+      const isTreasuryToSigner =
+        parentNode &&
+        getFlowNodeType(parentNode) === 'Treasury' &&
+        getFlowNodeType(node) === 'Signer'
 
+      layoutEdges.push({ source: parentId, target: node.name })
       edges.push({
         id: `edge-${parentId}-${node.name}`,
         source: parentId,
         target: node.name,
         animated: isComputedChild,
-        style: isTreasuryToSigner ? {
-          stroke: '#f59e0b',
-          strokeWidth: 2,
-        } : undefined,
+        style: isTreasuryToSigner
+          ? {
+              stroke: '#f59e0b',
+              strokeWidth: 2,
+            }
+          : undefined,
         type: isComputedChild ? 'straight' : 'default',
       })
     }
@@ -100,7 +134,8 @@ const layoutTree = (
 
     if (collapsedNodes.has(node.name)) return
 
-    for (const child of node.children ?? []) {
+    const sortedChildren = [...(node.children ?? [])].sort((a, b) => a.name.localeCompare(b.name))
+    for (const child of sortedChildren) {
       walk(child, node.name)
     }
   }
@@ -111,15 +146,16 @@ const layoutTree = (
   dagreGraph.setDefaultEdgeLabel(() => ({}))
   dagreGraph.setGraph({
     rankdir: orientation === 'vertical' ? 'TB' : 'LR',
-    nodesep: 32,
-    ranksep: 48,
+    nodesep: 64,
+    ranksep: 96,
   })
 
   for (const node of nodes) {
-    dagreGraph.setNode(node.id, { width: NODE_WIDTH, height: NODE_HEIGHT })
+    const size = nodeSizes.get(node.id) ?? getFallbackNodeSize(node.data)
+    dagreGraph.setNode(node.id, { width: size.width, height: size.height })
   }
 
-  for (const edge of edges) {
+  for (const edge of layoutEdges) {
     dagreGraph.setEdge(edge.source, edge.target)
   }
 
@@ -127,11 +163,12 @@ const layoutTree = (
 
   const layoutedNodes = nodes.map((node) => {
     const position = dagreGraph.node(node.id)
+    const size = nodeSizes.get(node.id) ?? getFallbackNodeSize(node.data)
     return {
       ...node,
       position: {
-        x: position.x - NODE_WIDTH / 2,
-        y: position.y - NODE_HEIGHT / 2,
+        x: position.x - size.width / 2,
+        y: position.y - size.height / 2,
       },
     }
   })
@@ -164,27 +201,16 @@ export function Tree({ data }: Props) {
   const { openEditDrawer, hasPendingEdit } = useTreeEditStore()
   const pendingMutationCount = useTreeEditStore((state) => state.pendingMutations.size)
   const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null)
+  const [nodeSizes, setNodeSizes] = useState<Map<string, NodeDimensions>>(new Map())
 
   // Two-pass layout: measuring -> visible (for smooth transitions)
   const [layoutPhase, setLayoutPhase] = useState<'measuring' | 'visible'>('measuring')
 
   const descendantCounts = useMemo(() => buildDescendantCountMap(data), [data])
   const layout = useMemo(
-    () => layoutTree(data, collapsedNodes, orientation),
-    [collapsedNodes, data, orientation],
+    () => layoutTree(data, collapsedNodes, orientation, nodeSizes),
+    [collapsedNodes, data, nodeSizes, orientation],
   )
-
-  // Two-pass layout: brief delay for React Flow to initialize, then show nodes
-  useEffect(() => {
-    if (!reactFlowInstance) return
-    if (layoutPhase !== 'measuring') return
-
-    const timer = setTimeout(() => {
-      setLayoutPhase('visible')
-    }, 100)
-
-    return () => clearTimeout(timer)
-  }, [reactFlowInstance, layoutPhase])
 
   // Reset to measuring phase when data or layout structure changes
   useEffect(() => {
@@ -200,12 +226,15 @@ export function Tree({ data }: Props) {
       const customPosition = nodePositions.get(node.id)
       const position = customPosition || node.position
 
+      const measuredSize = nodeSizes.get(node.id)
+      const fallbackSize = getFallbackNodeSize(treeNode)
+
       return {
         ...node,
         position,
         style: {
-          width: NODE_WIDTH,
-          height: NODE_HEIGHT,
+          width: measuredSize?.width ?? fallbackSize.width,
+          height: measuredSize?.height,
           padding: 0,
           border: 'none',
           background: 'transparent',
@@ -237,6 +266,7 @@ export function Tree({ data }: Props) {
     toggleNodeCollapsed,
     nodePositions,
     layoutPhase,
+    nodeSizes,
   ])
 
   const [nodes, setNodes, onNodesChangeInternal] = useNodesState(initialNodes)
@@ -266,6 +296,60 @@ export function Tree({ data }: Props) {
   useEffect(() => {
     setEdges(layout.edges)
   }, [layout.edges, setEdges])
+
+  const areNodeSizesEqual = useCallback(
+    (nextSizes: Map<string, NodeDimensions>) => {
+      if (nextSizes.size !== nodeSizes.size) return false
+      for (const [id, nextSize] of nextSizes.entries()) {
+        const currentSize = nodeSizes.get(id)
+        if (!currentSize) return false
+        if (currentSize.width !== nextSize.width || currentSize.height !== nextSize.height) {
+          return false
+        }
+      }
+      return true
+    },
+    [nodeSizes],
+  )
+
+  const escapeSelector = useCallback((value: string) => {
+    if (typeof CSS !== 'undefined' && CSS.escape) {
+      return CSS.escape(value)
+    }
+    return value.replace(/["\\]/g, '\\$&')
+  }, [])
+
+  // Measure node dimensions after render and re-layout with real sizes
+  useEffect(() => {
+    if (!reactFlowInstance) return
+    if (layoutPhase !== 'measuring') return
+
+    let cancelled = false
+    const measure = () => {
+      if (cancelled) return
+
+      const nextSizes = new Map<string, NodeDimensions>()
+      nodes.forEach((node) => {
+        const selector = `.react-flow__node[data-id="${escapeSelector(node.id)}"]`
+        const element = document.querySelector(selector)
+        if (!element) return
+        const rect = element.getBoundingClientRect()
+        if (!rect.width || !rect.height) return
+        nextSizes.set(node.id, { width: rect.width, height: rect.height })
+      })
+
+      if (nextSizes.size > 0 && !areNodeSizesEqual(nextSizes)) {
+        setNodeSizes(nextSizes)
+      }
+      setLayoutPhase('visible')
+    }
+
+    const frame = requestAnimationFrame(measure)
+    return () => {
+      cancelled = true
+      cancelAnimationFrame(frame)
+    }
+  }, [areNodeSizesEqual, escapeSelector, layoutPhase, nodes, reactFlowInstance])
 
   // Clear custom positions when orientation changes (layout is completely different)
   const prevOrientation = useRef(orientation)

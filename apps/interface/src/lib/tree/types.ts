@@ -9,41 +9,50 @@ export interface NormalizedTreeNode {
    * The ID of the node as expressed on-chain
    */
   id: string
+
   /**
    * The name of the node as expressed on-chain (e.g. "ens.eth")
    */
   name: string
+
   /**
    * The number of subdomains this node has
    */
   subdomainCount: number
   resolverId: string
   resolverAddress: string
+
   /**
    * The ID of the parent node
    */
   parentId?: string
+
   /**
    * (Optional) address this node points to
    */
-  address?: `0x${string}` | null
+  address?: `0x${string}`
+
   /**
    * The address of the owner of the node derived from [ownerId] or [wrappedOwnerId]
    */
   owner: `0x${string}`
+
+  /**
+   * (Optional) ENS name for the owner address
+   */
+  ownerEnsName?: string | null
+
   // Optional metadata for display
-  ttl?: number | null
-  icon?: string
+  ttl?: number
+
   /**
    * (Optional) children of this node
    */
   children?: TreeNodes[]
+
   attributes?: Record<string, string | null>
+
   // Additional fields (will be refactored to BaseNode, TreasuryNode, etc later)
-  title?: string // String(255)
-  kind?: string // Display label (e.g., Safe, EOA, Role, Team)
-  description?: string // Text(Markdown) - human-readable explanation
-  type?: string // Node type for custom rendering (e.g., 'Treasury', 'Contract')
   schema?: string // Schema ID used for this node
   // Suggested nodes are placeholders for sparse trees
   isSuggested?: boolean
