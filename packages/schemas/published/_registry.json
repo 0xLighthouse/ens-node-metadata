@@ -45,6 +45,28 @@
           "schemaPath": "packages/schemas/published/treasury/versions/1.0.0/schema.json"
         }
       }
+    },
+    "contract": {
+      "latest": "1.1.1",
+      "published": {
+        "1.1.1": {
+          "cid": "QmPhirH6jhYXwaCgE5pNMG38iiDHrbE2qJuZ67zW7ExCju",
+          "checksum": "sha256:2cf49219596af416d1122a5076b4ffdb945a85367c19af713966385e7dda1d3e",
+          "timestamp": 1770997987,
+          "schemaPath": "packages/schemas/published/contract/versions/1.1.1/schema.json"
+        }
+      }
+    },
+    "agent": {
+      "latest": "1.0.0",
+      "published": {
+        "1.0.0": {
+          "cid": "QmXdNE52K26JDWEjJsvkrZ4P9g9N9ZwLsc8mVvVuGrDgjx",
+          "checksum": "sha256:9a436ffab8a0e96e78b009870b1e4bd4e46605bcfe76085ac0cd9fa7e29d846b",
+          "timestamp": 1770999575,
+          "schemaPath": "packages/schemas/published/agent/versions/1.0.0/schema.json"
+        }
+      }
     }
   }
 }

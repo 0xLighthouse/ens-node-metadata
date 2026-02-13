@@ -1,0 +1,67 @@
+{
+  "schemaId": "contract",
+  "version": "1.1.1",
+  "name": "Contract",
+  "description": "Smart contract metadata profile aligned with ENSIP-24: contract text records and compiled metadata resolver profile.",
+  "source": "https://github.com/lighthouse-labs/ens-org-registrar",
+  "cid": "QmPhirH6jhYXwaCgE5pNMG38iiDHrbE2qJuZ67zW7ExCju",
+  "checksum": "sha256:2cf49219596af416d1122a5076b4ffdb945a85367c19af713966385e7dda1d3e",
+  "timestamp": 1770997987,
+  "schemaPath": "packages/schemas/published/contract/versions/1.1.1/schema.json",
+  "publisher": "pinata",
+  "signer": "0x6837047F46Da1d5d9A79846b25810b92adF456F6",
+  "signature": "0xbb92e94ecd7e3859bd03755b8ef0c88f8e8076e792a71daf1d9529c46ab8b11772d3e37b369fc10a2eff1734e060f5fcc8c7f0c01d289384cffb73596c413e611c",
+  "eip712": {
+    "domain": {
+      "name": "ENS Schema Publisher",
+      "version": "1"
+    },
+    "types": {
+      "PublishedSchema": [
+        {
+          "name": "schemaId",
+          "type": "string"
+        },
+        {
+          "name": "version",
+          "type": "string"
+        },
+        {
+          "name": "cid",
+          "type": "string"
+        },
+        {
+          "name": "checksum",
+          "type": "string"
+        },
+        {
+          "name": "timestamp",
+          "type": "uint256"
+        },
+        {
+          "name": "schemaPath",
+          "type": "string"
+        },
+        {
+          "name": "publisher",
+          "type": "string"
+        },
+        {
+          "name": "notes",
+          "type": "string"
+        }
+      ]
+    },
+    "primaryType": "PublishedSchema",
+    "message": {
+      "schemaId": "contract",
+      "version": "1.1.1",
+      "cid": "QmPhirH6jhYXwaCgE5pNMG38iiDHrbE2qJuZ67zW7ExCju",
+      "checksum": "sha256:2cf49219596af416d1122a5076b4ffdb945a85367c19af713966385e7dda1d3e",
+      "timestamp": 1770997987,
+      "schemaPath": "packages/schemas/published/contract/versions/1.1.1/schema.json",
+      "publisher": "pinata",
+      "notes": ""
+    }
+  }
+}

@@ -1,0 +1,39 @@
+---
+title: Contract
+weight: 3
+---
+
+# Contract
+
+Smart contract metadata profile aligned with ENSIP-24: contract text records and compiled metadata resolver profile.
+
+## Attributes
+
+| Key | Name | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| alias | alias | string | Yes | Human-readable contract alias (ENSIP-18 alias) |
+| description | description | string | No | Short description of the contract purpose (ENSIP-18 description) |
+| avatar | avatar | string | No | Avatar URI for the contract profile (ENSIP-12 avatar) |
+| url | url | string | No | Primary project or app URL (ENSIP-18 url) |
+| category | category | string | No | Contract category (e.g., defi, gaming, dao, utility, proxy, factory) |
+| license | license | string | No | Official software license identifier for the source code |
+| docs | docs | string | No | Primary documentation URL for developers and users |
+| compiled-metadata | compiledMetadata | string | No | URI to compiler-generated contract metadata (Solidity/Vyper/etc.) or resolver-backed compiledMetadata profile |
+| audits | audits | json | No | Array of third-party audit reports |
+| proxy | proxy | json | No | Proxy descriptor for upgradeable contracts |
+
+
+## Metadata
+
+- Schema ID: `contract`
+- Latest version: `1.1.1`
+- Source: [https://github.com/lighthouse-labs/ens-org-registrar](https://github.com/lighthouse-labs/ens-org-registrar)
+- CID: `QmPhirH6jhYXwaCgE5pNMG38iiDHrbE2qJuZ67zW7ExCju`
+- Checksum: `sha256:2cf49219596af416d1122a5076b4ffdb945a85367c19af713966385e7dda1d3e`
+- Published at (UTC): `2026-02-13T15:53:07.000Z`
+
+## Version history
+
+| Version | CID | IPFS | Published at (UTC) |
+| --- | --- | --- | --- |
+| `1.1.1 (latest)` | `QmPhirH6jhYXwaCgE5pNMG38iiDHrbE2qJuZ67zW7ExCju` | [Open](https://ipfs.io/ipfs/QmPhirH6jhYXwaCgE5pNMG38iiDHrbE2qJuZ67zW7ExCju) | `2026-02-13T15:53:07.000Z` |

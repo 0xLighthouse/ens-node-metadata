@@ -1,5 +1,6 @@
 import { Schema } from "./types";
 
+import { AGENT_SCHEMA } from "./schemas/agent";
 import { APPLICATION_SCHEMA } from "./schemas/application";
 import { COMMITTEE_SCHEMA } from "./schemas/committee";
 import { CONTRACT_SCHEMA } from "./schemas/contract";
@@ -12,6 +13,7 @@ import { WALLET_SCHEMA } from "./schemas/wallet";
 import { WORKGROUP_SCHEMA } from "./schemas/workgroup";
 
 export const SCHEMAS: Schema[] = [
+  AGENT_SCHEMA,
   APPLICATION_SCHEMA,
   CONTRACT_SCHEMA,
   PERSON_SCHEMA,
@@ -23,5 +25,4 @@ export const SCHEMAS: Schema[] = [
   WALLET_SCHEMA,
   TREASURY_SCHEMA,
 ]
-
 

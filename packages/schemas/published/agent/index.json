@@ -1,0 +1,13 @@
+{
+  "schemaId": "agent",
+  "latest": "1.0.0",
+  "published": [
+    {
+      "version": "1.0.0",
+      "cid": "QmXdNE52K26JDWEjJsvkrZ4P9g9N9ZwLsc8mVvVuGrDgjx",
+      "checksum": "sha256:9a436ffab8a0e96e78b009870b1e4bd4e46605bcfe76085ac0cd9fa7e29d846b",
+      "timestamp": 1770999575,
+      "schemaPath": "packages/schemas/published/agent/versions/1.0.0/schema.json"
+    }
+  ]
+}
