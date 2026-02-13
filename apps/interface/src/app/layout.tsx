@@ -3,12 +3,12 @@ import type { Metadata } from 'next'
 import './page.css'
 
 import { Toaster } from '@/components/ui/sonner'
-import { getThemeCookie } from '@/lib/nextjs/getThemeCookie'
 import { ThemeProvider } from '@/contexts/ThemeContext'
 import { Web3Provider } from '@/contexts/Web3Provider'
+import { getThemeCookie } from '@/lib/nextjs/getThemeCookie'
 
-import DefaultLayout from './components/layouts/default'
 import { RouteTracker } from './components/RouteTracker'
+import DefaultLayout from './components/layouts/default'
 
 export const metadata: Metadata = {
   title: 'ENS Org Metadata',
