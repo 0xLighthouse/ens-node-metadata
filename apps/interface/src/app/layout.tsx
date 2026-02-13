@@ -15,13 +15,13 @@ export const metadata: Metadata = {
   description: 'ENS Org Metadata by Lighthouse Labs',
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
   // Set the tailwind theme from stored cookie preference
-  const theme = getThemeCookie()
+  const theme = await getThemeCookie()
 
   return (
     <html lang="en" className={theme}>
