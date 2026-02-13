@@ -1,0 +1,23 @@
+{
+  "private": true,
+  "scripts": {
+    "build": "turbo run build",
+    "build:interface": "turbo run build --filter=interface",
+    "interface": "turbo run dev --filter=interface",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "format": "biome format --write .",
+    "abis": "wagmi generate"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "1.9.3",
+    "@commitlint/cli": "^19.5.0",
+    "@commitlint/config-conventional": "^19.5.0",
+    "@turbo/gen": "^2.1.3",
+    "@wagmi/cli": "^2.2.0",
+    "husky": "^9.1.6",
+    "turbo": "^2.5.5"
+  },
+  "name": "signals",
+  "packageManager": "pnpm@10.29.3"
+}

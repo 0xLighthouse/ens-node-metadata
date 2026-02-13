@@ -1,0 +1,64 @@
+{
+  "schemaId": "org",
+  "version": "0.1.4",
+  "cid": "Qma9o59aNuwoNsmMJoBLjtY1c1engmt6uFeYJQVwz6pTUu",
+  "checksum": "sha256:d6c46bd7df7ceb3de2f8cc1a073b405e67ad7bbc303db863290ea1007bded5f3",
+  "timestamp": 1769432850,
+  "schemaPath": "packages/schemas/published/org/versions/0.1.4/schema.json",
+  "publisher": "pinata",
+  "signer": "0x6837047F46Da1d5d9A79846b25810b92adF456F6",
+  "signature": "0x9ea4e7b35e648eb1778a01c78a902c6676146bf9aca59fa7ceb0008fdbdbfc8410a48a5c26dab6838670fdb5f3cf4d10808e322451bceaedc3102332f5d7adfc1c",
+  "eip712": {
+    "domain": {
+      "name": "ENS Schema Publisher",
+      "version": "1"
+    },
+    "types": {
+      "PublishedSchema": [
+        {
+          "name": "schemaId",
+          "type": "string"
+        },
+        {
+          "name": "version",
+          "type": "string"
+        },
+        {
+          "name": "cid",
+          "type": "string"
+        },
+        {
+          "name": "checksum",
+          "type": "string"
+        },
+        {
+          "name": "timestamp",
+          "type": "uint256"
+        },
+        {
+          "name": "schemaPath",
+          "type": "string"
+        },
+        {
+          "name": "publisher",
+          "type": "string"
+        },
+        {
+          "name": "notes",
+          "type": "string"
+        }
+      ]
+    },
+    "primaryType": "PublishedSchema",
+    "message": {
+      "schemaId": "org",
+      "version": "0.1.4",
+      "cid": "Qma9o59aNuwoNsmMJoBLjtY1c1engmt6uFeYJQVwz6pTUu",
+      "checksum": "sha256:d6c46bd7df7ceb3de2f8cc1a073b405e67ad7bbc303db863290ea1007bded5f3",
+      "timestamp": 1769432850,
+      "schemaPath": "packages/schemas/published/org/versions/0.1.4/schema.json",
+      "publisher": "pinata",
+      "notes": ""
+    }
+  }
+}

@@ -1,0 +1,531 @@
+# Client SDK
+
+The TypeScript/JavaScript client library for interacting with the ENS Organizational Registry, providing high-level APIs for registration, resolution, and management.
+
+## Installation
+
+```bash
+npm install @ens-org-registry/client @ens-org-registry/react
+```
+
+## Quick Start
+
+```typescript
+import { OrgRegistryClient } from '@ens-org-registry/client';
+
+const client = new OrgRegistryClient({
+  provider: window.ethereum,
+  network: 'mainnet'
+});
+
+// Register an organization
+await client.registerOrganization({
+  name: 'myorg.eth',
+  profile: {
+    alias: 'My Organization',
+    description: 'A decentralized organization',
+    avatar: 'ipfs://QmHash...',
+    website: 'https://myorg.com'
+  }
+});
+
+// Get organization profile
+const profile = await client.getOrgProfile('myorg.eth');
+console.log(profile.alias); // "My Organization"
+```
+
+## Core Client API
+
+### Constructor Options
+
+```typescript
+interface ClientConfig {
+  provider: any;                    // Web3 provider (MetaMask, WalletConnect, etc.)
+  network: 'mainnet' | 'sepolia';   // Network to connect to
+  contracts?: {                     // Optional contract addresses
+    registry?: string;
+    resolver?: string;
+  };
+  cache?: {                         // Caching configuration
+    enabled: boolean;
+    ttl: number;
+  };
+  gateway?: {                       // CCIP-Read gateway configuration
+    url: string;
+    timeout: number;
+  };
+}
+```
+
+### Organization Management
+
+#### Register Organization
+```typescript
+async registerOrganization(params: RegisterOrgParams): Promise<TransactionResponse>
+
+interface RegisterOrgParams {
+  name: string;                     // ENS domain name
+  profile: OrgProfile;              // Organization profile data
+  governance?: GovernanceConfig;    // Governance configuration
+  addresses?: Record<number, string>; // Multi-chain addresses
+}
+
+// Example
+const tx = await client.registerOrganization({
+  name: 'myorg.eth',
+  profile: {
+    alias: 'My Organization',
+    description: 'Building the future of DAOs',
+    avatar: 'ipfs://QmAvatarHash...',
+    website: 'https://myorg.com',
+    email: 'contact@myorg.com',
+    socialLinks: {
+      twitter: 'myorg',
+      github: 'myorg',
+      discord: 'https://discord.gg/myorg'
+    }
+  },
+  governance: {
+    votingContract: '0x1234...',
+    proposalThreshold: '1000000000000000000', // 1 token
+    votingDelay: 86400 // 1 day
+  },
+  addresses: {
+    60: '0x1234...', // Ethereum
+    137: '0x5678...', // Polygon
+    42161: '0x9abc...' // Arbitrum
+  }
+});
+
+await tx.wait(); // Wait for confirmation
+```
+
+#### Update Organization Profile
+```typescript
+async updateProfile(name: string, updates: Partial<OrgProfile>): Promise<TransactionResponse>
+
+// Example
+await client.updateProfile('myorg.eth', {
+  description: 'Updated description',
+  website: 'https://newsite.com'
+});
+```
+
+### Profile Resolution
+
+#### Get Organization Profile
+```typescript
+async getOrgProfile(name: string): Promise<OrgProfile | null>
+
+interface OrgProfile {
+  name: string;                     // ENS name
+  alias: string;                    // Display name
+  description: string;              // Organization description
+  avatar: string;                   // Avatar URI (IPFS/HTTP)
+  website: string;                  // Primary website
+  email: string;                    // Contact email
+  addresses: Record<number, string>; // Multi-chain addresses
+  socialLinks: SocialLinks;         // Social media profiles
+  governance: GovernanceStatus;     // Governance information
+  subdomains: SubdomainInfo[];      // Managed subdomains
+  lastUpdate: number;               // Last update timestamp
+}
+
+// Example
+const profile = await client.getOrgProfile('myorg.eth');
+if (profile) {
+  console.log(`${profile.alias}: ${profile.description}`);
+  console.log(`Website: ${profile.website}`);
+  console.log(`Ethereum Address: ${profile.addresses[60]}`);
+}
+```
+
+#### Batch Profile Resolution
+```typescript
+async getBatchProfiles(names: string[]): Promise<(OrgProfile | null)[]>
+
+// Example
+const profiles = await client.getBatchProfiles([
+  'uniswap.eth',
+  'compound.eth',
+  'aave.eth'
+]);
+
+profiles.forEach((profile, index) => {
+  if (profile) {
+    console.log(`${profile.alias}: ${profile.description}`);
+  }
+});
+```
+
+### Address Resolution
+
+#### Get Single Address
+```typescript
+async getAddress(name: string, coinType?: number): Promise<string | null>
+
+// Examples
+const ethAddress = await client.getAddress('myorg.eth'); // Default ETH (60)
+const ethAddress = await client.getAddress('myorg.eth', 60); // Explicit ETH
+const polygonAddress = await client.getAddress('myorg.eth', 137); // Polygon
+```
+
+#### Get All Addresses
+```typescript
+async getAllAddresses(name: string): Promise<Record<number, string>>
+
+// Example
+const addresses = await client.getAllAddresses('myorg.eth');
+console.log('Ethereum:', addresses[60]);
+console.log('Polygon:', addresses[137]);
+console.log('Arbitrum:', addresses[42161]);
+```
+
+#### Set Multi-chain Addresses
+```typescript
+async setMultiChainAddresses(
+  name: string, 
+  addresses: Record<number, string>
+): Promise<TransactionResponse>
+
+// Example
+await client.setMultiChainAddresses('myorg.eth', {
+  60: '0x1234...', // Ethereum
+  137: '0x5678...', // Polygon
+  42161: '0x9abc...', // Arbitrum
+  10: '0xdef0...' // Optimism
+});
+```
+
+### Text Records
+
+#### Get Text Record
+```typescript
+async getText(name: string, key: string): Promise<string | null>
+
+// Examples
+const description = await client.getText('myorg.eth', 'description');
+const twitter = await client.getText('myorg.eth', 'com.twitter');
+const github = await client.getText('myorg.eth', 'com.github');
+```
+
+#### Set Text Records
+```typescript
+async setTextRecords(
+  name: string, 
+  records: Record<string, string>
+): Promise<TransactionResponse>
+
+// Example
+await client.setTextRecords('myorg.eth', {
+  'description': 'Updated organization description',
+  'com.twitter': 'newhandle',
+  'url': 'https://newwebsite.com'
+});
+```
+
+### Subdomain Management
+
+#### Delegate Subdomain
+```typescript
+async delegateSubdomain(
+  parent: string,
+  subdomain: string,
+  manager: string
+): Promise<TransactionResponse>
+
+// Example - Give engineering team control of their subdomain
+await client.delegateSubdomain(
+  'myorg.eth',
+  'engineering',
+  '0xEngineeringTeamMultisig...'
+);
+```
+
+#### Get Subdomains
+```typescript
+async getSubdomains(name: string): Promise<SubdomainInfo[]>
+
+interface SubdomainInfo {
+  name: string;                     // Full subdomain name
+  label: string;                    // Subdomain label
+  manager: string;                  // Managing address
+  lastUpdate: number;               // Last update timestamp
+  profile?: OrgProfile;             // Subdomain profile (if available)
+}
+
+// Example
+const subdomains = await client.getSubdomains('myorg.eth');
+subdomains.forEach(sub => {
+  console.log(`${sub.name} managed by ${sub.manager}`);
+});
+```
+
+### Governance Integration
+
+#### Get Governance Status
+```typescript
+async getGovernanceStatus(name: string): Promise<GovernanceStatus | null>
+
+interface GovernanceStatus {
+  contract: string;                 // Governance contract address
+  proposalCount: number;            // Total proposals
+  activeProposals: number;          // Currently active proposals
+  totalTokens: string;              // Total token supply
+  votingPower: string;              // Current voting power
+  lastUpdate: number;               // Last sync timestamp
+}
+
+// Example
+const governance = await client.getGovernanceStatus('myorg.eth');
+if (governance) {
+  console.log(`Active proposals: ${governance.activeProposals}`);
+  console.log(`Total proposals: ${governance.proposalCount}`);
+}
+```
+
+## React Hooks
+
+### Installation
+```bash
+npm install @ens-org-registry/react
+```
+
+### Setup Provider
+```tsx
+import { OrgRegistryProvider } from '@ens-org-registry/react';
+
+function App() {
+  return (
+    <OrgRegistryProvider
+      config={{
+        network: 'mainnet',
+        provider: window.ethereum
+      }}
+    >
+      <YourApp />
+    </OrgRegistryProvider>
+  );
+}
+```
+
+### useOrgProfile Hook
+```tsx
+import { useOrgProfile } from '@ens-org-registry/react';
+
+function OrgDisplay({ name }: { name: string }) {
+  const { profile, loading, error, refetch } = useOrgProfile(name);
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error.message}</div>;
+  if (!profile) return <div>Organization not found</div>;
+
+  return (
+    <div>
+      {profile.avatar && <img src={profile.avatar} alt={profile.alias} />}
+      <h1>{profile.alias}</h1>
+      <p>{profile.description}</p>
+      <a href={profile.website}>Visit Website</a>
+      
+      <div>
+        <h3>Addresses</h3>
+        <ul>
+          <li>Ethereum: {profile.addresses[60]}</li>
+          <li>Polygon: {profile.addresses[137]}</li>
+          <li>Arbitrum: {profile.addresses[42161]}</li>
+        </ul>
+      </div>
+      
+      <button onClick={refetch}>Refresh</button>
+    </div>
+  );
+}
+```
+
+### useOrgAddress Hook
+```tsx
+import { useOrgAddress } from '@ens-org-registry/react';
+
+function AddressDisplay({ name, chainId }: { name: string; chainId: number }) {
+  const { address, loading, error } = useOrgAddress(name, chainId);
+
+  if (loading) return <span>Loading...</span>;
+  if (error) return <span>Error loading address</span>;
+  
+  return <span>{address || 'No address set'}</span>;
+}
+```
+
+### useOrgSubdomains Hook
+```tsx
+import { useOrgSubdomains } from '@ens-org-registry/react';
+
+function SubdomainList({ name }: { name: string }) {
+  const { subdomains, loading, error } = useOrgSubdomains(name);
+
+  if (loading) return <div>Loading subdomains...</div>;
+  if (error) return <div>Error: {error.message}</div>;
+
+  return (
+    <div>
+      <h3>Working Groups</h3>
+      <ul>
+        {subdomains.map(sub => (
+          <li key={sub.name}>
+            <strong>{sub.label}</strong> - {sub.name}
+            <small>Managed by {sub.manager}</small>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+```
+
+### useUpdateOrgProfile Hook
+```tsx
+import { useUpdateOrgProfile } from '@ens-org-registry/react';
+
+function ProfileEditor({ name }: { name: string }) {
+  const { updateProfile, loading, error } = useUpdateOrgProfile();
+  const [description, setDescription] = useState('');
+
+  const handleUpdate = async () => {
+    try {
+      await updateProfile(name, { description });
+      alert('Profile updated successfully!');
+    } catch (err) {
+      console.error('Update failed:', err);
+    }
+  };
+
+  return (
+    <div>
+      <textarea 
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+        placeholder="Organization description"
+      />
+      <button 
+        onClick={handleUpdate} 
+        disabled={loading}
+      >
+        {loading ? 'Updating...' : 'Update Profile'}
+      </button>
+      {error && <div>Error: {error.message}</div>}
+    </div>
+  );
+}
+```
+
+## Error Handling
+
+### Error Types
+```typescript
+enum OrgRegistryError {
+  NOT_FOUND = 'ORG_NOT_FOUND',
+  UNAUTHORIZED = 'UNAUTHORIZED',
+  INVALID_NAME = 'INVALID_NAME',
+  NETWORK_ERROR = 'NETWORK_ERROR',
+  PROVIDER_ERROR = 'PROVIDER_ERROR',
+  GATEWAY_ERROR = 'GATEWAY_ERROR'
+}
+
+class OrgRegistryException extends Error {
+  constructor(
+    public code: OrgRegistryError,
+    message: string,
+    public details?: any
+  ) {
+    super(message);
+    this.name = 'OrgRegistryException';
+  }
+}
+```
+
+### Error Handling Example
+```typescript
+try {
+  const profile = await client.getOrgProfile('nonexistent.eth');
+} catch (error) {
+  if (error instanceof OrgRegistryException) {
+    switch (error.code) {
+      case OrgRegistryError.NOT_FOUND:
+        console.log('Organization not registered');
+        break;
+      case OrgRegistryError.NETWORK_ERROR:
+        console.log('Network connection issue');
+        break;
+      default:
+        console.log('Unknown error:', error.message);
+    }
+  }
+}
+```
+
+## Advanced Usage
+
+### Custom Cache Configuration
+```typescript
+const client = new OrgRegistryClient({
+  provider: window.ethereum,
+  network: 'mainnet',
+  cache: {
+    enabled: true,
+    ttl: 300, // 5 minutes
+    maxSize: 1000, // Max cached items
+    strategy: 'lru' // Least recently used
+  }
+});
+```
+
+### Batch Operations with Pagination
+```typescript
+async function getAllDAOProfiles() {
+  const daoNames = [
+    'uniswap.eth', 'compound.eth', 'aave.eth', 
+    'makerdao.eth', 'gitcoin.eth', 'ens.eth'
+  ];
+  
+  // Process in batches of 3
+  const batchSize = 3;
+  const results = [];
+  
+  for (let i = 0; i < daoNames.length; i += batchSize) {
+    const batch = daoNames.slice(i, i + batchSize);
+    const profiles = await client.getBatchProfiles(batch);
+    results.push(...profiles);
+  }
+  
+  return results.filter(Boolean); // Remove null results
+}
+```
+
+### Event Listening
+```typescript
+// Listen for profile updates
+client.on('profileUpdated', (name: string, profile: OrgProfile) => {
+  console.log(`${name} profile updated:`, profile);
+});
+
+// Listen for new subdomain delegations
+client.on('subdomainDelegated', (parent: string, subdomain: string, manager: string) => {
+  console.log(`${subdomain}.${parent} delegated to ${manager}`);
+});
+```
+
+### TypeScript Types Export
+```typescript
+// Re-export all types for easy importing
+export {
+  OrgProfile,
+  GovernanceConfig,
+  SocialLinks,
+  SubdomainInfo,
+  GovernanceStatus,
+  RegisterOrgParams,
+  ClientConfig,
+  OrgRegistryError,
+  OrgRegistryException
+} from '@ens-org-registry/client';
+```

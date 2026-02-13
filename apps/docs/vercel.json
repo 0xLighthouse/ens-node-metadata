@@ -1,0 +1,4 @@
+{
+  "outputDirectory": "dist",
+  "buildCommand": "echo 'Using pre-built static files'"
+}
