@@ -14,11 +14,8 @@ export default defineConfig({
   sidebar: [
     {
       text: 'Introduction',
-      link: '/',
-    },
-    {
-      text: 'Quickstart',
-      link: '/quick-start',
+      collapsed: false,
+      items: nav.navItems('/introduction'),
     },
     {
       text: 'Architecture',
@@ -26,19 +23,14 @@ export default defineConfig({
       items: nav.navItems('/architecture'),
     },
     {
-      text: 'Components',
+      text: 'Schemas',
       collapsed: false,
-      items: nav.navItems('/components'),
+      items: nav.navItems('/schemas'),
     },
     {
-      text: 'Implementation',
+      text: 'Use cases',
       collapsed: false,
-      items: nav.navItems('/implementation'),
-    },
-    {
-      text: 'API Reference',
-      collapsed: false,
-      items: nav.navItems('/api'),
+      items: nav.navItems('/use-cases'),
     },
   ],
 })
