@@ -49,6 +49,7 @@
 The tree visualization uses React Flow (`@xyflow/react`) for rendering and Dagre (`@dagrejs/dagre`) for layout.
 
 **Key Files:**
+
 - `/app/components/tree/Tree.tsx` - Main visualization component
 - `/app/components/tree/TreeContainer.tsx` - Container with loading/controls
 - `/app/components/tree/TreeControls.tsx` - Control buttons
@@ -67,6 +68,7 @@ Call `useTreeControlsStore().triggerLayout()` after dynamic node additions/remov
 **Schemas** define structure and attributes for node types (Treasury, Role, Application, etc.).
 
 **Key Files:**
+
 - `/packages/schemas/src/` - Schema definitions (treasury.ts, application.ts, etc.)
 - `/stores/schemas.ts` - Schema store for loading and selection
 - `/app/api/schemas/route.ts` - API endpoint to fetch schemas
@@ -74,6 +76,7 @@ Call `useTreeControlsStore().triggerLayout()` after dynamic node additions/remov
 - `/app/components/tree/drawers/CreateNodeDrawer.tsx` - Bulk node creator for suggestions
 
 **Schema Flow:**
+
 1. Schemas defined in `/packages/schemas/src/`
 2. EditNodeDrawer shows schema selector
 3. User selects schema → sets `node.schema` and `node.type`
@@ -86,6 +89,7 @@ Call `useTreeControlsStore().triggerLayout()` after dynamic node additions/remov
 **TreasuryNode** has an inspect button that detects Safe multisig contracts via `/app/api/inspect/route.ts`.
 
 **Inspection Flow:**
+
 1. API reads contract with `viem` (requires `RPC_URL` env var)
 2. For Safe: reads `getOwners()` and `getThreshold()`
 3. Resolves ENS names/avatars for each signer
@@ -95,6 +99,7 @@ Call `useTreeControlsStore().triggerLayout()` after dynamic node additions/remov
 7. Auto-merged into preview tree with special styling (animated amber edges, sparkles icon)
 
 **Computed nodes:**
+
 - Not saved to database (derived from on-chain data)
 - Automatically render when parent inspected
 - Excluded from Apply Changes dialog

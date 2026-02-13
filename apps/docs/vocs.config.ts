@@ -32,5 +32,22 @@ export default defineConfig({
       collapsed: false,
       items: nav.navItems('/use-cases'),
     },
+    {
+      text: 'SDK',
+      collapsed: false,
+      items: [
+        {
+          text: 'ENS',
+          collapsed: false,
+          items: [
+            {
+              text: 'Actions',
+              collapsed: false,
+              items: nav.navItems('/sdk/ens/actions'),
+            },
+          ],
+        },
+      ],
+    },
   ],
 })
