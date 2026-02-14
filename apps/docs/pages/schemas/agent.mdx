@@ -1,0 +1,40 @@
+---
+title: Agent
+weight: 4
+---
+
+# Agent
+
+Trustless agent identity metadata aligned with ERC-8004 registration format.
+
+## Attributes
+
+| Key | Name | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| agent-uri | agentURI | string | Yes | URI to the ERC-8004 registration file |
+| type | type | string | Yes | Registration file type discriminator |
+| name | name | string | Yes | Agent display name |
+| description | description | string | Yes | Natural-language description of the agent |
+| image | image | string | Yes | Agent image/avatar URI |
+| services | services | json | Yes | Advertised service endpoints |
+| x402-support | x402Support | boolean | Yes | Whether x402 payment flow is supported |
+| active | active | boolean | Yes | Whether the agent is currently active |
+| registrations | registrations | json | Yes | Cross-chain identity registrations |
+| supported-trust | supportedTrust | json | No | Trust models supported by the agent |
+| agent-wallet | agentWallet | string | No | Verified payout wallet for agent operations |
+
+
+## Metadata
+
+- Schema ID: `agent`
+- Latest version: `1.0.0`
+- Source: [https://eips.ethereum.org/EIPS/eip-8004](https://eips.ethereum.org/EIPS/eip-8004)
+- CID: `QmXdNE52K26JDWEjJsvkrZ4P9g9N9ZwLsc8mVvVuGrDgjx`
+- Checksum: `sha256:9a436ffab8a0e96e78b009870b1e4bd4e46605bcfe76085ac0cd9fa7e29d846b`
+- Published at (UTC): `2026-02-13T16:19:35.000Z`
+
+## Version history
+
+| Version | CID | IPFS | Published at (UTC) |
+| --- | --- | --- | --- |
+| `1.0.0 (latest)` | `QmXdNE52K26JDWEjJsvkrZ4P9g9N9ZwLsc8mVvVuGrDgjx` | [Open](https://ipfs.io/ipfs/QmXdNE52K26JDWEjJsvkrZ4P9g9N9ZwLsc8mVvVuGrDgjx) | `2026-02-13T16:19:35.000Z` |

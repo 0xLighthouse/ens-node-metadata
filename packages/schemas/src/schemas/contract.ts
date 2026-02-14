@@ -1,35 +1,93 @@
-import { Schema } from "../types"
-import { GITHUB_URL } from "../config/constants"
+import { GITHUB_URL } from "../config/constants";
+import { Schema } from "../types";
 
-/**
- * TODO: Look at what enscribe is doing.
- */
 export const CONTRACT_SCHEMA: Schema = {
   source: GITHUB_URL,
   name: 'Contract',
-  version: '1.0.0',
-  description: 'A smart contract.',
+  version: '1.1.1',
+  description:
+    'Smart contract metadata profile aligned with ENSIP-24: contract text records and compiled metadata resolver profile.',
   attributes: [
     {
-      name: 'name',
+      name: 'alias',
       type: 'string',
-      key: '_.name',
-      description: 'Human-readable contract name',
+      key: 'alias',
+      description: 'Human-readable contract alias (ENSIP-18 alias)',
       isRequired: true,
+      notes: 'Lower-friction display name for wallets, explorers, and apps.',
     },
     {
-      name: 'id',
+      name: 'description',
       type: 'string',
-      key: '_.id',
-      description: 'Unique ID for the contract',
+      key: 'description',
+      description: 'Short description of the contract purpose (ENSIP-18 description)',
       isRequired: false,
     },
     {
-      name: 'chainId',
+      name: 'avatar',
       type: 'string',
-      key: '_.chainId',
-      description: 'Chain ID where the contract is deployed',
+      key: 'avatar',
+      description: 'Avatar URI for the contract profile (ENSIP-12 avatar)',
       isRequired: false,
+      notes: 'Typically IPFS URI, NFT reference, or HTTP(S) URL.',
+    },
+    {
+      name: 'url',
+      type: 'string',
+      key: 'url',
+      description: 'Primary project or app URL (ENSIP-18 url)',
+      isRequired: false,
+    },
+    {
+      name: 'category',
+      type: 'string',
+      key: 'category',
+      description: 'Contract category (e.g., defi, gaming, dao, utility, proxy, factory)',
+      isRequired: false,
+      notes: 'Recommended format: lowercase single word.',
+    },
+    {
+      name: 'license',
+      type: 'string',
+      key: 'license',
+      description: 'Official software license identifier for the source code',
+      isRequired: false,
+      notes: 'Use SPDX identifier, e.g. MIT, GPL-3.0-only, Apache-2.0.',
+    },
+    {
+      name: 'docs',
+      type: 'string',
+      key: 'docs',
+      description: 'Primary documentation URL for developers and users',
+      isRequired: false,
+      notes: 'Valid HTTP(S) or IPFS URL.',
+    },
+    {
+      name: 'compiledMetadata',
+      type: 'string',
+      key: 'compiled-metadata',
+      description:
+        'URI to compiler-generated contract metadata (Solidity/Vyper/etc.) or resolver-backed compiledMetadata profile',
+      isRequired: false,
+      notes:
+        'Text record form uses URI. Resolver profile supports multichain lookup by coinType and contentType.',
+    },
+    {
+      name: 'audits',
+      type: 'json',
+      key: 'audits',
+      description: 'Array of third-party audit reports',
+      isRequired: false,
+      notes:
+        'JSON array of objects: [{\"auditor\":\"OpenZeppelin\",\"report\":\"ipfs://...\"}].',
+    },
+    {
+      name: 'proxy',
+      type: 'json',
+      key: 'proxy',
+      description: 'Proxy descriptor for upgradeable contracts',
+      isRequired: false,
+      notes: 'JSON object shape: {\"type\":\"EIP-1967|UUPS|...\",\"target\":\"0x...\"}.',
     },
   ],
-}
+};

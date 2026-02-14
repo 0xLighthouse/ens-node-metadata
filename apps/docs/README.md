@@ -1,9 +1,9 @@
 # Docs
 
-##  Warning
-
-Make sure to use `pnpm`, as yarn just breaks
-
 ```sh
+# Local
 pnpm dev
+
+# Regenerate from published
+pnpm --dir apps/docs schemas:generate
 ```
