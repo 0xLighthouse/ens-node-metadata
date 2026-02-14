@@ -35,19 +35,7 @@ export default defineConfig({
     {
       text: 'SDK',
       collapsed: false,
-      items: [
-        {
-          text: 'ENS',
-          collapsed: false,
-          items: [
-            {
-              text: 'Actions',
-              collapsed: false,
-              items: nav.navItems('/sdk/ens/actions'),
-            },
-          ],
-        },
-      ],
+      items: nav.navItems('/sdk'),
     },
   ],
 })

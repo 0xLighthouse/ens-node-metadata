@@ -1,7 +1,7 @@
 {
-  "name": "harbor-docs",
+  "name": "ens-metadata-docs",
   "version": "1.0.0",
-  "description": "Documentation for Harbor protocol",
+  "description": "Docs for ENS Metadata",
   "type": "module",
   "main": "index.js",
   "scripts": {
@@ -12,14 +12,6 @@
     "build": "vocs build",
     "preview": "vocs preview"
   },
-  "keywords": [
-    "harbor",
-    "uniswap",
-    "v4",
-    "hooks",
-    "bonds",
-    "escrow"
-  ],
   "author": "",
   "license": "MIT",
   "devDependencies": {
@@ -28,7 +20,7 @@
     "front-matter": "^4.0.2",
     "lucide-react": "^0.263.1",
     "react": "^18.2.0",
-    "vocs": "^1.0.13"
+    "vocs": "^1.4.1"
   },
   "dependencies": {
     "@web3icons/react": "^4.0.19"
