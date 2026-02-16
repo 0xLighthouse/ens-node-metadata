@@ -3,7 +3,9 @@
 import { memo } from 'react'
 import type { NodeProps } from '@xyflow/react'
 import type { TreeNode, TreeNodeType } from '@/lib/tree/types'
+import { Layers } from 'lucide-react'
 import { NodeContainer } from './NodeContainer'
+import { NodeIcon } from './NodeIcon'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { ExternalActionButton } from './ExternalActionButton'
 
@@ -108,47 +110,13 @@ const DefaultNodeCard = ({
                 : '#e5e7eb',
         }}
       >
-        <div
-          className="flex items-center justify-center rounded-lg flex-shrink-0"
-          style={{
-            width: '48px',
-            height: '48px',
-            backgroundColor: isSuggested ? '#e2e8f0' : accentColor,
-          }}
-        >
-          {isSuggested ? (
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="28"
-              height="28"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="#64748b"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <line x1="12" y1="5" x2="12" y2="19" />
-              <line x1="5" y1="12" x2="19" y2="12" />
-            </svg>
-          ) : (
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="28"
-              height="28"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="white"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M12 2L2 7l10 5 10-5-10-5z" />
-              <path d="M2 17l10 5 10-5" />
-              <path d="M2 12l10 5 10-5" />
-            </svg>
-          )}
-        </div>
+        <NodeIcon
+          avatarUrl={node.attributes?.avatar}
+          fallback={<Layers size={28} color="white" strokeWidth={2} />}
+          accentColor={accentColor}
+          size={48}
+          isSuggested={isSuggested}
+        />
         <div className="flex-1 min-w-0">
           <div className="text-base font-semibold text-gray-900 truncate text-left">
             {displayName}

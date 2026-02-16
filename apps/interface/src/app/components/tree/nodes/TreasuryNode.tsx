@@ -10,6 +10,7 @@ import { useTreeData } from '@/hooks/useTreeData'
 import { findAllNodesByAddress } from '@/lib/tree/utils'
 import { resolveLink } from '@/lib/links'
 import { DollarSign, Plus, Lock, ChevronUp, Search, Loader2 } from 'lucide-react'
+import { NodeIcon } from './NodeIcon'
 import { ExternalActionButton } from './ExternalActionButton'
 
 interface DomainTreeNodeData {
@@ -178,20 +179,13 @@ const TreasuryNodeCard = ({
                 : '#fde68a',
         }}
       >
-        <div
-          className="flex items-center justify-center rounded-md flex-shrink-0"
-          style={{
-            width: '40px',
-            height: '40px',
-            backgroundColor: isSuggested ? '#e2e8f0' : accentColor,
-          }}
-        >
-          {isSuggested ? (
-            <Plus size={24} color="#64748b" strokeWidth={2} />
-          ) : (
-            <DollarSign size={24} color="white" strokeWidth={2} />
-          )}
-        </div>
+        <NodeIcon
+          avatarUrl={node.attributes?.avatar}
+          fallback={<DollarSign size={24} color="white" strokeWidth={2} />}
+          accentColor={accentColor}
+          size={40}
+          isSuggested={isSuggested}
+        />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <div className="text-sm font-semibold text-gray-900 truncate">{displayName}</div>
