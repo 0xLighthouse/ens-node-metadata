@@ -10,8 +10,19 @@ import { useTreeData } from '@/hooks/useTreeData'
 import { findAllNodesByAddress } from '@/lib/tree/utils'
 import { resolveLink } from '@/lib/links'
 import { DollarSign, Plus, Lock, ChevronUp, Search, Loader2 } from 'lucide-react'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { NodeIcon } from './NodeIcon'
 import { ExternalActionButton } from './ExternalActionButton'
+
+const getAvatarFallback = (address: string) => {
+  if (!address || address.length < 4) return '??'
+  return address.slice(2, 4).toUpperCase()
+}
+
+const truncateAddress = (address: string) => {
+  if (!address || address.length < 10) return address
+  return `${address.slice(0, 6)}...${address.slice(-4)}`
+}
 
 interface DomainTreeNodeData {
   node: TreeNode
@@ -45,6 +56,7 @@ const TreasuryNodeCard = ({
 }: TreasuryNodeProps) => {
   const displayName = node.name.split('.')[0]
   const treeLink = resolveLink(node)
+  const addressUrl = node.address ? `https://etherscan.io/address/${node.address}` : null
   const [isInspecting, setIsInspecting] = useState(false)
   const { upsertEdit } = useTreeEditStore()
   const { triggerLayout } = useTreeControlsStore()
@@ -158,47 +170,55 @@ const TreasuryNodeCard = ({
       hasChildren={hasChildren}
       accentColor={accentColor}
       overflow="visible"
+      width="320px"
     >
       {/* Header with icon and name */}
       <div
-        className="flex items-center gap-3 p-3 border-b"
+        className="flex items-center gap-4 p-4 border-b"
         style={{
           backgroundColor: isSuggested
             ? '#f8fafc'
             : isPendingCreation
-              ? '#fffbeb'
+              ? '#f0fdf4'
               : hasPendingEdits
                 ? '#fff7ed'
                 : 'white',
           borderBottomColor: isSuggested
             ? '#e2e8f0'
             : isPendingCreation
-              ? '#fde68a'
+              ? '#bbf7d0'
               : hasPendingEdits
                 ? '#fed7aa'
-                : '#fde68a',
+                : '#e5e7eb',
         }}
       >
         <NodeIcon
           avatarUrl={node.attributes?.avatar}
-          fallback={<DollarSign size={24} color="white" strokeWidth={2} />}
+          fallback={<DollarSign size={28} color="white" strokeWidth={2} />}
           accentColor={accentColor}
-          size={40}
+          size={48}
           isSuggested={isSuggested}
         />
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <div className="text-sm font-semibold text-gray-900 truncate">{displayName}</div>
-            <span className="px-2 py-0.5 text-xs font-bold bg-amber-100 text-amber-800 rounded">
+          <div className="text-base font-semibold text-gray-900 truncate text-left flex items-center gap-2">
+            {displayName}
+            <span className="px-2 py-0.5 text-xs font-bold bg-amber-100 text-amber-800 rounded flex-shrink-0">
               TREASURY
             </span>
           </div>
-          <div className="text-xs text-gray-500 truncate">{node.name}</div>
+          <div className="text-sm text-blue-700 truncate flex items-center gap-1.5">
+            <span className="truncate">{node.name}</span>
+            <ExternalActionButton
+              url={`https://app.ens.domains/${node.name}`}
+              label={`Open ${node.name} in ENS app (new tab)`}
+              className="hover:bg-blue-100"
+            />
+          </div>
         </div>
         {hasChildren && (
-          <div className="flex items-center gap-1 flex-shrink-0">
+          <div className="flex items-center gap-1.5 flex-shrink-0">
             {isCollapsed && childrenCount > 0 && (
-              <span className="px-2 py-0.5 text-xs font-semibold bg-amber-100 text-amber-700 rounded-full">
+              <span className="px-2 py-1 text-xs font-semibold bg-indigo-100 text-indigo-700 rounded-md">
                 +{childrenCount}
               </span>
             )}
@@ -206,7 +226,7 @@ const TreasuryNodeCard = ({
               type="button"
               onMouseDown={stopNodeInteraction}
               onClick={handleToggleCollapse}
-              className="nodrag nopan p-1 rounded hover:bg-amber-50 transition-colors"
+              className="nodrag nopan p-1 rounded hover:bg-gray-100 transition-colors"
               aria-label={isCollapsed ? 'Expand' : 'Collapse'}
               title={isCollapsed ? 'Expand children' : 'Collapse children'}
             >
@@ -219,38 +239,56 @@ const TreasuryNodeCard = ({
         )}
       </div>
 
-      {/* Address info */}
-      <div
-        className="px-3 py-2 flex items-center justify-between text-sm"
-        style={{
-          backgroundColor: isSuggested
-            ? '#f8fafc'
-            : isPendingCreation
-              ? '#fef3c7'
-              : hasPendingEdits
-                ? '#ffedd5'
-                : '#fef3c7',
-        }}
-      >
-        {isSuggested ? (
-          <div className="flex items-center gap-2 text-gray-500 text-xs italic">
-            Click to add treasury
+      {/* Address info bar */}
+      {!isSuggested && (
+        <>
+          <div className="px-4 py-3 border-b border-gray-100 text-left">
+            {node.address ? (
+              <div className="text-sm text-gray-700 font-mono truncate flex items-center gap-1.5">
+                <span className="truncate">{truncateAddress(node.address)}</span>
+                {addressUrl && (
+                  <ExternalActionButton
+                    url={addressUrl}
+                    label="Open node address in Etherscan (new tab)"
+                    className="hover:bg-blue-100 hover:text-blue-700"
+                  />
+                )}
+              </div>
+            ) : (
+              <span className="text-sm text-gray-500 uppercase tracking-wide">No address set</span>
+            )}
           </div>
-        ) : (
-          <>
-            <div className="flex items-center gap-2 min-w-0">
-              <Lock size={14} className="flex-shrink-0" />
-              <span className="font-mono text-xs truncate">{node.address || '0x0000...0000'}</span>
+
+          {/* Manager row */}
+          <div className="px-4 py-2.5 bg-gray-50/50">
+            <div className="flex items-center gap-2 leading-none">
+              <Avatar className="size-4 flex-shrink-0 inline-flex">
+                <AvatarImage src={node.ownerEnsAvatar || `https://avatar.vercel.sh/${node.owner}`} />
+                <AvatarFallback className="text-[8px] font-medium bg-gradient-to-br from-purple-400 to-pink-500 text-white">
+                  {getAvatarFallback(node.owner)}
+                </AvatarFallback>
+              </Avatar>
+              <span
+                className="text-sm text-gray-700 truncate leading-none"
+                style={{ fontFamily: node.ownerEnsName ? 'inherit' : 'monospace' }}
+              >
+                {node.ownerEnsName || truncateAddress(node.owner)}
+              </span>
               <ExternalActionButton
-                url={treeLink.url}
-                label={`${treeLink.label} (new tab)`}
-                className="hover:bg-amber-100"
+                url={`https://etherscan.io/address/${node.owner}`}
+                label="Manager on Etherscan (new tab)"
+                className="hover:bg-gray-200 text-gray-400 hover:text-gray-600"
               />
             </div>
-          </>
-        )}
-      </div>
+          </div>
+        </>
+      )}
 
+      {isSuggested && (
+        <div className="px-4 py-3 border-t border-gray-200">
+          <div className="text-sm text-gray-500 italic text-center">Click to add treasury</div>
+        </div>
+      )}
 
       {/* Inspect Button - Positioned at bottom center edge */}
       {!isSuggested && (
