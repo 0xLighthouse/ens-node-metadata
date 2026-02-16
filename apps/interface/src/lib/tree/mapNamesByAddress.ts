@@ -12,10 +12,30 @@ const client = createPublicClient({
 })
 
 type Address = `0x${string}`
-type ENSNameByAddress = Map<Address, GetEnsNameReturnType>
 
-export async function mapNamesByAddress(addresses: `0x${string}`[]): Promise<ENSNameByAddress> {
-  const calls = addresses.map((address) => client.getEnsName({ address }))
-  const names = await Promise.all(calls)
-  return new Map(addresses.map((address, index) => [address, names[index]]))
+export type ENSDataByAddress = Map<Address, { name: GetEnsNameReturnType; avatar: string | null }>
+
+export async function mapNamesByAddress(addresses: Address[]): Promise<ENSDataByAddress> {
+  const names = await Promise.all(
+    addresses.map((address) => client.getEnsName({ address }))
+  )
+
+  const avatars = await Promise.all(
+    names.map(async (name) => {
+      if (!name) return null
+      try {
+        return await client.getEnsAvatar({ name })
+      } catch (err) {
+        console.log(`Failed to fetch avatar for ${name}:`, err)
+        return null
+      }
+    })
+  )
+
+  return new Map(
+    addresses.map((address, index) => [
+      address,
+      { name: names[index], avatar: avatars[index] },
+    ])
+  )
 }

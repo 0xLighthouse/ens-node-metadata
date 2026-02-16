@@ -1,7 +1,7 @@
 import { GraphQLClient, type RequestDocument, gql } from 'graphql-request'
 import type { NormalizedTreeNode, TreeNode } from '@/lib/tree/types'
 import { fetchTexts } from './fetchTexts'
-import { mapNamesByAddress } from './mapNamesByAddress'
+import { mapNamesByAddress, type ENSDataByAddress } from './mapNamesByAddress'
 
 
 const ENS_SUBGRAPH_URL = 'https://api.alpha.ensnode.io/subgraph'
@@ -93,16 +93,18 @@ function collectOwnerAddresses(node: NormalizedTreeNode): Set<`0x${string}`> {
   return addresses
 }
 
-// Helper to assign ENS names to nodes
-function assignEnsNames(
+// Helper to assign ENS names and avatars to nodes
+function assignEnsData(
   node: NormalizedTreeNode,
-  nameMap: Map<`0x${string}`, string | null>,
+  ensMap: ENSDataByAddress,
 ): void {
-  node.ownerEnsName = nameMap.get(node.owner) ?? null
+  const data = ensMap.get(node.owner)
+  node.ownerEnsName = data?.name ?? null
+  node.ownerEnsAvatar = data?.avatar ?? null
 
   if (node.children) {
     for (const child of node.children) {
-      assignEnsNames(child, nameMap)
+      assignEnsData(child, ensMap)
     }
   }
 }
@@ -189,11 +191,11 @@ export async function buildRawTree(rootName: string,): Promise<TreeNode | undefi
   // Collect all unique owner addresses
   const ownerAddresses = collectOwnerAddresses(tree)
 
-  // Fetch ENS names for all addresses
-  const ensNameMap = await mapNamesByAddress(Array.from(ownerAddresses))
+  // Fetch ENS names and avatars for all addresses
+  const ensDataMap = await mapNamesByAddress(Array.from(ownerAddresses))
 
-  // Assign ENS names to all nodes
-  assignEnsNames(tree, ensNameMap)
+  // Assign ENS names and avatars to all nodes
+  assignEnsData(tree, ensDataMap)
 
   return tree
 }
