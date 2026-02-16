@@ -2,19 +2,19 @@ import { Schema } from "../types";
 import { GITHUB_URL } from "../config/constants";
 import { ENSIP5 } from "../utils/ensip5";
 
-export const TREASURY_SCHEMA: Schema = {
-  $id: 'https://github.com/0xLighthouse/ens-node-metadata/schemas/treasury/1.0.0',
+export const GROUP_SCHEMA: Schema = {
+  $id: 'https://github.com/0xLighthouse/ens-node-metadata/schemas/group/0.1.4',
   source: GITHUB_URL,
-  name: 'Treasury',
-  title: 'Treasury',
-  version: '1.0.0',
-  description: 'A treasury for managing organizational funds and assets.',
+  name: 'Group',
+  title: 'Group',
+  version: '0.1.4',
+  description: 'This node represents a logical grouping of multiple child nodes.',
   attributes: [
     {
       name: 'name',
       type: 'string',
       key: 'name',
-      description: 'The name of the treasury',
+      description: 'The name of the group',
       isRequired: false,
     },
     ...ENSIP5.attributes,
@@ -25,7 +25,7 @@ export const TREASURY_SCHEMA: Schema = {
       name: 'name',
       type: 'string',
       key: 'name',
-      description: 'The name of the treasury',
+      description: 'The name of the group',
       isRequired: false,
     },
     ...ENSIP5.properties,

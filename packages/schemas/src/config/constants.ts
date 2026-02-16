@@ -1,1 +1,1 @@
-export const GITHUB_URL = 'https://github.com/lighthouse-labs/ens-org-registrar'
+export const GITHUB_URL = 'https://github.com/0xLighthouse/ens-node-metadata'
