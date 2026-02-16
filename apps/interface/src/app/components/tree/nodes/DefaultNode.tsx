@@ -220,7 +220,7 @@ const DefaultNodeCard = ({
           <div className="px-4 py-2.5 bg-gray-50/50">
             <div className="flex items-center gap-2 leading-none">
               <Avatar className="size-4 flex-shrink-0 inline-flex">
-                <AvatarImage src={`https://avatar.vercel.sh/${node.owner}`} />
+                <AvatarImage src={node.ownerEnsAvatar || `https://avatar.vercel.sh/${node.owner}`} />
                 <AvatarFallback className="text-[8px] font-medium bg-gradient-to-br from-purple-400 to-pink-500 text-white">
                   {getAvatarFallback(node.owner)}
                 </AvatarFallback>

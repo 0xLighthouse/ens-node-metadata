@@ -42,6 +42,11 @@ export interface NormalizedTreeNode {
    */
   ownerEnsName?: string | null
 
+  /**
+   * (Optional) ENS avatar URL for the owner address
+   */
+  ownerEnsAvatar?: string | null
+
   // Optional metadata for display
   ttl?: number
 
