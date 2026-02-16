@@ -10,6 +10,8 @@ import {
 } from '@/components/ui/breadcrumb'
 import { Fragment } from 'react'
 import { usePathname } from 'next/navigation'
+import { FolderUp } from 'lucide-react'
+import Link from 'next/link'
 
 export const PageBreadcrumbs = () => {
   const pathname = usePathname()
@@ -46,6 +48,16 @@ export const PageBreadcrumbs = () => {
   return (
     <Breadcrumb>
       <BreadcrumbList className="text-base text-neutral-600 leading-none">
+        <BreadcrumbItem>
+          <Link
+            href="/select-domain"
+            className="flex h-6 w-6 items-center justify-center rounded-md text-neutral-400 hover:text-neutral-700 transition-colors"
+            title="Back to domain selection"
+          >
+            <FolderUp className="size-4" />
+          </Link>
+        </BreadcrumbItem>
+        <BreadcrumbSeparator className="text-neutral-400" />
         {breadcrumbs.map((crumb) => (
           <Fragment key={crumb.href}>
             <BreadcrumbItem className="gap-2">
