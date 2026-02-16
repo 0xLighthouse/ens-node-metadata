@@ -7,7 +7,6 @@ import {
   type Node,
   type NodeChange,
   type ReactFlowInstance,
-  Controls,
   Background,
   Panel,
   useNodesState,
@@ -18,6 +17,7 @@ import { useTreeControlsStore } from '@/stores/tree-controls'
 import { useTreeEditStore } from '@/stores/tree-edits'
 import type { TreeNode } from '@/lib/tree/types'
 import { DefaultNode, TreasuryNode, SignerNode } from './nodes'
+import { ReferenceEdge } from './edges/ReferenceEdge'
 
 const MIN_ZOOM = 0.3
 const MAX_ZOOM = 2
@@ -28,9 +28,9 @@ type NodeDimensions = {
 }
 
 const FALLBACK_NODE_SIZES: Record<string, NodeDimensions> = {
-  default: { width: 320, height: 180 },
-  Treasury: { width: 320, height: 180 },
-  Signer: { width: 320, height: 180 },
+  default: { width: 320, height: 220 },
+  Treasury: { width: 320, height: 220 },
+  Signer: { width: 256, height: 130 },
 }
 
 const getFlowNodeType = (node: TreeNode): string => {
@@ -118,16 +118,14 @@ const layoutTree = (
     const computedRefs = (node as any).inspectionData?.computedReferences
     if (computedRefs && Array.isArray(computedRefs)) {
       for (const refNodeName of computedRefs) {
+        layoutEdges.push({ source: node.name, target: refNodeName })
         edges.push({
           id: `edge-ref-${node.name}-${refNodeName}`,
           source: node.name,
           target: refNodeName,
+          type: 'reference',
           animated: true,
-          style: {
-            stroke: '#f59e0b',
-            strokeWidth: 2,
-          },
-          type: 'straight',
+          data: { sourceLabel: node.name.split('.')[0] },
         })
       }
     }
@@ -146,8 +144,8 @@ const layoutTree = (
   dagreGraph.setDefaultEdgeLabel(() => ({}))
   dagreGraph.setGraph({
     rankdir: orientation === 'vertical' ? 'TB' : 'LR',
-    nodesep: 64,
-    ranksep: 96,
+    nodesep: 80,
+    ranksep: 120,
   })
 
   for (const node of nodes) {
@@ -180,6 +178,10 @@ const nodeTypes = {
   default: DefaultNode,
   Treasury: TreasuryNode,
   Signer: SignerNode,
+}
+
+const edgeTypes = {
+  reference: ReferenceEdge,
 }
 
 interface Props {
@@ -335,7 +337,8 @@ export function Tree({ data }: Props) {
         if (!element) return
         const rect = element.getBoundingClientRect()
         if (!rect.width || !rect.height) return
-        nextSizes.set(node.id, { width: rect.width, height: rect.height })
+        const zoom = reactFlowInstance.getZoom()
+        nextSizes.set(node.id, { width: rect.width / zoom, height: rect.height / zoom })
       })
 
       if (nextSizes.size > 0 && !areNodeSizesEqual(nextSizes)) {
@@ -397,6 +400,7 @@ export function Tree({ data }: Props) {
       onNodesChange={onNodesChange}
       onEdgesChange={onEdgesChange}
       nodeTypes={nodeTypes}
+      edgeTypes={edgeTypes}
       minZoom={MIN_ZOOM}
       maxZoom={MAX_ZOOM}
       nodesDraggable={true}
@@ -415,7 +419,6 @@ export function Tree({ data }: Props) {
       onInit={setReactFlowInstance}
     >
       <Background gap={20} size={1} className="bg-white dark:bg-gray-950" />
-      <Controls />
       <Panel
         position="top-right"
         className="bg-white dark:bg-gray-900 p-3 rounded-lg shadow-lg text-xs font-mono"
