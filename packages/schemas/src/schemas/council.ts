@@ -1,20 +1,20 @@
 import { Schema } from "../types";
-import { GITHUB_URL } from "../config/constants";
 import { ENSIP5 } from "../utils/ensip5";
+import { GITHUB_URL } from "../config/constants";
 
-export const TREASURY_SCHEMA: Schema = {
-  $id: 'https://github.com/0xLighthouse/ens-node-metadata/schemas/treasury/1.0.0',
+export const COUNCIL_SCHEMA: Schema = {
+  $id: 'https://github.com/0xLighthouse/ens-node-metadata/schemas/council/1.0.0',
   source: GITHUB_URL,
-  name: 'Treasury',
-  title: 'Treasury',
+  name: 'Council',
+  title: 'Council',
   version: '1.0.0',
-  description: 'A treasury for managing organizational funds and assets.',
+  description: 'A high-level governance body with a broad, strategic mandate.',
   attributes: [
     {
       name: 'name',
       type: 'string',
       key: 'name',
-      description: 'The name of the treasury',
+      description: 'The name of the council',
       isRequired: false,
     },
     ...ENSIP5.attributes,
@@ -25,7 +25,7 @@ export const TREASURY_SCHEMA: Schema = {
       name: 'name',
       type: 'string',
       key: 'name',
-      description: 'The name of the treasury',
+      description: 'The name of the council',
       isRequired: false,
     },
     ...ENSIP5.properties,

@@ -1,11 +1,12 @@
 import { Schema } from "../types";
 
 export const AGENT_SCHEMA: Schema = {
+  $id: 'https://github.com/0xLighthouse/ens-node-metadata/schemas/agent/1.0.0',
   source: 'https://eips.ethereum.org/EIPS/eip-8004',
   name: 'Agent',
+  title: 'Agent',
   version: '1.0.0',
-  description:
-    'Trustless agent identity metadata aligned with ERC-8004 registration format.',
+  description: 'AI agent identity metadata aligned with ERC-8004 registration format.',
   attributes: [
     {
       name: 'agentURI',
@@ -15,15 +16,7 @@ export const AGENT_SCHEMA: Schema = {
       isRequired: true,
       notes: 'ipfs://, https://, or data:application/json;base64,...',
     },
-    {
-      name: 'type',
-      type: 'string',
-      key: 'type',
-      description: 'Registration file type discriminator',
-      isRequired: true,
-      notes: 'Use: https://eips.ethereum.org/EIPS/eip-8004#registration-v1',
-    },
-    {
+     {
       name: 'name',
       type: 'string',
       key: 'name',
@@ -35,13 +28,6 @@ export const AGENT_SCHEMA: Schema = {
       type: 'string',
       key: 'description',
       description: 'Natural-language description of the agent',
-      isRequired: true,
-    },
-    {
-      name: 'image',
-      type: 'string',
-      key: 'image',
-      description: 'Agent image/avatar URI',
       isRequired: true,
     },
     {
@@ -95,4 +81,87 @@ export const AGENT_SCHEMA: Schema = {
         'Corresponds to reserved on-chain metadata key in ERC-8004 Identity Registry.',
     },
   ],
+  type: 'object' as const,
+  properties: {
+    'agent-uri': {
+      type: 'string',
+      format: 'uri',
+      description: 'URI to the ERC-8004 registration file',
+      name: 'agentURI',
+      key: 'agent-uri',
+      isRequired: false,
+    },
+    type: {
+      name: 'type',
+      type: 'string',
+      key: 'type',
+      description: 'Registration file type discriminator',
+      isRequired: false,
+    },
+    name: {
+      name: 'name',
+      type: 'string',
+      key: 'name',
+      description: 'Agent display name',
+      isRequired: false,
+    },
+    description: {
+      name: 'description',
+      type: 'string',
+      key: 'description',
+      description: 'Natural-language description of the agent',
+      isRequired: false,
+    },
+    services: {
+      name: 'services',
+      type: 'json',
+      key: 'services',
+      description: 'Advertised service endpoints',
+      isRequired: false,
+    },
+    'x402-support': {
+      name: 'x402Support',
+      type: 'boolean',
+      key: 'x402-support',
+      description: 'Whether x402 payment flow is supported',
+      isRequired: false,
+    },
+    active: {
+      name: 'active',
+      type: 'boolean',
+      key: 'active',
+      description: 'Whether the agent is currently active',
+      isRequired: false,
+    },
+    registrations: {
+      name: 'registrations',
+      type: 'json',
+      key: 'registrations',
+      description: 'Cross-chain identity registrations',
+      isRequired: false,
+    },
+    'supported-trust': {
+      name: 'supportedTrust',
+      type: 'json',
+      key: 'supported-trust',
+      description: 'Trust models supported by the agent',
+      isRequired: false,
+    },
+    'agent-wallet': {
+      name: 'agentWallet',
+      type: 'string',
+      key: 'agent-wallet',
+      description: 'Verified payout wallet for agent operations',
+      isRequired: false,
+    },
+  },
+  patternProperties: {
+    '^service(\[[^\]]+\])?$': {
+      name: 'service',
+      key: 'service',
+      type: 'string',
+      description: 'Service endpoints for the agent (A2A, MCP, etc)',
+      isRequired: false,
+    }
+  }
 };
