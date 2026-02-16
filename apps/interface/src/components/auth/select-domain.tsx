@@ -15,6 +15,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { Loader2 } from 'lucide-react'
 import luxon, { DateTime } from 'luxon'
 
 export function SelectDomain() {
@@ -129,7 +130,14 @@ export function SelectDomain() {
             )}
           </div>
           <Button type="submit" disabled={isCustomDomainLoading || !customDomain.trim()}>
-            {isCustomDomainLoading ? 'Loading...' : 'Load domain'}
+            {isCustomDomainLoading ? (
+              <>
+                <Loader2 className="size-4 animate-spin" />
+                Loading...
+              </>
+            ) : (
+              'Load ENS'
+            )}
           </Button>
         </form>
         <Table>
