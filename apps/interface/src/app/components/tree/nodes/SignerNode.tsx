@@ -7,6 +7,7 @@ import { NodeContainer } from './NodeContainer'
 import { UserCheck, Sparkles } from 'lucide-react'
 import { shortAddress } from '@/lib/utils'
 import { resolveLink } from '@/lib/links'
+import { NodeIcon } from './NodeIcon'
 import { ExternalActionButton } from './ExternalActionButton'
 
 interface DomainTreeNodeData {
@@ -81,30 +82,13 @@ const SignerNodeCard = ({
                 : '#c7d2fe',
         }}
       >
-        {ensAvatar ? (
-          <div className="flex items-center justify-center rounded-md flex-shrink-0 overflow-hidden">
-            <img
-              src={ensAvatar}
-              alt={ensName || 'Signer avatar'}
-              style={{
-                width: '40px',
-                height: '40px',
-                objectFit: 'cover',
-              }}
-            />
-          </div>
-        ) : (
-          <div
-            className="flex items-center justify-center rounded-md flex-shrink-0"
-            style={{
-              width: '40px',
-              height: '40px',
-              backgroundColor: isSuggested ? '#e2e8f0' : accentColor,
-            }}
-          >
-            <UserCheck size={24} color={isSuggested ? '#64748b' : 'white'} strokeWidth={2} />
-          </div>
-        )}
+        <NodeIcon
+          avatarUrl={ensAvatar || node.attributes?.avatar}
+          fallback={<UserCheck size={24} color="white" strokeWidth={2} />}
+          accentColor={accentColor}
+          size={40}
+          isSuggested={isSuggested}
+        />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <span className="px-2 py-0.5 text-xs font-bold bg-indigo-100 text-indigo-800 rounded">
