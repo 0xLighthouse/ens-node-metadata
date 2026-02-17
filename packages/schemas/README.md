@@ -10,7 +10,7 @@ This packages helps with the management of publishing ENSIP-XX schema JSON, sign
 
 ## Environment variables
 
-The schema publisher expects the following environment variables to be avaliable.
+If publishing a schema we expect the following environment variables to be avaliable.
 
 ```sh
 export SCHEMA_PUBLISHER_PRIVATE_KEY=
