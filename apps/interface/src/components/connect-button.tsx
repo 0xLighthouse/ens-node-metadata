@@ -117,7 +117,7 @@ export const ConnectButton: React.FC<Props> = ({
           )}
           <div className="flex flex-col">
             <span className={cn(typography('body-sm', 'medium'), colorSystem.text.primary)}>
-              {shortAddress(walletAddress)}
+              {shortAddress(walletAddress ?? '')}
             </span>
             <span
               className={cn(

@@ -42,7 +42,7 @@ export function SchemaVersion({ className = '' }: SchemaVersionProps) {
   const filteredSchemas = schemas
     .filter((schema) => schema.isLatest)
     .filter((schema) =>
-      schema.name.toLowerCase().includes(searchQuery.toLowerCase())
+      schema.class.toLowerCase().includes(searchQuery.toLowerCase())
     )
 
   const handleSelectSchema = (schemaId: string) => {
@@ -66,7 +66,7 @@ export function SchemaVersion({ className = '' }: SchemaVersionProps) {
       {/* Schema Name Display */}
       <div className="flex items-center gap-2">
         <div className="text-lg font-semibold text-gray-900 dark:text-white">
-          {selectedSchema ? selectedSchema.name : 'No Schema Selected'}
+          {selectedSchema ? selectedSchema.class : 'No Schema Selected'}
         </div>
         {selectedSchema?.source && (
           <a
@@ -90,7 +90,7 @@ export function SchemaVersion({ className = '' }: SchemaVersionProps) {
             className="w-full flex items-center justify-between px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 hover:border-gray-400 dark:hover:border-gray-500 transition-colors"
           >
             <span className="text-gray-900 dark:text-white">
-              {selectedSchema ? `v${selectedSchema.version} - ${selectedSchema.name}` : 'Select a schema'}
+              {selectedSchema ? `v${selectedSchema.version} - ${selectedSchema.class}` : 'Select a schema'}
             </span>
             <ChevronDown size={16} className="text-gray-500 dark:text-gray-400" />
           </button>
@@ -150,7 +150,7 @@ export function SchemaVersion({ className = '' }: SchemaVersionProps) {
                       }`}
                     >
                       <div className="font-medium">
-                        {schema.name}{' '}
+                        {schema.class}{' '}
                         <span className="text-xs font-normal text-gray-500 dark:text-gray-400">
                           (v{schema.version})
                         </span>

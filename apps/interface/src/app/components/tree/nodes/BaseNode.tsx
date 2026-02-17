@@ -1,7 +1,7 @@
 'use client'
 
 import { memo, type ReactNode } from 'react'
-import type { NodeProps } from '@xyflow/react'
+import type { Node, NodeProps } from '@xyflow/react'
 import type { TreeNode } from '@/lib/tree/types'
 import { NodeContainer } from './NodeContainer'
 import { NodeIcon } from './NodeIcon'
@@ -12,6 +12,7 @@ import { getAvatarFallback } from '@/lib/getAvatarFallback'
 import { shortAddress } from '@/lib/shortAddress'
 
 interface DomainTreeNodeData {
+  [key: string]: unknown
   node: TreeNode
   isSelected: boolean
   hasChildren: boolean
@@ -21,6 +22,8 @@ interface DomainTreeNodeData {
   orientation: 'vertical' | 'horizontal'
   onToggleCollapse: () => void
 }
+
+type DomainTreeNode = Node<DomainTreeNodeData>
 
 export interface BaseNodeCardProps {
   node: TreeNode
@@ -47,7 +50,7 @@ export const BaseNodeCard = ({
   footerSlot,
   overflow = 'hidden',
 }: BaseNodeCardProps) => {
-  const schemaType = (node as any).type as string | undefined
+  const schemaType = (node as any).class as string | undefined
   const baseConfig = getNodeConfig(schemaType)
   const config = configOverride ? { ...baseConfig, ...configOverride } : baseConfig
 
@@ -102,7 +105,7 @@ export const BaseNodeCard = ({
         }}
       >
         <NodeIcon
-          avatarUrl={node.attributes?.avatar}
+          avatarUrl={node.texts?.avatar}
           fallback={<Icon size={28} color="white" strokeWidth={2} />}
           accentColor={config.accentColor}
           size={48}
@@ -223,7 +226,7 @@ export const BaseNodeCard = ({
 }
 
 // Wrapper component for React Flow
-const BaseNodeWrapper = ({ data }: NodeProps<DomainTreeNodeData>) => {
+const BaseNodeWrapper = ({ data }: NodeProps<DomainTreeNode>) => {
   return (
     <BaseNodeCard
       node={data.node}

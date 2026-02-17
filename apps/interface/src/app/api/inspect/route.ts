@@ -41,13 +41,13 @@ export async function POST(request: NextRequest) {
 
     const result: any = {
       address: node.address,
-      type: node.type,
+      class: node.class,
       detectedType: null,
       metadata: {},
     }
 
     // For Treasury nodes, attempt to detect if it's a Safe multisig
-    if (node.type === 'Treasury') {
+    if (node.class === 'Treasury') {
       try {
         // Try to read Safe contract methods
         const [owners, threshold] = await Promise.all([

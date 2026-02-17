@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { setRecords } from '@ensdomains/ensjs/wallet'
 import type { WalletClient } from 'viem'
-import type { TreeNodes } from '@/lib/tree/types'
+import type { TreeNode } from '@/lib/tree/types'
 import { useTreeEditStore, type TreeMutation } from './tree-edits'
 
 const NON_TEXT_RECORD_KEYS = new Set([
@@ -22,7 +22,7 @@ const NON_TEXT_RECORD_KEYS = new Set([
   'ownerEnsName',
   'ownerEnsAvatar',
   'ttl',
-  'attributes',
+  'texts',
 ])
 
 export interface MutationJob {
@@ -39,7 +39,7 @@ interface MutationsState {
   status: 'idle' | 'executing' | 'done' | 'error'
   submitMutations: (params: {
     mutationIds: string[]
-    findNode: (name: string) => TreeNodes | null
+    findNode: (name: string) => TreeNode | null
     walletClient: WalletClient
   }) => Promise<void>
   reset: () => void
@@ -51,23 +51,23 @@ export const useMutationsStore = create<MutationsState>((set, get) => ({
 
   submitMutations: async ({ mutationIds, findNode, walletClient }) => {
     const allMutations = useTreeEditStore.getState().pendingMutations
-    const selectedMutations: TreeMutation[] = []
+    const selectedMutations: [string, TreeMutation][] = []
     for (const id of mutationIds) {
       const m = allMutations.get(id)
-      if (m) selectedMutations.push(m)
+      if (m) selectedMutations.push([id, m])
     }
 
     if (selectedMutations.length === 0) return
 
     // Separate creations from edits
-    const creations = selectedMutations.filter((m) => m.isCreate)
-    const edits = selectedMutations.filter((m) => !m.isCreate)
+    const creations = selectedMutations.filter(([_, m]) => m.createNode)
+    const edits = selectedMutations.filter(([_, m]) => !m.createNode)
 
     // Build initial jobs list
     const jobs: MutationJob[] = []
 
     // Creations are placeholder — log warning and skip
-    for (const creation of creations) {
+    for (const [nodeName, creation] of creations) {
       console.warn(
         `[mutations] createSubname not yet implemented — skipping creation for parent "${creation.parentName}"`,
       )
@@ -79,10 +79,7 @@ export const useMutationsStore = create<MutationsState>((set, get) => ({
       { resolverAddress: string; texts: { key: string; value: string }[]; mutationIds: string[] }
     >()
 
-    for (const edit of edits) {
-      const ensName = edit.nodeName
-      if (!ensName) continue
-
+    for (const [ensName, edit] of edits) {
       const node = findNode(ensName)
       const resolverAddress = node?.resolverAddress
       if (!resolverAddress) {
@@ -94,12 +91,9 @@ export const useMutationsStore = create<MutationsState>((set, get) => ({
       const texts: { key: string; value: string }[] = []
       if (edit.changes) {
         for (const [rawKey, value] of Object.entries(edit.changes)) {
-          // Strip "attributes." prefix — the editor stores extra text records with this prefix
-          const key = rawKey.startsWith('attributes.') ? rawKey.slice('attributes.'.length) : rawKey
+          // Strip "texts." prefix — the editor stores extra text records with this prefix
+          const key = rawKey.startsWith('texts.') ? rawKey.slice('texts.'.length) : rawKey
 
-          console.log('key', key)
-          console.log('key', key)
-          console.log('key', key)
           if (NON_TEXT_RECORD_KEYS.has(key)) continue
           if (value === null || value === undefined) continue
           texts.push({ key, value: String(value) })
@@ -111,9 +105,9 @@ export const useMutationsStore = create<MutationsState>((set, get) => ({
       const existing = editsByName.get(ensName)
       if (existing) {
         existing.texts.push(...texts)
-        existing.mutationIds.push(edit.id)
+        existing.mutationIds.push(ensName)
       } else {
-        editsByName.set(ensName, { resolverAddress, texts, mutationIds: [edit.id] })
+        editsByName.set(ensName, { resolverAddress, texts, mutationIds: [ensName] })
       }
     }
 
@@ -144,7 +138,7 @@ export const useMutationsStore = create<MutationsState>((set, get) => ({
 
       try {
 
-        const txHash = await setRecords(walletClient, {
+        const txHash = await (setRecords as any)(walletClient, {
           name: ensName,
           texts,
           resolverAddress: resolverAddress as `0x${string}`,
@@ -181,8 +175,8 @@ export const useMutationsStore = create<MutationsState>((set, get) => ({
     }
 
     // Also discard creation mutations that were skipped (they were only logged)
-    for (const creation of creations) {
-      discardPendingMutation(creation.id)
+    for (const [nodeName] of creations) {
+      discardPendingMutation(nodeName)
     }
 
     // Set final status

@@ -1,7 +1,7 @@
 'use client'
 
 import { memo, useState } from 'react'
-import type { NodeProps } from '@xyflow/react'
+import type { Node, NodeProps } from '@xyflow/react'
 import type { TreeNode } from '@/lib/tree/types'
 import { useTreeEditStore } from '@/stores/tree-edits'
 import { useTreeControlsStore } from '@/stores/tree-controls'
@@ -11,6 +11,7 @@ import { Search, Loader2 } from 'lucide-react'
 import { BaseNodeCard } from './BaseNode'
 
 interface DomainTreeNodeData {
+  [key: string]: unknown
   node: TreeNode
   isSelected: boolean
   hasChildren: boolean
@@ -21,7 +22,9 @@ interface DomainTreeNodeData {
   onToggleCollapse: () => void
 }
 
-const TreasuryNodeWrapper = ({ data }: NodeProps<DomainTreeNodeData>) => {
+type DomainTreeNode = Node<DomainTreeNodeData>
+
+const TreasuryNodeWrapper = ({ data }: NodeProps<DomainTreeNode>) => {
   const { node } = data
   const [isInspecting, setIsInspecting] = useState(false)
   const { upsertEdit } = useTreeEditStore()
@@ -55,7 +58,7 @@ const TreasuryNodeWrapper = ({ data }: NodeProps<DomainTreeNodeData>) => {
         for (const [index, signer] of result.metadata.signers.entries()) {
           const signerAddress = signer.address as `0x${string}`
           const existingNodes = findAllNodesByAddress(previewTree, signerAddress)
-          const existingSignerNode = existingNodes.find((n) => (n as any).type === 'Signer')
+          const existingSignerNode = existingNodes.find((n) => (n as any).class === 'Signer')
 
           if (existingSignerNode) {
             existingRefs.push(existingSignerNode.name)
@@ -65,7 +68,7 @@ const TreasuryNodeWrapper = ({ data }: NodeProps<DomainTreeNodeData>) => {
               address: signerAddress,
               owner: signerAddress,
               subdomainCount: 0,
-              type: 'Signer',
+              class: 'Signer',
               title: signer.ensName || `Signer ${index + 1}`,
               description: 'Safe multisig signer',
               ensName: signer.ensName,
@@ -79,7 +82,7 @@ const TreasuryNodeWrapper = ({ data }: NodeProps<DomainTreeNodeData>) => {
         computedReferences = existingRefs.length > 0 ? existingRefs : undefined
       }
 
-      upsertEdit(node.name, {
+      upsertEdit(node.name, {}, {
         inspectionData: {
           detectedType: result.detectedType,
           metadata: result.metadata,
@@ -87,7 +90,7 @@ const TreasuryNodeWrapper = ({ data }: NodeProps<DomainTreeNodeData>) => {
           computedChildren,
           computedReferences,
         },
-      })
+      } as any)
 
       if ((computedChildren && computedChildren.length > 0) || (computedReferences && computedReferences.length > 0)) {
         setTimeout(() => {

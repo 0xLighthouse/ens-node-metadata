@@ -23,7 +23,7 @@ export function resolveLink(node: TreeNode, chainId: number = 1): ResolvedLink {
   // If it's detected as a Safe Multisig, link to Safe UI
   if (detectedType === 'Safe Multisig' || detectedType?.toLowerCase().includes('safe')) {
     return {
-      url: safeLink(address, chainId),
+      url: safeLink(address ?? '', chainId),
       type: 'safe',
       label: 'View on Safe',
     }
@@ -40,7 +40,7 @@ export function resolveLink(node: TreeNode, chainId: number = 1): ResolvedLink {
 
   // Default to block explorer
   return {
-    url: explorerLink(address, chainId),
+    url: explorerLink(address ?? '', chainId),
     type: 'explorer',
     label: 'View on Explorer',
   }

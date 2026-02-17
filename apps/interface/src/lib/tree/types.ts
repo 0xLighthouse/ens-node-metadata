@@ -5,6 +5,8 @@ export type TreeNodeType = 'default' | 'organizationRoot' | 'treasury' | 'role' 
  * An ENS record/subdomain fetched from the subgraph and normalized into a tree node
  */
 export interface NormalizedTreeNode {
+  [key: string]: unknown
+
   /**
    * The ID of the node as expressed on-chain
    */
@@ -53,9 +55,9 @@ export interface NormalizedTreeNode {
   /**
    * (Optional) children of this node
    */
-  children?: TreeNodes[]
+  children?: TreeNode[]
 
-  attributes?: Record<string, string | null>
+  texts?: Record<string, string | null>
 
   // Additional fields (will be refactored to BaseNode, TreasuryNode, etc later)
   schema?: string // Schema ID used for this node
@@ -71,7 +73,7 @@ export interface NormalizedTreeNode {
     metadata?: Record<string, any>
     inspectedAt?: string
     isInspecting?: boolean
-    computedChildren?: TreeNodes[] // New computed child nodes (e.g., signers)
+    computedChildren?: TreeNode[] // New computed child nodes (e.g., signers)
     computedReferences?: string[] // References to existing nodes by name (edges only, no new nodes)
   }
 }
@@ -106,6 +108,3 @@ export type TreeNode =
   | TreasuryTreeNode
   | RoleTreeNode
   | TeamTreeNode
-
-// Alias for compatibility
-export type TreeNodes = TreeNode

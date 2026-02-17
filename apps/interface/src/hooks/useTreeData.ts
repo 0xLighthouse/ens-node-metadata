@@ -2,7 +2,7 @@ import { useCallback, useMemo } from 'react'
 import { useTreeLoaderStore } from '@/stores/tree-loader'
 import { useTreeEditStore } from '@/stores/tree-edits'
 import { useAppStore } from '@/stores/app'
-import type { TreeNodes } from '@/lib/tree/types'
+import type { TreeNode } from '@/lib/tree/types'
 
 export const useTreeData = () => {
   const {
@@ -35,10 +35,10 @@ export const useTreeData = () => {
   }, [refreshTree, activeRootName])
 
   const addNodesToParent = useCallback(
-    (parentName: string, newNodes: TreeNodes[]) => {
+    (parentName: string, newNodes: TreeNode[]) => {
       if (!isActiveTree || !sourceTree) return
 
-      const addNodes = (node: TreeNodes): TreeNodes => {
+      const addNodes = (node: TreeNode): TreeNode => {
         if (node.name === parentName) {
           return {
             ...node,
@@ -66,40 +66,59 @@ export const useTreeData = () => {
   const previewTree = useMemo(() => {
     if (!sourceTree) return null
 
-    const markAsPending = (node: TreeNodes): TreeNodes => ({
-      ...node,
-      isPendingCreation: true,
-      children: node.children?.map(markAsPending),
-    })
+    // Build a created subtree by recursively finding children among flattened creations
+    const buildCreatedSubtree = (createdNode: TreeNode): TreeNode => {
+      const childCreations = Array.from(pendingMutations.entries())
+        .filter(([_, m]) => m.createNode && m.parentName === createdNode.name)
 
-    const mergePendingChanges = (node: TreeNodes): TreeNodes => {
-      // Apply any pending edits to this node
-      const pendingEdit = Array.from(pendingMutations.values()).find(
-        (change) => !change.isCreate && change.nodeName === node.name,
-      )
-
-      let mergedNode = { ...node }
-      if (pendingEdit?.changes) {
-        mergedNode = { ...mergedNode, ...pendingEdit.changes }
+      const children: TreeNode[] = []
+      for (const [nodeName, creation] of childCreations) {
+        const childNode: TreeNode = {
+          name: nodeName,
+          id: nodeName,
+          owner: createdNode.owner,
+          resolverId: createdNode.resolverId,
+          resolverAddress: createdNode.resolverAddress,
+          subdomainCount: 0,
+          isPendingCreation: true,
+          ...creation.changes,
+        }
+        children.push(buildCreatedSubtree(childNode))
       }
 
-      // Find any pending creations for this node
-      const creationsForThisNode = Array.from(pendingMutations.values()).filter(
-        (change) => change.isCreate && change.parentName === node.name,
-      )
+      return {
+        ...createdNode,
+        children: children.length > 0
+          ? [...(createdNode.children ?? []), ...children]
+          : createdNode.children,
+      }
+    }
 
-      // Collect all nodes to add from creations
-      const nodesToAdd: TreeNodes[] = []
-      for (const creation of creationsForThisNode) {
-        if (creation.nodes) {
-          const markedNodes = creation.nodes.map((n) => ({
-            ...n,
-            isPendingCreation: true,
-            // Recursively mark children as pending too
-            children: n.children?.map(markAsPending),
-          }))
-          nodesToAdd.push(...markedNodes)
+    const mergePendingChanges = (node: TreeNode): TreeNode => {
+      // Apply any pending edits to this node (direct lookup by name)
+      const mutation = pendingMutations.get(node.name)
+      let mergedNode = { ...node }
+      if (mutation && !mutation.createNode && mutation.changes) {
+        mergedNode = { ...mergedNode, ...mutation.changes }
+      }
+
+      // Find any pending creations whose parent is this node
+      const creationsForNode = Array.from(pendingMutations.entries())
+        .filter(([_, m]) => m.createNode && m.parentName === node.name)
+
+      const nodesToAdd: TreeNode[] = []
+      for (const [nodeName, creation] of creationsForNode) {
+        const createdNode: TreeNode = {
+          name: nodeName,
+          id: nodeName,
+          owner: node.owner,
+          resolverId: node.resolverId,
+          resolverAddress: node.resolverAddress,
+          subdomainCount: 0,
+          isPendingCreation: true,
+          ...creation.changes,
         }
+        nodesToAdd.push(buildCreatedSubtree(createdNode))
       }
 
       // Add computed children from inspection data (e.g., signers from Safe multisig)

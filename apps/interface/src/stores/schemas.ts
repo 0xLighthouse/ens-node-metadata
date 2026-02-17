@@ -5,7 +5,7 @@ import type { Schema as BaseSchema } from '@ensipXX/schemas/types'
 
 export interface Schema extends BaseSchema {
   id: string
-  title: string
+  class: string
   isLatest: boolean
 }
 

@@ -66,7 +66,7 @@ export const useAppStore = create<AppState>()(
           set({
             status: 'loading-domains'
           })
-          await get().fetchDomains(user.wallet?.address)
+          await get().fetchDomains(user.wallet?.address ?? '')
           set({ status: 'ready', isInitialized: true })
         } catch (error) {
           console.error('AppStore initialization error:', error)
@@ -91,7 +91,7 @@ export const useAppStore = create<AppState>()(
 
         try {
           const apiStore = useApiStore.getState()
-          const resp = await apiStore.ensRequest(QUERY_DOMAINS_OWNED, { address: userAddress })
+          const resp = await apiStore.ensRequest<{ domains: any[] }>(QUERY_DOMAINS_OWNED, { address: userAddress })
 
           console.log('AppStore.fetchDomains.resp', resp)
 
@@ -120,7 +120,7 @@ export const useAppStore = create<AppState>()(
         }
 
         const apiStore = useApiStore.getState()
-        const resp = await apiStore.ensRequest(QUERY_DOMAIN_BY_NAME, { name })
+        const resp = await apiStore.ensRequest<{ domains: any[] }>(QUERY_DOMAIN_BY_NAME, { name })
         const domain = resp.domains?.[0]
         if (!domain) {
           throw new Error(`Domain not found: ${name}`)

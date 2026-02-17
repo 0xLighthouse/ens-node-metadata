@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { RefreshCcw, Sparkles, Maximize2 } from 'lucide-react'
 import { useTreeControlsStore } from '@/stores/tree-controls'
 import { useTreeData } from '@/hooks/useTreeData'
-import { type TreeNodes } from '@/lib/tree/types'
+import { type TreeNode } from '@/lib/tree/types'
 import { SuggestionsDialog } from './SuggestionsDialog'
 
 export function TreeControls() {
@@ -22,7 +22,7 @@ export function TreeControls() {
   } = useTreeControlsStore()
 
   // Collect all node names that have children
-  const getAllNodesWithChildren = (node: TreeNodes): string[] => {
+  const getAllNodesWithChildren = (node: TreeNode): string[] => {
     const names: string[] = []
     if (node.children && node.children.length > 0) {
       names.push(node.name)

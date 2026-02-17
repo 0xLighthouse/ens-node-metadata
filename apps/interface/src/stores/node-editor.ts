@@ -41,6 +41,7 @@ interface NodeEditorState {
   removeCustomAttribute: (key: string) => void
   getFormData: () => NodeEditFormData
   hasChanges: (originalNode: any, activeSchema: any) => boolean
+  getChangedFields: (originalNode: any, activeSchema: any) => Record<string, any>
 }
 
 const initialState = {
@@ -70,18 +71,18 @@ export const useNodeEditorStore = create<NodeEditorState>((set, get) => ({
     // Add schema and type to form data ONLY if the node already has a schema
     if (nodeData.schema && activeSchema) {
       nextFormData.schema = activeSchema.id
-      nextFormData.type = activeSchema.name
+      nextFormData.class = activeSchema.class
     }
 
-    // Initialize from node data and schema attributes ONLY if node has a schema
-    if (nodeData.schema && activeSchema?.attributes) {
-      activeSchema.attributes.forEach((attr: any) => {
-        const value = nodeData[attr.key] ?? ''
-        nextFormData[attr.key] = value
+    // Initialize from node data and schema properties ONLY if node has a schema
+    if (nodeData.schema && activeSchema?.properties) {
+      Object.entries(activeSchema.properties).forEach(([key, prop]: [string, any]) => {
+        const value = nodeData[key] ?? ''
+        nextFormData[key] = value
 
         // Track optional fields that have values
-        if (!attr.isRequired && value) {
-          optionalFieldsWithValues.add(attr.key)
+        if (!activeSchema.required?.includes(key) && value) {
+          optionalFieldsWithValues.add(key)
         }
       })
     }
@@ -119,21 +120,21 @@ export const useNodeEditorStore = create<NodeEditorState>((set, get) => ({
       const nextFormData: NodeEditFormData = {
         ...state.formData,
         schema: schema.id,
-        type: schema.name,
+        class: schema.class,
       }
 
       // Track optional fields that already have values
       const optionalFieldsWithValues = new Set<string>()
 
-      // Initialize schema attributes
-      schema.attributes?.forEach((attr: any) => {
-        if (!(attr.key in nextFormData)) {
-          const value = nodeData?.[attr.key] ?? ''
-          nextFormData[attr.key] = value
+      // Initialize schema properties
+      Object.entries(schema.properties ?? {}).forEach(([key, prop]: [string, any]) => {
+        if (!(key in nextFormData)) {
+          const value = nodeData?.[key] ?? ''
+          nextFormData[key] = value
 
           // Track optional fields with existing values
-          if (!attr.isRequired && value) {
-            optionalFieldsWithValues.add(attr.key)
+          if (!schema.required?.includes(key) && value) {
+            optionalFieldsWithValues.add(key)
           }
         }
       })
@@ -205,21 +206,21 @@ export const useNodeEditorStore = create<NodeEditorState>((set, get) => ({
     // Check schema and type changes
     const schemaTypeChanges =
       formData.schema !== originalNode?.schema ||
-      formData.type !== originalNode?.type
+      formData.class !== originalNode?.class
 
-    // Check schema attributes for changes
-    const schemaChanges = activeSchema?.attributes?.some((attr: any) => {
-      const currentValue = formData[attr.key] ?? ''
-      const originalValue = originalNode?.[attr.key] ?? ''
+    // Check schema properties for changes
+    const schemaChanges = Object.entries(activeSchema?.properties ?? {}).some(([key]) => {
+      const currentValue = formData[key] ?? ''
+      const originalValue = originalNode?.[key] ?? ''
       return currentValue !== originalValue
-    }) ?? false
+    })
 
-    // Check extra attributes for changes (including cleared ones)
+    // Check extra text records for changes (including cleared ones)
     const extraChanges = Object.keys(formData).some((key) => {
       // Skip schema and type as we already checked them
-      if (key === 'schema' || key === 'type') return false
+      if (key === 'schema' || key === 'class') return false
 
-      const schemaKeys = new Set(activeSchema?.attributes?.map((a: any) => a.key) || [])
+      const schemaKeys = new Set(Object.keys(activeSchema?.properties ?? {}))
       if (schemaKeys.has(key)) return false // Already checked above
 
       const currentValue = formData[key]
@@ -228,5 +229,20 @@ export const useNodeEditorStore = create<NodeEditorState>((set, get) => ({
     })
 
     return schemaTypeChanges || schemaChanges || extraChanges
+  },
+
+  getChangedFields: (originalNode, activeSchema) => {
+    const { formData } = get()
+    const changes: Record<string, any> = {}
+    const isEmpty = (v: any) => v === '' || v === null || v === undefined
+
+    for (const [key, value] of Object.entries(formData)) {
+      const original = originalNode?.[key]
+      if (isEmpty(value) && isEmpty(original)) continue
+      if (value === original) continue
+      changes[key] = value
+    }
+
+    return changes
   },
 }))

@@ -27,15 +27,13 @@ export function ApplyChangesDialog({ open, onOpenChange, onConfirm }: ApplyChang
   const { sourceTree } = useTreeData()
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
 
-  const changesArray = useMemo(() => Array.from(pendingMutations.values()), [pendingMutations])
-
-  console.log('pendingMutations')
-  console.log(pendingMutations)
+  // Array of [nodeName, mutation] entries
+  const changesArray = useMemo(() => Array.from(pendingMutations.entries()), [pendingMutations])
 
   // Select all by default when dialog opens or mutations change
   useEffect(() => {
     if (open) {
-      setSelectedIds(new Set(changesArray.map((c) => c.id)))
+      setSelectedIds(new Set(changesArray.map(([nodeName]) => nodeName)))
     }
   }, [open, changesArray])
 
@@ -56,18 +54,18 @@ export function ApplyChangesDialog({ open, onOpenChange, onConfirm }: ApplyChang
 
   const groupedChanges = useMemo(() => {
     const groups = new Map<string, typeof changesArray>()
-    for (const change of changesArray) {
+    for (const [nodeName, change] of changesArray) {
       let resolverAddress: string
-      if (change.isCreate) {
+      if (change.createNode) {
         resolverAddress = findNode(change.parentName ?? '')?.resolverAddress ?? 'unknown'
       } else {
-        resolverAddress = findNode(change.nodeName ?? '')?.resolverAddress ?? 'unknown'
+        resolverAddress = findNode(nodeName)?.resolverAddress ?? 'unknown'
       }
       const existing = groups.get(resolverAddress)
       if (existing) {
-        existing.push(change)
+        existing.push([nodeName, change])
       } else {
-        groups.set(resolverAddress, [change])
+        groups.set(resolverAddress, [[nodeName, change]])
       }
     }
     return Array.from(groups.entries())
@@ -95,43 +93,18 @@ export function ApplyChangesDialog({ open, onOpenChange, onConfirm }: ApplyChang
     return labels[nodeType] ?? nodeType
   }
 
-  const formatKey = (key: string) =>
-    key.replace(/([A-Z])/g, ' $1').replace(/^./, (s) => s.toUpperCase())
-
-  // Flatten all nodes from a creation recursively
-  const flattenNodes = (nodes: any[]): any[] => {
-    const result: any[] = []
-    for (const node of nodes) {
-      result.push(node)
-      if (node.children?.length) {
-        result.push(...flattenNodes(node.children))
-      }
-    }
-    return result
-  }
-
-  // Get key/value rows for a created node
-  const getCreationRows = (node: any): { key: string; value: string }[] => {
+  // Get key/value rows for a created node from its mutation changes
+  const getCreationRows = (changes: Record<string, any>): { key: string; value: string }[] => {
     const rows: { key: string; value: string }[] = []
-    if (node.schema) rows.push({ key: 'Schema', value: node.schema })
-    if (node.nodeType) rows.push({ key: 'Type', value: formatNodeType(node.nodeType) })
-    const fields = [
-      'title',
-      'kind',
-      'description',
-      'address',
-      'website',
-      'email',
-      'organizationAddress',
-    ]
-    for (const f of fields) {
-      if (node[f]) {
-        rows.push({ key: formatKey(f), value: String(node[f]) })
-      }
-    }
-    if (node.attributes) {
-      for (const [k, v] of Object.entries(node.attributes)) {
-        if (v != null && v !== '') rows.push({ key: k, value: String(v) })
+    const skipKeys = new Set(['children', 'name', 'id', 'owner', 'resolverId', 'resolverAddress', 'subdomainCount', 'isPendingCreation', 'isComputed', 'parentId'])
+
+    for (const [key, value] of Object.entries(changes)) {
+      if (skipKeys.has(key)) continue
+      if (value == null || value === '') continue
+      if (key === 'nodeType') {
+        rows.push({ key, value: formatNodeType(String(value)) })
+      } else {
+        rows.push({ key, value: String(value) })
       }
     }
     return rows
@@ -174,38 +147,26 @@ export function ApplyChangesDialog({ open, onOpenChange, onConfirm }: ApplyChang
               </div>
 
               <div className="space-y-3">
-                {mutations.map((change) => {
-                  const isSelected = selectedIds.has(change.id)
+                {mutations.map(([nodeName, change]) => {
+                  const isSelected = selectedIds.has(nodeName)
 
-                  if (change.isCreate) {
-                    const allNodes = change.nodes ? flattenNodes(change.nodes) : []
-                    const primaryNode = allNodes[0]
+                  if (change.createNode) {
+                    const rows = getCreationRows(change.changes)
 
                     return (
                       <div
-                        key={change.id}
+                        key={nodeName}
                         className="border border-gray-200 dark:border-gray-700 rounded-lg p-3"
                       >
                         {/* Header */}
                         <div className="flex items-center gap-2 mb-2">
                           <Checkbox
                             checked={isSelected}
-                            onCheckedChange={() => toggleSelection(change.id)}
+                            onCheckedChange={() => toggleSelection(nodeName)}
                           />
                           <span className="font-mono font-bold text-sm truncate">
-                            {primaryNode?.name ?? change.parentName}
+                            {nodeName}
                           </span>
-                          {primaryNode?.address && (
-                            <a
-                              href={`https://etherscan.io/address/${primaryNode.address}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-xs text-gray-500 hover:text-indigo-600 dark:hover:text-indigo-400 font-mono flex items-center gap-1 shrink-0"
-                            >
-                              {`${primaryNode.address.slice(0, 6)}...${primaryNode.address.slice(-4)}`}
-                              <ExternalLink className="w-3 h-3" />
-                            </a>
-                          )}
                           <Badge className="bg-green-100 text-green-700 border-green-200 dark:bg-green-900/40 dark:text-green-300 dark:border-green-800 text-[10px] px-1.5 py-0 shrink-0">
                             New
                           </Badge>
@@ -214,36 +175,19 @@ export function ApplyChangesDialog({ open, onOpenChange, onConfirm }: ApplyChang
                         {/* Key/value table */}
                         <table className="w-full text-xs">
                           <tbody>
-                            {allNodes.map((node, idx) => {
-                              const rows = getCreationRows(node)
-                              return (
-                                <Fragment key={idx}>
-                                  {allNodes.length > 1 && (
-                                    <tr>
-                                      <td
-                                        colSpan={2}
-                                        className={`py-1.5 font-mono font-semibold text-gray-700 dark:text-gray-300 ${idx > 0 ? 'pt-3' : ''}`}
-                                      >
-                                        {node.name}
-                                      </td>
-                                    </tr>
-                                  )}
-                                  {rows.map(({ key, value }) => (
-                                    <tr
-                                      key={`${idx}-${key}`}
-                                      className="border-t border-gray-100 dark:border-gray-800"
-                                    >
-                                      <td className="py-1 pr-3 text-gray-500 dark:text-gray-400 font-medium w-36 align-top">
-                                        {key}
-                                      </td>
-                                      <td className="py-1 text-green-600 dark:text-green-400 break-all">
-                                        {value}
-                                      </td>
-                                    </tr>
-                                  ))}
-                                </Fragment>
-                              )
-                            })}
+                            {rows.map(({ key, value }) => (
+                              <tr
+                                key={key}
+                                className="border-t border-gray-100 dark:border-gray-800"
+                              >
+                                <td className="py-1 pr-3 text-gray-500 dark:text-gray-400 font-medium w-36 align-top">
+                                  {key}
+                                </td>
+                                <td className="py-1 text-green-600 dark:text-green-400 break-all">
+                                  {value}
+                                </td>
+                              </tr>
+                            ))}
                           </tbody>
                         </table>
 
@@ -252,7 +196,7 @@ export function ApplyChangesDialog({ open, onOpenChange, onConfirm }: ApplyChang
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => onConfirm([change.id])}
+                            onClick={() => onConfirm([nodeName])}
                           >
                             Save
                           </Button>
@@ -262,7 +206,7 @@ export function ApplyChangesDialog({ open, onOpenChange, onConfirm }: ApplyChang
                   }
 
                   // Edit mutation
-                  const originalNode = change.nodeName ? findNode(change.nodeName) : null
+                  const originalNode = findNode(nodeName)
 
                   const entries = change.changes
                     ? Object.entries(change.changes).filter(([key, newValue]) => {
@@ -287,17 +231,17 @@ export function ApplyChangesDialog({ open, onOpenChange, onConfirm }: ApplyChang
 
                   return (
                     <div
-                      key={change.id}
+                      key={nodeName}
                       className="border border-gray-200 dark:border-gray-700 rounded-lg p-3"
                     >
                       {/* Header */}
                       <div className="flex items-center gap-2 mb-2">
                         <Checkbox
                           checked={isSelected}
-                          onCheckedChange={() => toggleSelection(change.id)}
+                          onCheckedChange={() => toggleSelection(nodeName)}
                         />
                         <span className="font-mono font-bold text-sm truncate">
-                          {change.nodeName}
+                          {nodeName}
                         </span>
                         {originalNode?.address && (
                           <a
@@ -321,7 +265,7 @@ export function ApplyChangesDialog({ open, onOpenChange, onConfirm }: ApplyChang
                           {addedFields.map(([key, newValue]) => (
                             <tr key={key} className="border-t border-gray-100 dark:border-gray-800">
                               <td className="py-1 pr-3 text-gray-500 dark:text-gray-400 font-medium w-36 align-top">
-                                {formatKey(key)}
+                                {key}
                               </td>
                               <td className="py-1 text-green-600 dark:text-green-400 break-all">
                                 {String(newValue)}
@@ -336,7 +280,7 @@ export function ApplyChangesDialog({ open, onOpenChange, onConfirm }: ApplyChang
                                 className="border-t border-gray-100 dark:border-gray-800"
                               >
                                 <td className="py-1 pr-3 text-gray-500 dark:text-gray-400 font-medium w-36 align-top">
-                                  {formatKey(key)}
+                                  {key}
                                 </td>
                                 <td className="py-1 break-all">
                                   <span className="text-red-500 dark:text-red-400 line-through mr-2">
@@ -354,7 +298,7 @@ export function ApplyChangesDialog({ open, onOpenChange, onConfirm }: ApplyChang
 
                       {/* Per-card Save */}
                       <div className="flex justify-end mt-2">
-                        <Button variant="outline" size="sm" onClick={() => onConfirm([change.id])}>
+                        <Button variant="outline" size="sm" onClick={() => onConfirm([nodeName])}>
                           Save
                         </Button>
                       </div>
