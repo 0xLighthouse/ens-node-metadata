@@ -50,7 +50,7 @@ export const BaseNodeCard = ({
   footerSlot,
   overflow = 'hidden',
 }: BaseNodeCardProps) => {
-  const schemaType = (node as any).class as string | undefined
+  const schemaType = ((node as any).class || node.texts?.class) as string | undefined
   const baseConfig = getNodeConfig(schemaType)
   const config = configOverride ? { ...baseConfig, ...configOverride } : baseConfig
 

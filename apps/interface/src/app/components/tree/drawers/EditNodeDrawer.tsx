@@ -86,10 +86,11 @@ export function EditNodeDrawer() {
   const isPendingCreation = nodeWithEdits?.isPendingCreation || false
 
   // Get the active schema - either the one selected in this session or the node's existing schema
+  const nodeSchemaId = nodeWithEdits?.schema || nodeWithEdits?.texts?.schema
   const activeSchema = currentSchemaId
     ? schemas.find((s) => s.id === currentSchemaId)
-    : nodeWithEdits?.schema
-      ? schemas.find((s) => s.id === nodeWithEdits.schema)
+    : nodeSchemaId
+      ? schemas.find((s) => s.id === nodeSchemaId)
       : null
 
   // Close schema dropdown when clicking outside
@@ -229,7 +230,7 @@ export function EditNodeDrawer() {
                 <X size={20} />
               </button>
 
-              {nodeWithEdits?.schema && activeSchema ? (
+              {nodeSchemaId && activeSchema ? (
                 // Header when schema is applied
                 <>
                   <Drawer.Title className="font-semibold text-2xl text-gray-900 dark:text-white mb-1.5">

@@ -25,7 +25,7 @@ export function findNodeByAddress(
       return tree
     }
     // Check if type matches
-    const nodeType = (tree as any).class
+    const nodeType = (tree as any).class || tree.texts?.class
     if (nodeType === type) {
       return tree
     }
