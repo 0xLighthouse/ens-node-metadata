@@ -68,18 +68,19 @@ export const useNodeEditorStore = create<NodeEditorState>((set, get) => ({
     const optionalFieldsWithValues = new Set<string>()
 
     // Look up the active schema based on the node's schema property
-    const activeSchema = nodeData.schema
-      ? schemas.find((s: any) => s.id === nodeData.schema)
+    const nodeSchemaId = resolveNodeValue(nodeData, 'schema')
+    const activeSchema = nodeSchemaId
+      ? schemas.find((s: any) => s.id === nodeSchemaId)
       : null
 
     // Add schema and type to form data ONLY if the node already has a schema
-    if (nodeData.schema && activeSchema) {
+    if (nodeSchemaId && activeSchema) {
       nextFormData.schema = activeSchema.id
       nextFormData.class = activeSchema.class
     }
 
     // Initialize from node data and schema properties ONLY if node has a schema
-    if (nodeData.schema && activeSchema?.properties) {
+    if (nodeSchemaId && activeSchema?.properties) {
       Object.entries(activeSchema.properties).forEach(([key, prop]: [string, any]) => {
         const value = resolveNodeValue(nodeData, key) ?? ''
         nextFormData[key] = value
@@ -102,7 +103,7 @@ export const useNodeEditorStore = create<NodeEditorState>((set, get) => ({
 
     set({
       formData: nextFormData,
-      currentSchemaId: nodeData.schema || null,
+      currentSchemaId: nodeSchemaId || null,
       visibleOptionalFields: optionalFieldsWithValues,
       isAddingCustomAttribute: false,
       newAttributeKey: '',
@@ -209,8 +210,8 @@ export const useNodeEditorStore = create<NodeEditorState>((set, get) => ({
 
     // Check schema and type changes
     const schemaTypeChanges =
-      formData.schema !== originalNode?.schema ||
-      formData.class !== originalNode?.class
+      formData.schema !== resolveNodeValue(originalNode, 'schema') ||
+      formData.class !== resolveNodeValue(originalNode, 'class')
 
     // Check schema properties for changes
     const schemaChanges = Object.entries(activeSchema?.properties ?? {}).some(([key]) => {

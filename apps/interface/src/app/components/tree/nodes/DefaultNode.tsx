@@ -27,7 +27,7 @@ const legacyAccent: Partial<Record<TreeNodeType, string>> = {
 }
 
 const DefaultNodeWrapper = ({ data }: NodeProps<DomainTreeNode>) => {
-  const schemaType = (data.node as any).class as string | undefined
+  const schemaType = ((data.node as any).class || data.node.texts?.class) as string | undefined
   const configOverride = !schemaType && data.node.nodeType
     ? { accentColor: legacyAccent[data.node.nodeType] ?? '#94a3b8' }
     : undefined

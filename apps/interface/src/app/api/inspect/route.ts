@@ -39,15 +39,17 @@ export async function POST(request: NextRequest) {
       transport: http(rpcUrl),
     })
 
+    const nodeClass = node.class || node.texts?.class
+
     const result: any = {
       address: node.address,
-      class: node.class,
+      class: nodeClass,
       detectedType: null,
       metadata: {},
     }
 
     // For Treasury nodes, attempt to detect if it's a Safe multisig
-    if (node.class === 'Treasury') {
+    if (nodeClass === 'Treasury') {
       try {
         // Try to read Safe contract methods
         const [owners, threshold] = await Promise.all([

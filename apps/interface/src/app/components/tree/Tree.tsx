@@ -35,7 +35,7 @@ const FALLBACK_NODE_SIZES: Record<string, NodeDimensions> = {
 }
 
 const getFlowNodeType = (node: TreeNode): string => {
-  const explicitType = (node as any).class
+  const explicitType = (node as any).class || node.texts?.class
   if (explicitType) {
     // Treasury and Signer keep their dedicated components
     if (explicitType === 'Treasury' || explicitType === 'Signer') return explicitType
