@@ -1,0 +1,13 @@
+{
+  "schemaId": "delegate",
+  "latest": "1.0.0",
+  "published": [
+    {
+      "version": "1.0.0",
+      "cid": "QmQ2qzEyrndEXRqJ5iy3jK9eYyiLKKiqDhakoR6toqymAH",
+      "checksum": "sha256:a7723a8423e8569792370dbdb0b23e869b5248fb281bfd2582fb904620b203e3",
+      "timestamp": 1771348970,
+      "schemaPath": "packages/schemas/published/delegate/versions/1.0.0/schema.json"
+    }
+  ]
+}

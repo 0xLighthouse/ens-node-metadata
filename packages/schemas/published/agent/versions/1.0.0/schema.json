@@ -1,91 +1,68 @@
 {
+  "$id": "https://github.com/0xLighthouse/ens-node-metadata/schemas/agent/1.0.0",
   "source": "https://eips.ethereum.org/EIPS/eip-8004",
-  "name": "Agent",
+  "title": "Agent",
   "version": "1.0.0",
-  "description": "Trustless agent identity metadata aligned with ERC-8004 registration format.",
-  "attributes": [
-    {
-      "name": "agentURI",
+  "description": "AI agent identity metadata aligned with ERC-8004 registration format.",
+  "type": "object",
+  "properties": {
+    "agent-uri": {
       "type": "string",
-      "key": "agent-uri",
+      "format": "uri",
       "description": "URI to the ERC-8004 registration file",
-      "isRequired": true,
-      "notes": "ipfs://, https://, or data:application/json;base64,..."
+      "isRequired": false
     },
-    {
-      "name": "type",
+    "type": {
       "type": "string",
-      "key": "type",
       "description": "Registration file type discriminator",
-      "isRequired": true,
-      "notes": "Use: https://eips.ethereum.org/EIPS/eip-8004#registration-v1"
+      "isRequired": false
     },
-    {
-      "name": "name",
+    "name": {
       "type": "string",
-      "key": "name",
       "description": "Agent display name",
-      "isRequired": true
+      "isRequired": false
     },
-    {
-      "name": "description",
+    "description": {
       "type": "string",
-      "key": "description",
       "description": "Natural-language description of the agent",
-      "isRequired": true
+      "isRequired": false
     },
-    {
-      "name": "image",
-      "type": "string",
-      "key": "image",
-      "description": "Agent image/avatar URI",
-      "isRequired": true
-    },
-    {
-      "name": "services",
+    "services": {
       "type": "json",
-      "key": "services",
       "description": "Advertised service endpoints",
-      "isRequired": true,
-      "notes": "Array of {name, endpoint, version?}. Supports A2A, MCP, ENS, DID, web, email, etc."
+      "isRequired": false
     },
-    {
-      "name": "x402Support",
+    "x402-support": {
       "type": "boolean",
-      "key": "x402-support",
       "description": "Whether x402 payment flow is supported",
-      "isRequired": true
+      "isRequired": false
     },
-    {
-      "name": "active",
+    "active": {
       "type": "boolean",
-      "key": "active",
       "description": "Whether the agent is currently active",
-      "isRequired": true
+      "isRequired": false
     },
-    {
-      "name": "registrations",
+    "registrations": {
       "type": "json",
-      "key": "registrations",
       "description": "Cross-chain identity registrations",
-      "isRequired": true,
-      "notes": "Array of {agentRegistry, agentId}; agentRegistry format: {namespace}:{chainId}:{identityRegistry}."
+      "isRequired": false
     },
-    {
-      "name": "supportedTrust",
+    "supported-trust": {
       "type": "json",
-      "key": "supported-trust",
       "description": "Trust models supported by the agent",
-      "isRequired": false,
-      "notes": "Examples: reputation, crypto-economic, tee-attestation, zkml-proof."
+      "isRequired": false
     },
-    {
-      "name": "agentWallet",
+    "agent-wallet": {
       "type": "string",
-      "key": "agent-wallet",
       "description": "Verified payout wallet for agent operations",
-      "isRequired": false,
-      "notes": "Corresponds to reserved on-chain metadata key in ERC-8004 Identity Registry."
+      "isRequired": false
     }
-  ]
+  },
+  "patternProperties": {
+    "^service([[^]]+])?$": {
+      "type": "string",
+      "description": "Service endpoints for the agent (A2A, MCP, etc)",
+      "isRequired": false
+    }
+  }
 }

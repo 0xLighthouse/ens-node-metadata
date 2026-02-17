@@ -1,16 +1,16 @@
 {
   "schemaId": "agent",
   "version": "1.0.0",
-  "name": "Agent",
-  "description": "Trustless agent identity metadata aligned with ERC-8004 registration format.",
+  "title": "Agent",
+  "description": "AI agent identity metadata aligned with ERC-8004 registration format.",
   "source": "https://eips.ethereum.org/EIPS/eip-8004",
-  "cid": "QmXdNE52K26JDWEjJsvkrZ4P9g9N9ZwLsc8mVvVuGrDgjx",
-  "checksum": "sha256:9a436ffab8a0e96e78b009870b1e4bd4e46605bcfe76085ac0cd9fa7e29d846b",
-  "timestamp": 1770999575,
+  "cid": "QmadaMaQcpGnTSsYMjf8Ju4AC9WzoRbk39niwBqrbURZTJ",
+  "checksum": "sha256:d6528cb684f92c37f3e5ca7c41c16002e032b13c17644d8297407dfee5ce6f2d",
+  "timestamp": 1771348940,
   "schemaPath": "packages/schemas/published/agent/versions/1.0.0/schema.json",
   "publisher": "pinata",
   "signer": "0x6837047F46Da1d5d9A79846b25810b92adF456F6",
-  "signature": "0x61b2ea2883c95e54919420244a80808e00a00da1cab1e1fe2f52aecdea5d58842619478483c40a721c01db411d230a3adf2b33189e75b5e328cda0aaa1800e411b",
+  "signature": "0xa237f557db5d2eaeb7eba179daf77b8fe7eef1c9afdc852291f3d89ad2235a632da27fe93deb67f2d85fcb7cc42b5c05884945e8d0ec53936ce2245f0049b90f1b",
   "eip712": {
     "domain": {
       "name": "ENS Schema Publisher",
@@ -56,9 +56,9 @@
     "message": {
       "schemaId": "agent",
       "version": "1.0.0",
-      "cid": "QmXdNE52K26JDWEjJsvkrZ4P9g9N9ZwLsc8mVvVuGrDgjx",
-      "checksum": "sha256:9a436ffab8a0e96e78b009870b1e4bd4e46605bcfe76085ac0cd9fa7e29d846b",
-      "timestamp": 1770999575,
+      "cid": "QmadaMaQcpGnTSsYMjf8Ju4AC9WzoRbk39niwBqrbURZTJ",
+      "checksum": "sha256:d6528cb684f92c37f3e5ca7c41c16002e032b13c17644d8297407dfee5ce6f2d",
+      "timestamp": 1771348940,
       "schemaPath": "packages/schemas/published/agent/versions/1.0.0/schema.json",
       "publisher": "pinata",
       "notes": ""

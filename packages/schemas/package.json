@@ -16,6 +16,7 @@
     "./latest": "./published/_latest.json"
   },
   "devDependencies": {
+    "@types/node": "^25.2.3",
     "tsx": "^4.7.0",
     "viem": "2.23.15"
   }

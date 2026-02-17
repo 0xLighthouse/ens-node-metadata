@@ -1,167 +1,55 @@
 {
   "$id": "https://github.com/0xLighthouse/ens-node-metadata/schemas/grantProgram/1.0.0",
   "source": "https://github.com/0xLighthouse/ens-node-metadata",
-  "name": "Grant",
   "title": "Grant",
   "version": "1.0.0",
   "description": "A grant issued by an organization.",
-  "attributes": [
-    {
-      "name": "name",
-      "type": "string",
-      "key": "name",
-      "description": "The name of the grant program",
-      "isRequired": false
-    },
-    {
-      "name": "avatar",
-      "type": "string",
-      "key": "avatar",
-      "description": "A URL to an image used as an avatar or logo",
-      "isRequired": false
-    },
-    {
-      "name": "description",
-      "type": "string",
-      "key": "description",
-      "description": "A description of the name",
-      "isRequired": false
-    },
-    {
-      "name": "display",
-      "type": "string",
-      "key": "display",
-      "description": "A canonical display name for the ENS name; this MUST match the ENS name when its case is folded, and clients should ignore this value if it does not (e.g. \"ricmoo.eth\" could set this to \"RicMoo.eth\")",
-      "isRequired": false
-    },
-    {
-      "name": "email",
-      "type": "string",
-      "key": "email",
-      "description": "An e-mail address",
-      "isRequired": false
-    },
-    {
-      "name": "keywords",
-      "type": "string",
-      "key": "keywords",
-      "description": "A list of comma-separated keywords, ordered by most significant first; clients that interpresent this field may choose a threshold beyond which to ignore",
-      "isRequired": false
-    },
-    {
-      "name": "mail",
-      "type": "string",
-      "key": "mail",
-      "description": "A physical mailing address",
-      "isRequired": false
-    },
-    {
-      "name": "notice",
-      "type": "string",
-      "key": "notice",
-      "description": "A notice regarding this name",
-      "isRequired": false
-    },
-    {
-      "name": "location",
-      "type": "string",
-      "key": "location",
-      "description": "A generic location (e.g. \"Toronto, Canada\")",
-      "isRequired": false
-    },
-    {
-      "name": "phone",
-      "type": "string",
-      "key": "phone",
-      "description": "A phone number as an E.164 string",
-      "isRequired": false
-    },
-    {
-      "name": "url",
-      "type": "string",
-      "key": "url",
-      "description": "A website URL",
-      "isRequired": false
-    }
-  ],
   "type": "object",
   "properties": {
     "name": {
-      "name": "name",
       "type": "string",
-      "key": "name",
       "description": "The name of the grant program",
       "isRequired": false
     },
     "avatar": {
-      "name": "avatar",
       "type": "string",
-      "key": "avatar",
-      "description": "A URL to an image used as an avatar or logo",
-      "isRequired": false
+      "description": "A URL to an image used as an avatar or logo"
     },
     "description": {
-      "name": "description",
       "type": "string",
-      "key": "description",
-      "description": "A description of the name",
-      "isRequired": false
+      "description": "A description of the name"
     },
     "display": {
-      "name": "display",
       "type": "string",
-      "key": "display",
-      "description": "A canonical display name for the ENS name; this MUST match the ENS name when its case is folded, and clients should ignore this value if it does not (e.g. \"ricmoo.eth\" could set this to \"RicMoo.eth\")",
-      "isRequired": false
+      "description": "A canonical display name for the ENS name; this MUST match the ENS name when its case is folded, and clients should ignore this value if it does not (e.g. \"ricmoo.eth\" could set this to \"RicMoo.eth\")"
     },
     "email": {
-      "name": "email",
       "type": "string",
-      "key": "email",
-      "description": "An e-mail address",
-      "isRequired": false
+      "description": "An e-mail address"
     },
     "keywords": {
-      "name": "keywords",
       "type": "string",
-      "key": "keywords",
-      "description": "A list of comma-separated keywords, ordered by most significant first; clients that interpresent this field may choose a threshold beyond which to ignore",
-      "isRequired": false
+      "description": "A list of comma-separated keywords, ordered by most significant first; clients that interpresent this field may choose a threshold beyond which to ignore"
     },
     "mail": {
-      "name": "mail",
       "type": "string",
-      "key": "mail",
-      "description": "A physical mailing address",
-      "isRequired": false
+      "description": "A physical mailing address"
     },
     "notice": {
-      "name": "notice",
       "type": "string",
-      "key": "notice",
-      "description": "A notice regarding this name",
-      "isRequired": false
+      "description": "A notice regarding this name"
     },
     "location": {
-      "name": "location",
       "type": "string",
-      "key": "location",
-      "description": "A generic location (e.g. \"Toronto, Canada\")",
-      "isRequired": false
+      "description": "A generic location (e.g. \"Toronto, Canada\")"
     },
     "phone": {
-      "name": "phone",
       "type": "string",
-      "key": "phone",
-      "description": "A phone number as an E.164 string",
-      "isRequired": false
+      "description": "A phone number as an E.164 string"
     },
     "url": {
-      "name": "url",
       "type": "string",
-      "key": "url",
-      "description": "A website URL",
-      "isRequired": false
+      "description": "A website URL"
     }
   }
 }

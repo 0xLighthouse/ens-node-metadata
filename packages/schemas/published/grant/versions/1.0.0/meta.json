@@ -1,16 +1,16 @@
 {
   "schemaId": "grant",
   "version": "1.0.0",
-  "name": "Grant",
+  "title": "Grant",
   "description": "A grant issued by an organization.",
   "source": "https://github.com/0xLighthouse/ens-node-metadata",
-  "cid": "QmfRrxcA8aqhC89VnSrNdD7HkmUSaPgHwNwSDy3SdWXobR",
-  "checksum": "sha256:f1e8b3f9ca33bda4c8e575cc2a9f08e77a10a7b6772a0debd568b7a28487a6b1",
-  "timestamp": 1771328849,
+  "cid": "QmXXBG4s1uSSAzZt5dRxubasRzNM3KRdkc4XGzjLkpHF1E",
+  "checksum": "sha256:0eca9e02421d87d67a4da81a7913207c7accd4520eba4219849928caffce093d",
+  "timestamp": 1771348975,
   "schemaPath": "packages/schemas/published/grant/versions/1.0.0/schema.json",
   "publisher": "pinata",
   "signer": "0x6837047F46Da1d5d9A79846b25810b92adF456F6",
-  "signature": "0x95d0a404145b0a5a39ed3d45de3cf718ade377838b3318cfb4cf2508a8fd08227e1f67528cc01047aebf73bebbde2c701ca4cd3c31e32cf17bed81ff561352ed1b",
+  "signature": "0xec4064e64421b20c143722e93d03e677aa1491477245f05958c92d850fe175a277008dab5c12c86d03ccda43849b5431b71ad04bc1acd138225732fd1bb2bb2e1c",
   "eip712": {
     "domain": {
       "name": "ENS Schema Publisher",
@@ -56,9 +56,9 @@
     "message": {
       "schemaId": "grant",
       "version": "1.0.0",
-      "cid": "QmfRrxcA8aqhC89VnSrNdD7HkmUSaPgHwNwSDy3SdWXobR",
-      "checksum": "sha256:f1e8b3f9ca33bda4c8e575cc2a9f08e77a10a7b6772a0debd568b7a28487a6b1",
-      "timestamp": 1771328849,
+      "cid": "QmXXBG4s1uSSAzZt5dRxubasRzNM3KRdkc4XGzjLkpHF1E",
+      "checksum": "sha256:0eca9e02421d87d67a4da81a7913207c7accd4520eba4219849928caffce093d",
+      "timestamp": 1771348975,
       "schemaPath": "packages/schemas/published/grant/versions/1.0.0/schema.json",
       "publisher": "pinata",
       "notes": ""

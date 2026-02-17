@@ -1,16 +1,16 @@
 {
   "schemaId": "contract",
   "version": "1.1.1",
-  "name": "Contract",
-  "description": "Smart contract metadata profile aligned with ENSIP-24: contract text records and compiled metadata resolver profile.",
-  "source": "https://github.com/lighthouse-labs/ens-org-registrar",
-  "cid": "QmPhirH6jhYXwaCgE5pNMG38iiDHrbE2qJuZ67zW7ExCju",
-  "checksum": "sha256:2cf49219596af416d1122a5076b4ffdb945a85367c19af713966385e7dda1d3e",
-  "timestamp": 1770997987,
+  "title": "Contract",
+  "description": "Smart contract metadata profile following Enscribe smart contract metadata format.",
+  "source": "https://github.com/0xLighthouse/ens-node-metadata",
+  "cid": "QmV6DufHmDEWrMg9oVnKL4BBpBXi2m2sEy32D2J147PqoB",
+  "checksum": "sha256:9d9033f4864158bf409dc107a0fd60462640298c604c4ecd9d2fea53a8dd6025",
+  "timestamp": 1771348953,
   "schemaPath": "packages/schemas/published/contract/versions/1.1.1/schema.json",
   "publisher": "pinata",
   "signer": "0x6837047F46Da1d5d9A79846b25810b92adF456F6",
-  "signature": "0xbb92e94ecd7e3859bd03755b8ef0c88f8e8076e792a71daf1d9529c46ab8b11772d3e37b369fc10a2eff1734e060f5fcc8c7f0c01d289384cffb73596c413e611c",
+  "signature": "0x0ffaf18e536c6f843b7a236239d0ba827e2042143e053112fe894bf062e479a83526425274e2cae0e1f8f240453d20311afa42860bde0cd37295463e65f71a631b",
   "eip712": {
     "domain": {
       "name": "ENS Schema Publisher",
@@ -56,9 +56,9 @@
     "message": {
       "schemaId": "contract",
       "version": "1.1.1",
-      "cid": "QmPhirH6jhYXwaCgE5pNMG38iiDHrbE2qJuZ67zW7ExCju",
-      "checksum": "sha256:2cf49219596af416d1122a5076b4ffdb945a85367c19af713966385e7dda1d3e",
-      "timestamp": 1770997987,
+      "cid": "QmV6DufHmDEWrMg9oVnKL4BBpBXi2m2sEy32D2J147PqoB",
+      "checksum": "sha256:9d9033f4864158bf409dc107a0fd60462640298c604c4ecd9d2fea53a8dd6025",
+      "timestamp": 1771348953,
       "schemaPath": "packages/schemas/published/contract/versions/1.1.1/schema.json",
       "publisher": "pinata",
       "notes": ""
