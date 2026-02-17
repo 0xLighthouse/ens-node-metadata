@@ -98,8 +98,18 @@ export const useTreeData = () => {
       // Apply any pending edits to this node (direct lookup by name)
       const mutation = pendingMutations.get(node.name)
       let mergedNode = { ...node }
-      if (mutation && !mutation.createNode && mutation.changes) {
-        mergedNode = { ...mergedNode, ...mutation.changes }
+      if (mutation && !mutation.createNode) {
+        if (mutation.changes) {
+          mergedNode = { ...mergedNode, ...mutation.changes }
+        }
+        if (mutation.deleted?.length) {
+          const newTexts = { ...(mergedNode.texts ?? {}) }
+          for (const key of mutation.deleted) {
+            delete newTexts[key]
+            delete (mergedNode as any)[key]
+          }
+          mergedNode = { ...mergedNode, texts: newTexts }
+        }
       }
 
       // Find any pending creations whose parent is this node

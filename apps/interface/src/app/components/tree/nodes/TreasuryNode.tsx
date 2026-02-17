@@ -90,7 +90,7 @@ const TreasuryNodeWrapper = ({ data }: NodeProps<DomainTreeNode>) => {
           computedChildren,
           computedReferences,
         },
-      } as any)
+      } as any, [])
 
       if ((computedChildren && computedChildren.length > 0) || (computedReferences && computedReferences.length > 0)) {
         setTimeout(() => {

@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { setRecords } from '@ensdomains/ensjs/wallet'
-import type { WalletClient } from 'viem'
+import type { Account, Transport, WalletClient } from 'viem'
 import type { TreeNode } from '@/lib/tree/types'
 import { useTreeEditStore, type TreeMutation } from './tree-edits'
 
@@ -90,13 +90,18 @@ export const useMutationsStore = create<MutationsState>((set, get) => ({
       // Filter to only text record keys
       const texts: { key: string; value: string }[] = []
       if (edit.changes) {
-        for (const [rawKey, value] of Object.entries(edit.changes)) {
-          // Strip "texts." prefix — the editor stores extra text records with this prefix
-          const key = rawKey.startsWith('texts.') ? rawKey.slice('texts.'.length) : rawKey
-
+        for (const [key, value] of Object.entries(edit.changes)) {
           if (NON_TEXT_RECORD_KEYS.has(key)) continue
           if (value === null || value === undefined) continue
           texts.push({ key, value: String(value) })
+        }
+      }
+
+      // Add deletions as empty-string writes (ENS convention for removing text records)
+      if (edit.deleted) {
+        for (const key of edit.deleted) {
+          if (NON_TEXT_RECORD_KEYS.has(key)) continue
+          texts.push({ key, value: '' })
         }
       }
 
@@ -138,7 +143,13 @@ export const useMutationsStore = create<MutationsState>((set, get) => ({
 
       try {
 
-        const txHash = await (setRecords as any)(walletClient, {
+
+        console.log('---- Setting records ----')
+        console.log('texts', texts)
+        console.log('resolverAddress', resolverAddress)
+        console.log('ensName', ensName)
+
+        const txHash = await setRecords(walletClient, {
           name: ensName,
           texts,
           resolverAddress: resolverAddress as `0x${string}`,
