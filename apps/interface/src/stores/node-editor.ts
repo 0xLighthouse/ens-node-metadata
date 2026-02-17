@@ -41,8 +41,12 @@ interface NodeEditorState {
   removeCustomAttribute: (key: string) => void
   getFormData: () => NodeEditFormData
   hasChanges: (originalNode: any, activeSchema: any) => boolean
-  getChangedFields: (originalNode: any, activeSchema: any) => Record<string, any>
+  getChangedFields: (originalNode: any, activeSchema: any) => { changes: Record<string, any>; deleted: string[] }
 }
+
+// Resolve a value: check top-level first (pending edit merges), then node.texts
+const resolveNodeValue = (node: any, key: string) =>
+  node?.[key] !== undefined ? node[key] : node?.texts?.[key]
 
 const initialState = {
   formData: {},
@@ -77,7 +81,7 @@ export const useNodeEditorStore = create<NodeEditorState>((set, get) => ({
     // Initialize from node data and schema properties ONLY if node has a schema
     if (nodeData.schema && activeSchema?.properties) {
       Object.entries(activeSchema.properties).forEach(([key, prop]: [string, any]) => {
-        const value = nodeData[key] ?? ''
+        const value = resolveNodeValue(nodeData, key) ?? ''
         nextFormData[key] = value
 
         // Track optional fields that have values
@@ -129,7 +133,7 @@ export const useNodeEditorStore = create<NodeEditorState>((set, get) => ({
       // Initialize schema properties
       Object.entries(schema.properties ?? {}).forEach(([key, prop]: [string, any]) => {
         if (!(key in nextFormData)) {
-          const value = nodeData?.[key] ?? ''
+          const value = resolveNodeValue(nodeData, key) ?? ''
           nextFormData[key] = value
 
           // Track optional fields with existing values
@@ -211,7 +215,7 @@ export const useNodeEditorStore = create<NodeEditorState>((set, get) => ({
     // Check schema properties for changes
     const schemaChanges = Object.entries(activeSchema?.properties ?? {}).some(([key]) => {
       const currentValue = formData[key] ?? ''
-      const originalValue = originalNode?.[key] ?? ''
+      const originalValue = resolveNodeValue(originalNode, key) ?? ''
       return currentValue !== originalValue
     })
 
@@ -224,7 +228,7 @@ export const useNodeEditorStore = create<NodeEditorState>((set, get) => ({
       if (schemaKeys.has(key)) return false // Already checked above
 
       const currentValue = formData[key]
-      const originalValue = originalNode?.[key]
+      const originalValue = resolveNodeValue(originalNode, key)
       return currentValue !== originalValue
     })
 
@@ -234,15 +238,21 @@ export const useNodeEditorStore = create<NodeEditorState>((set, get) => ({
   getChangedFields: (originalNode, activeSchema) => {
     const { formData } = get()
     const changes: Record<string, any> = {}
+    const deleted: string[] = []
     const isEmpty = (v: any) => v === '' || v === null || v === undefined
 
     for (const [key, value] of Object.entries(formData)) {
-      const original = originalNode?.[key]
+      const original = resolveNodeValue(originalNode, key)
       if (isEmpty(value) && isEmpty(original)) continue
       if (value === original) continue
-      changes[key] = value
+
+      if (isEmpty(value) && !isEmpty(original)) {
+        deleted.push(key)
+      } else {
+        changes[key] = value
+      }
     }
 
-    return changes
+    return { changes, deleted }
   },
 }))

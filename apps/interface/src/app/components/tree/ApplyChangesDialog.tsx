@@ -14,7 +14,6 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { useTreeEditStore } from '@/stores/tree-edits'
 import { useTreeData } from '@/hooks/useTreeData'
-import type { TreeNodeType } from '@/lib/tree/types'
 
 interface ApplyChangesDialogProps {
   open: boolean
@@ -26,6 +25,9 @@ export function ApplyChangesDialog({ open, onOpenChange, onConfirm }: ApplyChang
   const { pendingMutations } = useTreeEditStore()
   const { sourceTree } = useTreeData()
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+
+  console.log('---- APPLY CHANGES DIALOG -----')
+  console.log('pendingMutations', pendingMutations)
 
   // Array of [nodeName, mutation] entries
   const changesArray = useMemo(() => Array.from(pendingMutations.entries()), [pendingMutations])
@@ -96,7 +98,18 @@ export function ApplyChangesDialog({ open, onOpenChange, onConfirm }: ApplyChang
   // Get key/value rows for a created node from its mutation changes
   const getCreationRows = (changes: Record<string, any>): { key: string; value: string }[] => {
     const rows: { key: string; value: string }[] = []
-    const skipKeys = new Set(['children', 'name', 'id', 'owner', 'resolverId', 'resolverAddress', 'subdomainCount', 'isPendingCreation', 'isComputed', 'parentId'])
+    const skipKeys = new Set([
+      'children',
+      'name',
+      'id',
+      'owner',
+      'resolverId',
+      'resolverAddress',
+      'subdomainCount',
+      'isPendingCreation',
+      'isComputed',
+      'parentId',
+    ])
 
     for (const [key, value] of Object.entries(changes)) {
       if (skipKeys.has(key)) continue
@@ -164,9 +177,7 @@ export function ApplyChangesDialog({ open, onOpenChange, onConfirm }: ApplyChang
                             checked={isSelected}
                             onCheckedChange={() => toggleSelection(nodeName)}
                           />
-                          <span className="font-mono font-bold text-sm truncate">
-                            {nodeName}
-                          </span>
+                          <span className="font-mono font-bold text-sm truncate">{nodeName}</span>
                           <Badge className="bg-green-100 text-green-700 border-green-200 dark:bg-green-900/40 dark:text-green-300 dark:border-green-800 text-[10px] px-1.5 py-0 shrink-0">
                             New
                           </Badge>
@@ -193,11 +204,7 @@ export function ApplyChangesDialog({ open, onOpenChange, onConfirm }: ApplyChang
 
                         {/* Per-card Save */}
                         <div className="flex justify-end mt-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => onConfirm([nodeName])}
-                          >
+                          <Button variant="outline" size="sm" onClick={() => onConfirm([nodeName])}>
                             Save
                           </Button>
                         </div>
@@ -208,9 +215,13 @@ export function ApplyChangesDialog({ open, onOpenChange, onConfirm }: ApplyChang
                   // Edit mutation
                   const originalNode = findNode(nodeName)
 
+                  // Resolve original value: check node.texts first, then top-level
+                  const resolveOriginal = (key: string) =>
+                    (originalNode as any)?.texts?.[key] ?? (originalNode as any)?.[key]
+
                   const entries = change.changes
                     ? Object.entries(change.changes).filter(([key, newValue]) => {
-                        const originalValue = (originalNode as any)?.[key]
+                        const originalValue = resolveOriginal(key)
                         if (newValue === originalValue) return false
                         if (newValue === null || newValue === undefined || newValue === '')
                           return false
@@ -220,12 +231,12 @@ export function ApplyChangesDialog({ open, onOpenChange, onConfirm }: ApplyChang
                     : []
 
                   const addedFields = entries.filter(([key]) => {
-                    const ov = (originalNode as any)?.[key]
+                    const ov = resolveOriginal(key)
                     return ov === undefined || ov === null || ov === ''
                   })
 
                   const modifiedFields = entries.filter(([key]) => {
-                    const ov = (originalNode as any)?.[key]
+                    const ov = resolveOriginal(key)
                     return ov !== undefined && ov !== null && ov !== ''
                   })
 
@@ -240,9 +251,7 @@ export function ApplyChangesDialog({ open, onOpenChange, onConfirm }: ApplyChang
                           checked={isSelected}
                           onCheckedChange={() => toggleSelection(nodeName)}
                         />
-                        <span className="font-mono font-bold text-sm truncate">
-                          {nodeName}
-                        </span>
+                        <span className="font-mono font-bold text-sm truncate">{nodeName}</span>
                         {originalNode?.address && (
                           <a
                             href={`https://etherscan.io/address/${originalNode.address}`}
@@ -263,7 +272,10 @@ export function ApplyChangesDialog({ open, onOpenChange, onConfirm }: ApplyChang
                       <table className="w-full text-xs">
                         <tbody>
                           {addedFields.map(([key, newValue]) => (
-                            <tr key={key} className="border-t border-gray-100 dark:border-gray-800">
+                            <tr
+                              key={key}
+                              className="border-t border-gray-100 dark:border-gray-800"
+                            >
                               <td className="py-1 pr-3 text-gray-500 dark:text-gray-400 font-medium w-36 align-top">
                                 {key}
                               </td>
@@ -273,7 +285,7 @@ export function ApplyChangesDialog({ open, onOpenChange, onConfirm }: ApplyChang
                             </tr>
                           ))}
                           {modifiedFields.map(([key, newValue]) => {
-                            const originalValue = (originalNode as any)?.[key]
+                            const originalValue = resolveOriginal(key)
                             return (
                               <tr
                                 key={key}
@@ -289,6 +301,22 @@ export function ApplyChangesDialog({ open, onOpenChange, onConfirm }: ApplyChang
                                   <span className="text-green-600 dark:text-green-400">
                                     {String(newValue)}
                                   </span>
+                                </td>
+                              </tr>
+                            )
+                          })}
+                          {change.deleted?.map((key) => {
+                            const originalValue = resolveOriginal(key)
+                            return (
+                              <tr
+                                key={key}
+                                className="border-t border-gray-100 dark:border-gray-800"
+                              >
+                                <td className="py-1 pr-3 text-red-500 dark:text-red-400 font-medium w-36 align-top line-through">
+                                  {key}
+                                </td>
+                                <td className="py-1 text-red-500 dark:text-red-400 line-through break-all">
+                                  {String(originalValue)}
                                 </td>
                               </tr>
                             )

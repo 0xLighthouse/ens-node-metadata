@@ -169,7 +169,7 @@ export function EditNodeDrawer() {
     if (!selectedNode || !nodeWithEdits) return
 
     const originalNode = findNode(selectedNode)
-    const changedFields = getChangedFields(originalNode, activeSchema)
+    const { changes, deleted } = getChangedFields(originalNode, activeSchema)
 
     // Build texts baseline from original node
     const texts: Record<string, string | null> = {}
@@ -179,7 +179,7 @@ export function EditNodeDrawer() {
       }
     }
 
-    upsertEdit(selectedNode, texts, changedFields)
+    upsertEdit(selectedNode, texts, changes, deleted)
     closeEditDrawer()
     resetEditor()
   }
@@ -566,11 +566,10 @@ export function EditNodeDrawer() {
                     // Text Records should only show custom ENSIP-5 text records
                     const extraKeys: string[] = []
 
-                    // Only check nested texts (e.g., texts.avatar, texts.com.twitter)
                     if (nodeWithEdits.texts && typeof nodeWithEdits.texts === 'object') {
                       Object.keys(nodeWithEdits.texts).forEach((key) => {
                         if (!schemaKeys.has(key)) {
-                          extraKeys.push(`texts.${key}`)
+                          extraKeys.push(key)
                         }
                       })
                     }
@@ -603,27 +602,34 @@ export function EditNodeDrawer() {
 
                           {/* Existing custom attributes */}
                           {extraKeys.map((key) => {
-                            // Get the value, handling nested attributes
-                            const getValue = () => {
-                              if (key.startsWith('texts.')) {
-                                const nestedKey = key.replace('texts.', '')
-                                return (
-                                  formData[key] ??
-                                  (nodeWithEdits.texts as any)?.[nestedKey] ??
-                                  ''
-                                )
-                              }
+                            const isMarkedForDeletion = formData[key] === null
+                            const originalValue = (nodeWithEdits.texts as any)?.[key] ?? ''
+                            const currentValue = formData[key] ?? originalValue
+
+                            if (isMarkedForDeletion) {
                               return (
-                                formData[key] ??
-                                nodeWithEdits[key as keyof typeof nodeWithEdits] ??
-                                ''
+                                <div
+                                  key={key}
+                                  className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800/50 rounded-lg p-3"
+                                >
+                                  <div className="flex items-center justify-between gap-2 mb-2">
+                                    <label className="block text-sm font-medium text-red-500 dark:text-red-400 line-through">
+                                      {key}
+                                    </label>
+                                    <button
+                                      type="button"
+                                      onClick={() => updateField(key, originalValue)}
+                                      className="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium"
+                                    >
+                                      Undo
+                                    </button>
+                                  </div>
+                                  <div className="w-full px-3 py-2 text-sm text-red-400 dark:text-red-500 line-through truncate">
+                                    {String(originalValue)}
+                                  </div>
+                                </div>
                               )
                             }
-
-                            // Display key without "texts." prefix
-                            const displayKey = key.startsWith('texts.')
-                              ? key.replace('texts.', '')
-                              : key
 
                             return (
                               <div
@@ -632,7 +638,7 @@ export function EditNodeDrawer() {
                               >
                                 <div className="flex items-center justify-between gap-2 mb-2">
                                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    {displayKey}
+                                    {key}
                                   </label>
                                   <button
                                     type="button"
@@ -644,7 +650,7 @@ export function EditNodeDrawer() {
                                 </div>
                                 <input
                                   type="text"
-                                  value={getValue()}
+                                  value={currentValue}
                                   onChange={(e) => updateField(key, e.target.value)}
                                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                                 />

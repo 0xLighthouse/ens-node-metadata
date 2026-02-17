@@ -7,6 +7,8 @@ export interface TreeMutation {
   texts: Record<string, string | null>
   /** Only the changed text record key/value pairs (the delta) */
   changes: Record<string, string | null>
+  /** Keys explicitly cleared by the user (should become empty-string writes) */
+  deleted: string[]
   /** For creations: direct parent node name */
   parentName?: string
 }
@@ -20,7 +22,7 @@ interface TreeEditState {
   isEditDrawerOpen: boolean
 
   // Actions
-  upsertEdit: (nodeName: string, texts: Record<string, string | null>, changes: Record<string, string | null>) => void
+  upsertEdit: (nodeName: string, texts: Record<string, string | null>, changes: Record<string, string | null>, deleted?: string[]) => void
   queueCreation: (parentName: string, nodes: TreeNode[]) => void
   discardPendingMutation: (id: string) => void
   clearPendingMutations: () => void
@@ -36,7 +38,7 @@ export const useTreeEditStore = create<TreeEditState>((set, get) => ({
   selectedNode: null,
   isEditDrawerOpen: false,
 
-  upsertEdit: (nodeName, texts, changes) =>
+  upsertEdit: (nodeName, texts, changes, deleted = []) =>
     set((state) => {
       const newMutations = new Map(state.pendingMutations)
       const existing = newMutations.get(nodeName)
@@ -46,9 +48,10 @@ export const useTreeEditStore = create<TreeEditState>((set, get) => ({
         newMutations.set(nodeName, {
           ...existing,
           changes: { ...existing.changes, ...changes },
+          deleted: [...new Set([...existing.deleted, ...deleted])],
         })
       } else {
-        newMutations.set(nodeName, { createNode: false, texts, changes })
+        newMutations.set(nodeName, { createNode: false, texts, changes, deleted })
       }
       return { pendingMutations: newMutations }
     }),
@@ -69,6 +72,7 @@ export const useTreeEditStore = create<TreeEditState>((set, get) => ({
             parentName: parent,
             texts: {},
             changes,
+            deleted: [],
           })
           if (node.children) flatten(node.children, node.name)
         }
