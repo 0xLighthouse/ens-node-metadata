@@ -1,13 +1,16 @@
 {
-  "schemaId": "org",
-  "version": "0.1.5",
-  "cid": "QmeKv5PPbteixMYdaeC8sFYYxiYAJzeQMmTKCR42eG9Cw6",
-  "checksum": "sha256:0bfdd8f9096ba7dc900bf87f83a318db21df13ec1b2c0030a885df7c3e46fbda",
-  "timestamp": 1771328834,
-  "schemaPath": "packages/schemas/published/org/versions/0.1.5/schema.json",
+  "schemaId": "person",
+  "version": "1.0.0",
+  "name": "Person",
+  "description": "A person.",
+  "source": "https://github.com/0xLighthouse/ens-node-metadata",
+  "cid": "QmZ6i7qbS2wuMbbv1faP1BBwcdgNL9sfCKX8JndEww2nMi",
+  "checksum": "sha256:893e85844ec6e259235d2658b0fb904cc1b924e6df82c8a978d1fe3a91664ed4",
+  "timestamp": 1771329170,
+  "schemaPath": "packages/schemas/published/person/versions/1.0.0/schema.json",
   "publisher": "pinata",
   "signer": "0x6837047F46Da1d5d9A79846b25810b92adF456F6",
-  "signature": "0x49ab0a5e6f392f7d3920fb2867ed1033caa1558ff9d339672beb445c2419b65b638401661cb777ecec31e72cb66181b928669a62b6bf8ad12acaad15a9ae6e271c",
+  "signature": "0x9b0b629ecbe3071698cc75667be295fb0ebf34ae80b41898ccd6ed6a2382371329896ee306c130f31c2a1791fa1da372cb9ee95b5a39b48cd51223a119c0bd721c",
   "eip712": {
     "domain": {
       "name": "ENS Schema Publisher",
@@ -51,12 +54,12 @@
     },
     "primaryType": "PublishedSchema",
     "message": {
-      "schemaId": "org",
-      "version": "0.1.5",
-      "cid": "QmeKv5PPbteixMYdaeC8sFYYxiYAJzeQMmTKCR42eG9Cw6",
-      "checksum": "sha256:0bfdd8f9096ba7dc900bf87f83a318db21df13ec1b2c0030a885df7c3e46fbda",
-      "timestamp": 1771328834,
-      "schemaPath": "packages/schemas/published/org/versions/0.1.5/schema.json",
+      "schemaId": "person",
+      "version": "1.0.0",
+      "cid": "QmZ6i7qbS2wuMbbv1faP1BBwcdgNL9sfCKX8JndEww2nMi",
+      "checksum": "sha256:893e85844ec6e259235d2658b0fb904cc1b924e6df82c8a978d1fe3a91664ed4",
+      "timestamp": 1771329170,
+      "schemaPath": "packages/schemas/published/person/versions/1.0.0/schema.json",
       "publisher": "pinata",
       "notes": ""
     }

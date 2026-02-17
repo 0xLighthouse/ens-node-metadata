@@ -1,13 +1,16 @@
 {
-  "schemaId": "org",
-  "version": "0.1.5",
-  "cid": "QmeKv5PPbteixMYdaeC8sFYYxiYAJzeQMmTKCR42eG9Cw6",
-  "checksum": "sha256:0bfdd8f9096ba7dc900bf87f83a318db21df13ec1b2c0030a885df7c3e46fbda",
-  "timestamp": 1771328834,
-  "schemaPath": "packages/schemas/published/org/versions/0.1.5/schema.json",
+  "schemaId": "wallet",
+  "version": "1.0.0",
+  "name": "Wallet",
+  "description": "A wallet for holding or managing assets.",
+  "source": "https://github.com/0xLighthouse/ens-node-metadata",
+  "cid": "QmXRV7EcMDuUswnParfju3PV5GZ3yP1Ztxxx6v6e7QsnVM",
+  "checksum": "sha256:d2f7d4b8aaea6bdf535d275c1060d77f7dff6f020b9f8f450b372d0c7b80626c",
+  "timestamp": 1771329175,
+  "schemaPath": "packages/schemas/published/wallet/versions/1.0.0/schema.json",
   "publisher": "pinata",
   "signer": "0x6837047F46Da1d5d9A79846b25810b92adF456F6",
-  "signature": "0x49ab0a5e6f392f7d3920fb2867ed1033caa1558ff9d339672beb445c2419b65b638401661cb777ecec31e72cb66181b928669a62b6bf8ad12acaad15a9ae6e271c",
+  "signature": "0xd0731ae6924aa4e814cf20f1c186d6ab871c49d0ea2e5c44cb8ba43199b587ea49bfcf45abb3006fdfd5e736ade547440064cb11ebeaf7c1d224160fe1b17d781c",
   "eip712": {
     "domain": {
       "name": "ENS Schema Publisher",
@@ -51,12 +54,12 @@
     },
     "primaryType": "PublishedSchema",
     "message": {
-      "schemaId": "org",
-      "version": "0.1.5",
-      "cid": "QmeKv5PPbteixMYdaeC8sFYYxiYAJzeQMmTKCR42eG9Cw6",
-      "checksum": "sha256:0bfdd8f9096ba7dc900bf87f83a318db21df13ec1b2c0030a885df7c3e46fbda",
-      "timestamp": 1771328834,
-      "schemaPath": "packages/schemas/published/org/versions/0.1.5/schema.json",
+      "schemaId": "wallet",
+      "version": "1.0.0",
+      "cid": "QmXRV7EcMDuUswnParfju3PV5GZ3yP1Ztxxx6v6e7QsnVM",
+      "checksum": "sha256:d2f7d4b8aaea6bdf535d275c1060d77f7dff6f020b9f8f450b372d0c7b80626c",
+      "timestamp": 1771329175,
+      "schemaPath": "packages/schemas/published/wallet/versions/1.0.0/schema.json",
       "publisher": "pinata",
       "notes": ""
     }

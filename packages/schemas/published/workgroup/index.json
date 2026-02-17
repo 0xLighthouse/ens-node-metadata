@@ -1,0 +1,13 @@
+{
+  "schemaId": "workgroup",
+  "latest": "1.0.0",
+  "published": [
+    {
+      "version": "1.0.0",
+      "cid": "QmQJ2ozQS4iXPiskjYTPRaFvg2mqxSRqRsresRACDZAyhB",
+      "checksum": "sha256:ed386bfac717b51f756203abf8e4eb23fa13cdfb3616178656a3051db0fbd08b",
+      "timestamp": 1771329079,
+      "schemaPath": "packages/schemas/published/workgroup/versions/1.0.0/schema.json"
+    }
+  ]
+}

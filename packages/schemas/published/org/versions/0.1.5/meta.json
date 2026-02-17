@@ -1,6 +1,9 @@
 {
   "schemaId": "org",
   "version": "0.1.5",
+  "name": "Organizational Unit",
+  "description": "The base template for an organization. Can be used to group together other entities to represent departments, committees, groups, or even entire organizations.",
+  "source": "https://github.com/0xLighthouse/ens-node-metadata",
   "cid": "QmeKv5PPbteixMYdaeC8sFYYxiYAJzeQMmTKCR42eG9Cw6",
   "checksum": "sha256:0bfdd8f9096ba7dc900bf87f83a318db21df13ec1b2c0030a885df7c3e46fbda",
   "timestamp": 1771328834,
