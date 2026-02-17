@@ -126,7 +126,7 @@ export async function buildRawTree(rootName: string,): Promise<TreeNode | undefi
   const buildNode = async (indexed: ENSRecord): Promise<NormalizedTreeNode | undefined> => {
     const resolvedAddress = indexed.resolvedAddress?.id as `0x${string}`
     const owner = (indexed.wrappedOwnerId ?? indexed.ownerId) as `0x${string}`
-    const ttl = indexed.ttl == null ? null : Number(indexed.ttl)
+    const ttl = indexed.ttl == null ? undefined : Number(indexed.ttl)
 
     // If the node is owned by the zero address, omit it
     if (owner === ZERO_ADDRESS) {
@@ -141,7 +141,7 @@ export async function buildRawTree(rootName: string,): Promise<TreeNode | undefi
     const node: NormalizedTreeNode = {
       id: indexed.id,
       name: indexed.name ?? indexed.id,
-      address: resolvedAddress === ZERO_ADDRESS ? null : resolvedAddress,
+      address: resolvedAddress === ZERO_ADDRESS ? undefined : resolvedAddress,
       resolverId: indexed.resolver.id,
       resolverAddress: indexed.resolver.address,
       owner,
@@ -150,12 +150,12 @@ export async function buildRawTree(rootName: string,): Promise<TreeNode | undefi
       children: [],
     }
 
-    // If the resolver has texts, fetch them and add them to the node's attributes
+    // If the resolver has texts, fetch them and add them to the node
     if (indexed.name && indexed.resolver.texts) {
       try {
-        const texts = await fetchTexts(indexed.name, indexed.resolver?.texts)
-        if (Object.keys(texts).length > 0) {
-          node.attributes = texts
+        const fetchedTexts = await fetchTexts(indexed.name, indexed.resolver?.texts)
+        if (Object.keys(fetchedTexts).length > 0) {
+          node.texts = fetchedTexts
         }
       } catch (error) {
         console.warn('Error fetching texts for', indexed.name, error)

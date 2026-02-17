@@ -1,19 +1,18 @@
 import { create } from 'zustand'
-import type { TreeNodes } from '@/lib/tree/types'
+import type { TreeNode } from '@/lib/tree/types'
 
 export interface TreeMutation {
-  id: string
-  isCreate: boolean
-  // For edits
-  nodeName?: string
-  changes?: Partial<Omit<TreeNodes, 'name' | 'children'>>
-  // For creations
+  createNode: boolean
+  /** Snapshot of current on-chain text records (empty for creations) */
+  texts: Record<string, string | null>
+  /** Only the changed text record key/value pairs (the delta) */
+  changes: Record<string, string | null>
+  /** For creations: direct parent node name */
   parentName?: string
-  nodes?: TreeNodes[]
 }
 
 interface TreeEditState {
-  // Track all changes (edits and creations) by unique ID
+  // Track all changes (edits and creations) keyed by node name
   pendingMutations: Map<string, TreeMutation>
   // Currently selected node for editing
   selectedNode: string | null
@@ -21,8 +20,8 @@ interface TreeEditState {
   isEditDrawerOpen: boolean
 
   // Actions
-  upsertEdit: (nodeName: string, changes: Partial<Omit<TreeNodes, 'name' | 'children'>>) => void
-  queueCreation: (id: string, parentName: string, nodes: TreeNodes[]) => void
+  upsertEdit: (nodeName: string, texts: Record<string, string | null>, changes: Record<string, string | null>) => void
+  queueCreation: (parentName: string, nodes: TreeNode[]) => void
   discardPendingMutation: (id: string) => void
   clearPendingMutations: () => void
   setSelectedNode: (nodeName: string | null) => void
@@ -37,66 +36,45 @@ export const useTreeEditStore = create<TreeEditState>((set, get) => ({
   selectedNode: null,
   isEditDrawerOpen: false,
 
-  upsertEdit: (nodeName, changes) =>
+  upsertEdit: (nodeName, texts, changes) =>
     set((state) => {
       const newMutations = new Map(state.pendingMutations)
+      const existing = newMutations.get(nodeName)
 
-      // Check if this node is part of a pending creation
-      let foundInCreation = false
-      for (const [id, mutation] of newMutations.entries()) {
-        if (mutation.isCreate && mutation.nodes) {
-          // Helper to find and update node in tree
-          const updateNodeInTree = (nodes: any[]): any[] => {
-            return nodes.map((node) => {
-              if (node.name === nodeName) {
-                foundInCreation = true
-                return { ...node, ...changes }
-              }
-              if (node.children) {
-                return { ...node, children: updateNodeInTree(node.children) }
-              }
-              return node
-            })
-          }
-
-          const updatedNodes = updateNodeInTree(mutation.nodes)
-          if (foundInCreation) {
-            newMutations.set(id, { ...mutation, nodes: updatedNodes })
-            return { pendingMutations: newMutations }
-          }
-        }
-      }
-
-      // If not part of a creation, handle as regular edit
-      const existingMutation = newMutations.get(nodeName)
-
-      if (existingMutation && !existingMutation.isCreate) {
-        // Merge with existing edit
+      if (existing) {
+        // Merge changes, keep original texts baseline
         newMutations.set(nodeName, {
-          ...existingMutation,
-          changes: { ...existingMutation.changes, ...changes },
+          ...existing,
+          changes: { ...existing.changes, ...changes },
         })
       } else {
-        // Create new edit
-        newMutations.set(nodeName, {
-          id: nodeName,
-          isCreate: false,
-          nodeName,
-          changes,
-        })
+        newMutations.set(nodeName, { createNode: false, texts, changes })
       }
       return { pendingMutations: newMutations }
     }),
 
-  queueCreation: (id, parentName, nodes) =>
+  queueCreation: (parentName, nodes) =>
     set((state) => {
       const newMutations = new Map(state.pendingMutations)
-      newMutations.set(id, {
-        id,
-        isCreate: true,
-        parentName,
-        nodes,
-      })
+
+      const flatten = (nodes: TreeNode[], parent: string) => {
+        for (const node of nodes) {
+          const changes: Record<string, any> = {}
+          for (const [key, value] of Object.entries(node)) {
+            if (key === 'children' || key === 'name') continue
+            changes[key] = value
+          }
+          newMutations.set(node.name, {
+            createNode: true,
+            parentName: parent,
+            texts: {},
+            changes,
+          })
+          if (node.children) flatten(node.children, node.name)
+        }
+      }
+
+      flatten(nodes, parentName)
       return { pendingMutations: newMutations }
     }),
 
@@ -118,11 +96,11 @@ export const useTreeEditStore = create<TreeEditState>((set, get) => ({
 
   getPendingEdit: (nodeName) => {
     const mutation = get().pendingMutations.get(nodeName)
-    return mutation && !mutation.isCreate ? mutation : undefined
+    return mutation && !mutation.createNode ? mutation : undefined
   },
 
   hasPendingEdit: (nodeName) => {
     const mutation = get().pendingMutations.get(nodeName)
-    return !!mutation && !mutation.isCreate
+    return !!mutation && !mutation.createNode
   },
 }))

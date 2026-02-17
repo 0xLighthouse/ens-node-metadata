@@ -26,7 +26,7 @@ export const useApiStore = create<ApiState>((set, get) => ({
     } catch (error) {
       console.error(error)
       get().handleRequestError(error)
-      throw error?.response?.errors || error
+      throw (error as any)?.response?.errors || error
     }
   },
 
@@ -37,7 +37,7 @@ export const useApiStore = create<ApiState>((set, get) => ({
     } catch (error) {
       console.error(error)
       get().handleRequestError(error)
-      throw error?.response?.errors || error
+      throw (error as any)?.response?.errors || error
     }
   },
 
@@ -55,7 +55,7 @@ export const useApiStore = create<ApiState>((set, get) => ({
   },
 
   handleRequestError: (error: unknown) => {
-    const errStr = error?.toString().toLowerCase()
+    const errStr = (error as any)?.toString().toLowerCase()
     if (errStr?.includes('network request failed')) {
       toast.error('Unable to contact server')
       get().logout()
@@ -67,7 +67,7 @@ export const useApiStore = create<ApiState>((set, get) => ({
   },
 
   isRequestError: (error?: unknown): boolean => {
-    const errStr = error?.toString().toLowerCase()
+    const errStr = (error as any)?.toString().toLowerCase()
     return (
       errStr?.includes('network request failed') ||
       errStr?.includes('invalid or expired token')

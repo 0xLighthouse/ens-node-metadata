@@ -25,6 +25,7 @@ export async function fetchSchemas(): Promise<Schema[]> {
         ...versionEntry.schema,
         id: `ipfs://${versionEntry.cid}`,
         title: `${schemaId}-v${version}`,
+        class: versionEntry.schema.title,
         isLatest: version === latestVersion,
       })
     }
@@ -46,5 +47,5 @@ export async function fetchSchemaById(id: string): Promise<Schema | null> {
  */
 export async function fetchLatestSchemaByName(name: string): Promise<Schema | null> {
   const schemas = await fetchSchemas()
-  return schemas.find((s) => s.name === name) || null
+  return schemas.find((s) => s.class === name) || null
 }

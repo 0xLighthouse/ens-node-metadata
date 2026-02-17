@@ -1,13 +1,13 @@
-import type { TreeNodes } from './types'
+import type { TreeNode } from './types'
 
 /**
  * Recursively search for a node in the tree by address and optionally type
  */
 export function findNodeByAddress(
-  tree: TreeNodes | null,
+  tree: TreeNode | null,
   address: `0x${string}`,
   type?: string,
-): TreeNodes | null {
+): TreeNode | null {
   if (!tree) return null
   if (!tree.address) return null // Skip nodes without addresses
 
@@ -25,7 +25,7 @@ export function findNodeByAddress(
       return tree
     }
     // Check if type matches
-    const nodeType = (tree as any).type
+    const nodeType = (tree as any).class
     if (nodeType === type) {
       return tree
     }
@@ -46,16 +46,16 @@ export function findNodeByAddress(
  * Find all nodes with the same address (regardless of type)
  */
 export function findAllNodesByAddress(
-  tree: TreeNodes | null,
+  tree: TreeNode | null,
   address: `0x${string}`,
-): TreeNodes[] {
-  const matches: TreeNodes[] = []
+): TreeNode[] {
+  const matches: TreeNode[] = []
 
   if (!tree) return matches
 
   const normalizedSearchAddress = address.toLowerCase()
 
-  const collect = (node: TreeNodes) => {
+  const collect = (node: TreeNode) => {
     // Skip nodes without addresses
     if (node.address && node.address.toLowerCase() === normalizedSearchAddress) {
       matches.push(node)
@@ -73,7 +73,7 @@ export function findAllNodesByAddress(
  * Check if a node with the given address and type exists in the tree
  */
 export function nodeExists(
-  tree: TreeNodes | null,
+  tree: TreeNode | null,
   address: `0x${string}`,
   type?: string,
 ): boolean {

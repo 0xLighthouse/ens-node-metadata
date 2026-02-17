@@ -1,4 +1,5 @@
 import {
+  type Edge,
   type EdgeProps,
   getStraightPath,
   EdgeLabelRenderer,
@@ -10,6 +11,8 @@ interface ReferenceEdgeData {
   [key: string]: unknown
 }
 
+type ReferenceEdgeType = Edge<ReferenceEdgeData>
+
 export function ReferenceEdge({
   id,
   sourceX,
@@ -17,7 +20,7 @@ export function ReferenceEdge({
   targetX,
   targetY,
   data,
-}: EdgeProps<ReferenceEdgeData>) {
+}: EdgeProps<ReferenceEdgeType>) {
   const [edgePath, labelX, labelY] = getStraightPath({
     sourceX,
     sourceY,

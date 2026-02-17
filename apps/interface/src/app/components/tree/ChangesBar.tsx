@@ -5,7 +5,7 @@ import { useTreeEditStore } from '@/stores/tree-edits'
 import { useMutationsStore } from '@/stores/mutations'
 import { useWeb3 } from '@/contexts/Web3Provider'
 import { useTreeData } from '@/hooks/useTreeData'
-import type { TreeNodes } from '@/lib/tree/types'
+import type { TreeNode } from '@/lib/tree/types'
 import { ApplyChangesDialog } from './ApplyChangesDialog'
 
 export function ChangesBar() {
@@ -14,27 +14,13 @@ export function ChangesBar() {
   const { walletClient } = useWeb3()
   const { sourceTree } = useTreeData()
 
-  // Helper to count all nodes including nested children
-  const countNodes = (nodes: any[]): number => {
-    return nodes.reduce((count, node) => {
-      return count + 1 + (node.children ? countNodes(node.children) : 0)
-    }, 0)
-  }
-
-  // Count total changes: edits count as 1 each, creations count all nodes recursively
-  const changesCount = Array.from(pendingMutations.values()).reduce((count, change) => {
-    if (change.isCreate) {
-      // Count all nodes being created (including nested children)
-      return count + (change.nodes ? countNodes(change.nodes) : 0)
-    }
-    // Count edits as 1 each
-    return count + 1
-  }, 0)
+  // Each entry in pendingMutations is one mutation (flattened)
+  const changesCount = pendingMutations.size
 
   const [isDialogOpen, setIsDialogOpen] = useState(false)
 
   const findNode = useCallback(
-    (name: string, node: TreeNodes | null = sourceTree): TreeNodes | null => {
+    (name: string, node: TreeNode | null = sourceTree): TreeNode | null => {
       if (!node) return null
       if (node.name === name) return node
       if (node.children) {

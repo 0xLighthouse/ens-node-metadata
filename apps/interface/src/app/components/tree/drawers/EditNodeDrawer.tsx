@@ -48,6 +48,7 @@ export function EditNodeDrawer() {
     removeCustomAttribute,
     getFormData,
     hasChanges: storeHasChanges,
+    getChangedFields,
   } = useNodeEditorStore()
 
   const schemaDropdownRef = useRef<HTMLDivElement>(null)
@@ -137,7 +138,7 @@ export function EditNodeDrawer() {
   const filteredSchemas = schemas
     .filter((schema) => schema.isLatest)
     .filter((schema) =>
-      schema.name.toLowerCase().includes(schemaSearchQuery.toLowerCase()),
+      schema.class.toLowerCase().includes(schemaSearchQuery.toLowerCase()),
     )
 
   const handleSelectSchema = (schemaId: string) => {
@@ -165,15 +166,20 @@ export function EditNodeDrawer() {
   }, [existingEdit, nodeWithEdits, isPendingCreation, schemas, initializeEditor])
 
   const handleSave = () => {
-    if (!selectedNode) return
+    if (!selectedNode || !nodeWithEdits) return
 
-    const currentFormData = getFormData()
-    console.log('----- SAVING NODE CHANGES -----')
-    console.log('Node:', selectedNode)
-    console.log('Form data to save:', currentFormData)
+    const originalNode = findNode(selectedNode)
+    const changedFields = getChangedFields(originalNode, activeSchema)
 
-    // formData already includes schema and type if a schema is selected
-    upsertEdit(selectedNode, currentFormData)
+    // Build texts baseline from original node
+    const texts: Record<string, string | null> = {}
+    if (originalNode?.texts && typeof originalNode.texts === 'object') {
+      for (const [k, v] of Object.entries(originalNode.texts)) {
+        texts[k] = v as string | null
+      }
+    }
+
+    upsertEdit(selectedNode, texts, changedFields)
     closeEditDrawer()
     resetEditor()
   }
@@ -231,7 +237,7 @@ export function EditNodeDrawer() {
                   </Drawer.Title>
                   <div className="flex items-center gap-2">
                     <Drawer.Description className="text-base text-gray-700 dark:text-gray-300 font-medium">
-                      {activeSchema.name}
+                      {activeSchema.class}
                     </Drawer.Description>
                     <ExternalLink className="size-4 text-gray-400" />
                     <span className="text-sm text-gray-500 dark:text-gray-400">
@@ -256,7 +262,7 @@ export function EditNodeDrawer() {
             {nodeWithEdits && !nodeWithEdits.isSuggested && (
               <div className="flex-1 overflow-y-auto space-y-6 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                 {/* Schema-based Fields */}
-                {activeSchema?.attributes && activeSchema.attributes.length > 0 ? (
+                {activeSchema?.properties && Object.keys(activeSchema.properties).length > 0 ? (
                   <fieldset className="bg-white dark:bg-gray-800 rounded-xl p-4">
                     {/* Schema selector at top */}
                     <div
@@ -270,7 +276,7 @@ export function EditNodeDrawer() {
                       >
                         <Link2 className="size-4" />
                         <span>
-                          {activeSchema.name} - v{activeSchema.version}
+                          {activeSchema.class} - v{activeSchema.version}
                         </span>
                       </button>
                       {activeSchema.description && (
@@ -337,7 +343,7 @@ export function EditNodeDrawer() {
                                   }`}
                                 >
                                   <div className="font-medium">
-                                    {schema.name}{' '}
+                                    {schema.class}{' '}
                                     <span className="text-xs font-normal text-gray-500 dark:text-gray-400">
                                       (v{schema.version})
                                     </span>
@@ -351,25 +357,26 @@ export function EditNodeDrawer() {
                     </div>
 
                     <div className="space-y-4">
-                      {activeSchema.attributes
-                        .filter((attr) => attr.isRequired || visibleOptionalFields.has(attr.key))
-                        .map((attribute) => {
+                      {Object.entries(activeSchema.properties)
+                        .filter(([key]) => activeSchema.required?.includes(key) || visibleOptionalFields.has(key))
+                        .map(([key, attribute]) => {
+                          const isRequired = activeSchema.required?.includes(key)
                           const isTextArea =
-                            attribute.type === 'text' || attribute.key === 'description'
+                            attribute.type === 'text' || key === 'description'
 
                           return (
-                            <div key={attribute.key}>
+                            <div key={key}>
                               <div className="flex items-center justify-between mb-1.5">
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                  {attribute.name}
-                                  {attribute.isRequired && (
+                                  {key}
+                                  {isRequired && (
                                     <span className="text-red-500 ml-1">*</span>
                                   )}
                                 </label>
-                                {!attribute.isRequired && (
+                                {!isRequired && (
                                   <button
                                     type="button"
-                                    onClick={() => removeOptionalField(attribute.key)}
+                                    onClick={() => removeOptionalField(key)}
                                     className="text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                                   >
                                     Remove
@@ -378,27 +385,22 @@ export function EditNodeDrawer() {
                               </div>
                               {isTextArea ? (
                                 <textarea
-                                  value={formData[attribute.key] ?? ''}
-                                  onChange={(e) => updateField(attribute.key, e.target.value)}
+                                  value={formData[key] ?? ''}
+                                  onChange={(e) => updateField(key, e.target.value)}
                                   placeholder={attribute.description}
-                                  required={attribute.isRequired}
+                                  required={isRequired}
                                   rows={4}
                                   className="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-gray-900 dark:text-white resize-y"
                                 />
                               ) : (
                                 <input
                                   type={attribute.type === 'string' ? 'text' : attribute.type}
-                                  value={formData[attribute.key] ?? ''}
-                                  onChange={(e) => updateField(attribute.key, e.target.value)}
+                                  value={formData[key] ?? ''}
+                                  onChange={(e) => updateField(key, e.target.value)}
                                   placeholder={attribute.description}
-                                  required={attribute.isRequired}
+                                  required={isRequired}
                                   className="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-gray-900 dark:text-white"
                                 />
-                              )}
-                              {attribute.notes && (
-                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                  {attribute.notes}
-                                </p>
                               )}
                             </div>
                           )
@@ -406,8 +408,8 @@ export function EditNodeDrawer() {
                     </div>
 
                     {/* Add Optional Field Button */}
-                    {activeSchema.attributes.some(
-                      (attr) => !attr.isRequired && !visibleOptionalFields.has(attr.key),
+                    {Object.entries(activeSchema.properties).some(
+                      ([key]) => !activeSchema.required?.includes(key) && !visibleOptionalFields.has(key),
                     ) && (
                       <div
                         className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 relative"
@@ -438,19 +440,19 @@ export function EditNodeDrawer() {
                         {/* Optional Field Dropdown */}
                         {isOptionalFieldDropdownOpen && (
                           <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg z-50 max-h-64 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-                            {activeSchema.attributes
+                            {Object.entries(activeSchema.properties)
                               .filter(
-                                (attr) => !attr.isRequired && !visibleOptionalFields.has(attr.key),
+                                ([key]) => !activeSchema.required?.includes(key) && !visibleOptionalFields.has(key),
                               )
-                              .map((attribute) => (
+                              .map(([key, attribute]) => (
                                 <button
-                                  key={attribute.key}
+                                  key={key}
                                   type="button"
-                                  onClick={() => addOptionalField(attribute.key)}
+                                  onClick={() => addOptionalField(key)}
                                   className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                                 >
                                   <div className="font-medium text-gray-900 dark:text-white">
-                                    {attribute.name}
+                                    {key}
                                   </div>
                                   {attribute.description && (
                                     <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
@@ -535,7 +537,7 @@ export function EditNodeDrawer() {
                                   className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-900 dark:text-white"
                                 >
                                   <div className="font-medium">
-                                    {schema.name}{' '}
+                                    {schema.class}{' '}
                                     <span className="text-xs font-normal text-gray-500 dark:text-gray-400">
                                       (v{schema.version})
                                     </span>
@@ -554,21 +556,21 @@ export function EditNodeDrawer() {
                 {nodeWithEdits &&
                   (() => {
                     const schemaKeys = new Set(
-                      activeSchema?.attributes?.map((a) => {
+                      Object.keys(activeSchema?.properties ?? {}).map((k) => {
                         // Handle keys like '_.focus' by removing the prefix
-                        return a.key.replace(/^_\./, '')
-                      }) || [],
+                        return k.replace(/^_\./, '')
+                      }),
                     )
 
-                    // Collect extra keys ONLY from attributes (not top-level system fields)
-                    // Text Records should only show custom ENSIP-5 attributes
+                    // Collect extra keys ONLY from texts (not top-level system fields)
+                    // Text Records should only show custom ENSIP-5 text records
                     const extraKeys: string[] = []
 
-                    // Only check nested attributes (e.g., attributes.avatar, attributes.com.twitter)
-                    if (nodeWithEdits.attributes && typeof nodeWithEdits.attributes === 'object') {
-                      Object.keys(nodeWithEdits.attributes).forEach((key) => {
+                    // Only check nested texts (e.g., texts.avatar, texts.com.twitter)
+                    if (nodeWithEdits.texts && typeof nodeWithEdits.texts === 'object') {
+                      Object.keys(nodeWithEdits.texts).forEach((key) => {
                         if (!schemaKeys.has(key)) {
-                          extraKeys.push(`attributes.${key}`)
+                          extraKeys.push(`texts.${key}`)
                         }
                       })
                     }
@@ -603,11 +605,11 @@ export function EditNodeDrawer() {
                           {extraKeys.map((key) => {
                             // Get the value, handling nested attributes
                             const getValue = () => {
-                              if (key.startsWith('attributes.')) {
-                                const nestedKey = key.replace('attributes.', '')
+                              if (key.startsWith('texts.')) {
+                                const nestedKey = key.replace('texts.', '')
                                 return (
                                   formData[key] ??
-                                  (nodeWithEdits.attributes as any)?.[nestedKey] ??
+                                  (nodeWithEdits.texts as any)?.[nestedKey] ??
                                   ''
                                 )
                               }
@@ -618,9 +620,9 @@ export function EditNodeDrawer() {
                               )
                             }
 
-                            // Display key without "attributes." prefix
-                            const displayKey = key.startsWith('attributes.')
-                              ? key.replace('attributes.', '')
+                            // Display key without "texts." prefix
+                            const displayKey = key.startsWith('texts.')
+                              ? key.replace('texts.', '')
                               : key
 
                             return (

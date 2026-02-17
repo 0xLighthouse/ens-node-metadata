@@ -9,7 +9,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { SpaceAvatar } from '@/components/ui/space-avatar'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -17,6 +16,7 @@ import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { Loader2 } from 'lucide-react'
 import luxon, { DateTime } from 'luxon'
+import type { ENSRootDomain } from '@/types'
 
 export function SelectDomain() {
   const {
@@ -36,13 +36,13 @@ export function SelectDomain() {
   console.log('status', status)
   console.log('isInitialized', isInitialized)
 
-  const handleSelectDomain = (domain) => {
+  const handleSelectDomain = (domain: ENSRootDomain) => {
     setActiveDomain(domain)
     // Redirect to view [domain] page
     router.push(`/${domain.name}`)
   }
 
-  const handleCustomDomainSubmit = async (event) => {
+  const handleCustomDomainSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
     const trimmedDomain = customDomain.trim()
     if (!trimmedDomain) {
@@ -159,7 +159,6 @@ export function SelectDomain() {
               domains.map((domain) => (
                 <TableRow key={domain.id}>
                   <TableCell className="flex items-center gap-3">
-                    <SpaceAvatar space={domain} size="sm" />
                     <div>
                       <div className="font-medium">{domain.name}</div>
                       <div className="text-sm text-muted-foreground">{domain.id}</div>

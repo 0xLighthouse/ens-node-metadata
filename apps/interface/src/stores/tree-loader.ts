@@ -1,13 +1,13 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { TreeNodes } from '@/lib/tree/types'
+import type { TreeNode } from '@/lib/tree/types'
 import { buildRawTree } from '@/lib/tree/buildRawTree'
 
 interface TreeLoaderState {
   /**
    * The canonical raw tree data (domain and subnames) as expressed on-chain.
    */
-  sourceTree: TreeNodes | null
+  sourceTree: TreeNode | null
   treeRootName: string | null
   lastFetchedAt: number | null
   isLoading: boolean
@@ -17,7 +17,7 @@ interface TreeLoaderState {
   setHasHydrated: () => void
   loadTree: (rootName: string) => Promise<void>
   refreshTree: (rootName: string) => Promise<void>
-  setTree: (tree: TreeNodes | null) => void
+  setTree: (tree: TreeNode | null) => void
 }
 
 

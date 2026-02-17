@@ -1,16 +1,17 @@
 'use client'
 
 import { memo } from 'react'
-import type { NodeProps } from '@xyflow/react'
+import type { Node, NodeProps } from '@xyflow/react'
 import type { TreeNode } from '@/lib/tree/types'
 import { NodeContainer } from './NodeContainer'
 import { UserCheck, Sparkles } from 'lucide-react'
-import { shortAddress } from '@/lib/utils'
+import { shortAddress } from '@/lib/shortAddress'
 import { resolveLink } from '@/lib/links'
 import { NodeIcon } from './NodeIcon'
 import { ExternalActionButton } from './ExternalActionButton'
 
 interface DomainTreeNodeData {
+  [key: string]: unknown
   node: TreeNode
   isSelected: boolean
   hasChildren: boolean
@@ -20,6 +21,8 @@ interface DomainTreeNodeData {
   orientation: 'vertical' | 'horizontal'
   onToggleCollapse: () => void
 }
+
+type DomainTreeNode = Node<DomainTreeNodeData>
 
 interface SignerNodeProps {
   node: TreeNode
@@ -83,7 +86,7 @@ const SignerNodeCard = ({
         }}
       >
         <NodeIcon
-          avatarUrl={ensAvatar || node.attributes?.avatar}
+          avatarUrl={ensAvatar || node.texts?.avatar}
           fallback={<UserCheck size={24} color="white" strokeWidth={2} />}
           accentColor={accentColor}
           size={40}
@@ -95,13 +98,10 @@ const SignerNodeCard = ({
               SIGNER
             </span>
           </div>
-          <div className="text-xs text-gray-500 truncate mt-0.5">{shortAddress(node.address)}</div>
+          <div className="text-xs text-gray-500 truncate mt-0.5">{shortAddress(node.address ?? '')}</div>
         </div>
         {(node as any).isComputed && (
-          <div
-            className="absolute top-4 right-4"
-            title="Auto-detected signer"
-          >
+          <div className="absolute top-4 right-4" title="Auto-detected signer">
             <Sparkles size={16} className="text-indigo-400" />
           </div>
         )}
@@ -136,7 +136,7 @@ const SignerNodeCard = ({
 }
 
 // Wrapper component for React Flow
-const SignerNodeWrapper = ({ data }: NodeProps<DomainTreeNodeData>) => {
+const SignerNodeWrapper = ({ data }: NodeProps<DomainTreeNode>) => {
   return (
     <SignerNodeCard
       node={data.node}

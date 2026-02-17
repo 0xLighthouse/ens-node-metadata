@@ -4,7 +4,7 @@ import { Drawer } from 'vaul'
 import { X } from 'lucide-react'
 import { useTreeEditStore } from '@/stores/tree-edits'
 import { useTreeData } from '@/hooks/useTreeData'
-import { type TreeNodes, type TreeNodeType } from '@/lib/tree/types'
+import { type TreeNode, type TreeNodeType } from '@/lib/tree/types'
 import { useState, useEffect } from 'react'
 import { SchemaVersion } from '../SchemaVersion'
 
@@ -13,7 +13,7 @@ interface Props {
   onClose: () => void
   suggestionId: string
   suggestionTitle: string
-  nodes: TreeNodes[]
+  nodes: TreeNode[]
 }
 
 export function CreateNodeDrawer({ isOpen, onClose, suggestionId, suggestionTitle, nodes }: Props) {
@@ -23,7 +23,7 @@ export function CreateNodeDrawer({ isOpen, onClose, suggestionId, suggestionTitl
   const formatNodeType = (nodeType?: TreeNodeType) => {
     if (!nodeType) return undefined
     const labels: Record<TreeNodeType, string> = {
-      generic: 'Generic',
+      default: 'Default',
       organizationRoot: 'Organization Root',
       treasury: 'Treasury',
       role: 'Role',
@@ -50,10 +50,10 @@ export function CreateNodeDrawer({ isOpen, onClose, suggestionId, suggestionTitl
   }
 
   // Collect all nodes that can be parents (all existing nodes, including pending creations)
-  const collectAllNodes = (node: TreeNodes): { name: string; depth: number }[] => {
+  const collectAllNodes = (node: TreeNode): { name: string; depth: number }[] => {
     const nodes: { name: string; depth: number }[] = []
 
-    const traverse = (n: TreeNodes, depth: number) => {
+    const traverse = (n: TreeNode, depth: number) => {
       nodes.push({ name: n.name, depth })
       if (n.children) {
         for (const child of n.children) {
@@ -69,19 +69,19 @@ export function CreateNodeDrawer({ isOpen, onClose, suggestionId, suggestionTitl
   const availableParents = collectAllNodes(previewTree)
 
   const handleCreate = () => {
-    queueCreation(suggestionId, selectedParent, nodes)
+    queueCreation(selectedParent, nodes)
     onClose()
   }
 
   // Helper to count all nodes recursively
-  const countNodes = (nodesToCount: TreeNodes[]): number => {
+  const countNodes = (nodesToCount: TreeNode[]): number => {
     return nodesToCount.reduce((count, node) => {
       return count + 1 + (node.children ? countNodes(node.children) : 0)
     }, 0)
   }
 
   // Helper to render node tree preview
-  const renderNodePreview = (nodesToRender: TreeNodes[], depth = 0) => {
+  const renderNodePreview = (nodesToRender: TreeNode[], depth = 0) => {
     return nodesToRender.map((node, idx) => (
       <div key={idx} className={`${depth > 0 ? 'ml-6' : ''} space-y-2`}>
         <div className="text-green-700 dark:text-green-300 flex items-start gap-2">
@@ -90,10 +90,7 @@ export function CreateNodeDrawer({ isOpen, onClose, suggestionId, suggestionTitl
             <div className="font-mono font-semibold text-sm">{node.name}</div>
             {/* Attributes preview */}
             <div className="text-xs text-gray-600 dark:text-gray-400 mt-1 space-y-1">
-              {node.title && <div>Title: {node.title}</div>}
-              {node.kind && <div>Kind: {node.kind}</div>}
               {node.nodeType && <div>Type: {formatNodeType(node.nodeType)}</div>}
-              {node.description && <div>Description: {node.description}</div>}
               {node.nodeType === 'organizationRoot' && node.website && (
                 <div>Website: {node.website}</div>
               )}
