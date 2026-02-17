@@ -1,17 +1,20 @@
 ---
-title: Treasury
-weight: 10
+title: Delegate
+weight: 6
 ---
 
-# Treasury
+# Delegate
 
-A treasury for managing organizational funds and assets.
+A delegate.
 
 ## Attributes
 
 | Key | Type | Required | Description |
 | --- | --- | --- | --- |
-| name | string | No | The name of the treasury |
+| full-name | string | No | Full legal or preferred name |
+| statement | string | No | Generic delegate statement  |
+| conflictOfInterest | string | No | Generic conflict of interest declaration  |
+| forumHandle | string | No | Default forum handle |
 | avatar | string | No | A URL to an image used as an avatar or logo |
 | description | string | No | A description of the name |
 | display | string | No | A canonical display name for the ENS name; this MUST match the ENS name when its case is folded, and clients should ignore this value if it does not (e.g. "ricmoo.eth" could set this to "RicMoo.eth") |
@@ -26,15 +29,15 @@ A treasury for managing organizational funds and assets.
 
 ## Metadata
 
-- Schema ID: `treasury`
+- Schema ID: `delegate`
 - Latest version: `1.0.0`
 - Source: [https://github.com/0xLighthouse/ens-node-metadata](https://github.com/0xLighthouse/ens-node-metadata)
-- CID: `QmVKo7GS9rtCwjAe5e567rMBmavWQZw1UT3UzUgbibpZWs`
-- Checksum: `sha256:d89392c97933aecfdaa08fb0599fb5130c606ef13e381f32e51b8cec64670a77`
-- Published at (UTC): `2026-02-17T17:23:23.000Z`
+- CID: `QmQ2qzEyrndEXRqJ5iy3jK9eYyiLKKiqDhakoR6toqymAH`
+- Checksum: `sha256:a7723a8423e8569792370dbdb0b23e869b5248fb281bfd2582fb904620b203e3`
+- Published at (UTC): `2026-02-17T17:22:50.000Z`
 
 ## Version history
 
 | Version | CID | IPFS | Published at (UTC) |
 | --- | --- | --- | --- |
-| `1.0.0 (latest)` | `QmVKo7GS9rtCwjAe5e567rMBmavWQZw1UT3UzUgbibpZWs` | [Open](https://ipfs.io/ipfs/QmVKo7GS9rtCwjAe5e567rMBmavWQZw1UT3UzUgbibpZWs) | `2026-02-17T17:23:23.000Z` |
+| `1.0.0 (latest)` | `QmQ2qzEyrndEXRqJ5iy3jK9eYyiLKKiqDhakoR6toqymAH` | [Open](https://ipfs.io/ipfs/QmQ2qzEyrndEXRqJ5iy3jK9eYyiLKKiqDhakoR6toqymAH) | `2026-02-17T17:22:50.000Z` |
