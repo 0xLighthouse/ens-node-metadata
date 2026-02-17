@@ -2,7 +2,7 @@ import { Schema } from "../types";
 import { GITHUB_URL } from "../config/constants";
 
 export const APPLICATION_SCHEMA: Schema = {
-  $id: GITHUB_URL + '/schemas/application/1.0.0',
+  $id: `${GITHUB_URL}/schemas/application/1.0.0`,
   source: GITHUB_URL,
   name: 'Application',
   title: 'Application',
@@ -55,6 +55,13 @@ export const APPLICATION_SCHEMA: Schema = {
   ],
   type: 'object' as const,
   properties: {
+    class: {
+      name: 'class',
+      type: 'string',
+      key: 'class',
+      description: 'The class of the application',
+      isRequired: false,
+    },
     name: {
       name: 'name',
       type: 'string',

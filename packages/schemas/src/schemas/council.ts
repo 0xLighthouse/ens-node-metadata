@@ -3,7 +3,7 @@ import { ENSIP5 } from "../utils/ensip5";
 import { GITHUB_URL } from "../config/constants";
 
 export const COUNCIL_SCHEMA: Schema = {
-  $id: GITHUB_URL + '/schemas/council/1.0.0',
+  $id: `${GITHUB_URL}/schemas/council/1.0.0`,
   source: GITHUB_URL,
   name: 'Council',
   title: 'Council',
