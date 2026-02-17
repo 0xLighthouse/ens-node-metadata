@@ -5,8 +5,6 @@ import type { TreeNodes } from '@/lib/tree/types'
 import { useTreeEditStore, type TreeMutation } from './tree-edits'
 
 const NON_TEXT_RECORD_KEYS = new Set([
-  'schema',
-  'type',
   'nodeType',
   'inspectionData',
   'isSuggested',
@@ -95,7 +93,13 @@ export const useMutationsStore = create<MutationsState>((set, get) => ({
       // Filter to only text record keys
       const texts: { key: string; value: string }[] = []
       if (edit.changes) {
-        for (const [key, value] of Object.entries(edit.changes)) {
+        for (const [rawKey, value] of Object.entries(edit.changes)) {
+          // Strip "attributes." prefix — the editor stores extra text records with this prefix
+          const key = rawKey.startsWith('attributes.') ? rawKey.slice('attributes.'.length) : rawKey
+
+          console.log('key', key)
+          console.log('key', key)
+          console.log('key', key)
           if (NON_TEXT_RECORD_KEYS.has(key)) continue
           if (value === null || value === undefined) continue
           texts.push({ key, value: String(value) })
@@ -139,6 +143,7 @@ export const useMutationsStore = create<MutationsState>((set, get) => ({
       })
 
       try {
+
         const txHash = await setRecords(walletClient, {
           name: ensName,
           texts,

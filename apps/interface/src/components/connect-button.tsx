@@ -15,7 +15,7 @@ interface Props {
   variant?: 'default' | 'minimal'
 }
 
-const EXPECTED_CHAIN_ID = 'eip155:84532' // Base Sepolia
+const EXPECTED_CHAIN_ID = 'eip155:1' // Ethereum Mainnet
 
 const networkNames: Record<string, string> = {
   'eip155:1': 'Ethereum',
@@ -56,11 +56,10 @@ export const ConnectButton: React.FC<Props> = ({
     if (isWrongNetwork && wallets.length > 0) {
       try {
         // Use Privy's switchChain method
-        await wallets[0].switchChain(84532) // Base Sepolia chain ID
+        await wallets[0].switchChain(1) // Ethereum Mainnet chain ID
       } catch (error) {
         console.error('Failed to switch network:', error)
-        // Fallback: show a helpful message to the user
-        alert('Please switch to Base Sepolia network in your wallet')
+        alert('Please switch to Ethereum Mainnet in your wallet')
       }
     }
   }
@@ -139,9 +138,9 @@ export const ConnectButton: React.FC<Props> = ({
               }
               role={isWrongNetwork ? 'button' : undefined}
               tabIndex={isWrongNetwork ? 0 : undefined}
-              title={isWrongNetwork ? 'Click to switch to Base Sepolia' : undefined}
+              title={isWrongNetwork ? 'Click to switch to Ethereum' : undefined}
             >
-              {isWrongNetwork ? 'Switch to Base Sepolia' : networkName || 'Connected'}
+              {isWrongNetwork ? 'Switch to Ethereum' : networkName || 'Connected'}
             </span>
           </div>
         </div>
