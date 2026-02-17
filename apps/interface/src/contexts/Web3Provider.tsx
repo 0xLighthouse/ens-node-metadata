@@ -46,9 +46,11 @@ const Web3ContextProvider = ({ children }: { children: React.ReactNode }) => {
   // Make a viem signer available once the app has initialized
   useEffect(() => {
     const makeWalletClient = async () => {
+      await wallets[0].switchChain(chain.id)
       const provider = await wallets[0].getEthereumProvider()
       if (provider) {
         const walletClient = createWalletClient({
+          account: wallets[0].address as `0x${string}`,
           chain,
           transport: custom(provider),
         })
