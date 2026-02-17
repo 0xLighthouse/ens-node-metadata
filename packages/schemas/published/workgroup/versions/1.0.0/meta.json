@@ -1,0 +1,67 @@
+{
+  "schemaId": "workgroup",
+  "version": "1.0.0",
+  "name": "Workgroup",
+  "description": "An operational team focused on executing a specific set of tasks or a domain of work on behalf of the organization.",
+  "source": "https://github.com/0xLighthouse/ens-node-metadata",
+  "cid": "QmQJ2ozQS4iXPiskjYTPRaFvg2mqxSRqRsresRACDZAyhB",
+  "checksum": "sha256:ed386bfac717b51f756203abf8e4eb23fa13cdfb3616178656a3051db0fbd08b",
+  "timestamp": 1771329079,
+  "schemaPath": "packages/schemas/published/workgroup/versions/1.0.0/schema.json",
+  "publisher": "pinata",
+  "signer": "0x6837047F46Da1d5d9A79846b25810b92adF456F6",
+  "signature": "0xe5edd755b35cce28494f4ba3d8ba9d7a61b3da2d01d6c8b00f18008c0bef17be6e291022f49203c0eb5c47d94f5e991b4c4cfa3509372419f3e75fe6660aef1c1b",
+  "eip712": {
+    "domain": {
+      "name": "ENS Schema Publisher",
+      "version": "1"
+    },
+    "types": {
+      "PublishedSchema": [
+        {
+          "name": "schemaId",
+          "type": "string"
+        },
+        {
+          "name": "version",
+          "type": "string"
+        },
+        {
+          "name": "cid",
+          "type": "string"
+        },
+        {
+          "name": "checksum",
+          "type": "string"
+        },
+        {
+          "name": "timestamp",
+          "type": "uint256"
+        },
+        {
+          "name": "schemaPath",
+          "type": "string"
+        },
+        {
+          "name": "publisher",
+          "type": "string"
+        },
+        {
+          "name": "notes",
+          "type": "string"
+        }
+      ]
+    },
+    "primaryType": "PublishedSchema",
+    "message": {
+      "schemaId": "workgroup",
+      "version": "1.0.0",
+      "cid": "QmQJ2ozQS4iXPiskjYTPRaFvg2mqxSRqRsresRACDZAyhB",
+      "checksum": "sha256:ed386bfac717b51f756203abf8e4eb23fa13cdfb3616178656a3051db0fbd08b",
+      "timestamp": 1771329079,
+      "schemaPath": "packages/schemas/published/workgroup/versions/1.0.0/schema.json",
+      "publisher": "pinata",
+      "notes": ""
+    }
+  }
+}

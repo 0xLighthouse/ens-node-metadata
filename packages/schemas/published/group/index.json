@@ -1,0 +1,13 @@
+{
+  "schemaId": "group",
+  "latest": "0.1.4",
+  "published": [
+    {
+      "version": "0.1.4",
+      "cid": "QmPCbfcGUuejYF8oukgdzFXWvMpXrBA26fCa4Hb8WBeAKF",
+      "checksum": "sha256:a0c93559ec62ac7bd6c8811fdaa1730aae1a0c7549e506074e36dcfc84e1a47b",
+      "timestamp": 1771329072,
+      "schemaPath": "packages/schemas/published/group/versions/0.1.4/schema.json"
+    }
+  ]
+}

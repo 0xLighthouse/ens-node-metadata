@@ -1,13 +1,13 @@
 {
-  "schemaId": "org",
-  "version": "0.1.5",
-  "cid": "QmeKv5PPbteixMYdaeC8sFYYxiYAJzeQMmTKCR42eG9Cw6",
-  "checksum": "sha256:0bfdd8f9096ba7dc900bf87f83a318db21df13ec1b2c0030a885df7c3e46fbda",
-  "timestamp": 1771328834,
-  "schemaPath": "packages/schemas/published/org/versions/0.1.5/schema.json",
+  "schemaId": "grant",
+  "version": "1.0.0",
+  "cid": "QmfRrxcA8aqhC89VnSrNdD7HkmUSaPgHwNwSDy3SdWXobR",
+  "checksum": "sha256:f1e8b3f9ca33bda4c8e575cc2a9f08e77a10a7b6772a0debd568b7a28487a6b1",
+  "timestamp": 1771328849,
+  "schemaPath": "packages/schemas/published/grant/versions/1.0.0/schema.json",
   "publisher": "pinata",
   "signer": "0x6837047F46Da1d5d9A79846b25810b92adF456F6",
-  "signature": "0x49ab0a5e6f392f7d3920fb2867ed1033caa1558ff9d339672beb445c2419b65b638401661cb777ecec31e72cb66181b928669a62b6bf8ad12acaad15a9ae6e271c",
+  "signature": "0x95d0a404145b0a5a39ed3d45de3cf718ade377838b3318cfb4cf2508a8fd08227e1f67528cc01047aebf73bebbde2c701ca4cd3c31e32cf17bed81ff561352ed1b",
   "eip712": {
     "domain": {
       "name": "ENS Schema Publisher",
@@ -51,12 +51,12 @@
     },
     "primaryType": "PublishedSchema",
     "message": {
-      "schemaId": "org",
-      "version": "0.1.5",
-      "cid": "QmeKv5PPbteixMYdaeC8sFYYxiYAJzeQMmTKCR42eG9Cw6",
-      "checksum": "sha256:0bfdd8f9096ba7dc900bf87f83a318db21df13ec1b2c0030a885df7c3e46fbda",
-      "timestamp": 1771328834,
-      "schemaPath": "packages/schemas/published/org/versions/0.1.5/schema.json",
+      "schemaId": "grant",
+      "version": "1.0.0",
+      "cid": "QmfRrxcA8aqhC89VnSrNdD7HkmUSaPgHwNwSDy3SdWXobR",
+      "checksum": "sha256:f1e8b3f9ca33bda4c8e575cc2a9f08e77a10a7b6772a0debd568b7a28487a6b1",
+      "timestamp": 1771328849,
+      "schemaPath": "packages/schemas/published/grant/versions/1.0.0/schema.json",
       "publisher": "pinata",
       "notes": ""
     }

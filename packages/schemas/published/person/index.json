@@ -1,0 +1,13 @@
+{
+  "schemaId": "person",
+  "latest": "1.0.0",
+  "published": [
+    {
+      "version": "1.0.0",
+      "cid": "QmZ6i7qbS2wuMbbv1faP1BBwcdgNL9sfCKX8JndEww2nMi",
+      "checksum": "sha256:893e85844ec6e259235d2658b0fb904cc1b924e6df82c8a978d1fe3a91664ed4",
+      "timestamp": 1771329170,
+      "schemaPath": "packages/schemas/published/person/versions/1.0.0/schema.json"
+    }
+  ]
+}

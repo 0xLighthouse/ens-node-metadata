@@ -1,0 +1,13 @@
+{
+  "schemaId": "wallet",
+  "latest": "1.0.0",
+  "published": [
+    {
+      "version": "1.0.0",
+      "cid": "QmXRV7EcMDuUswnParfju3PV5GZ3yP1Ztxxx6v6e7QsnVM",
+      "checksum": "sha256:d2f7d4b8aaea6bdf535d275c1060d77f7dff6f020b9f8f450b372d0c7b80626c",
+      "timestamp": 1771329175,
+      "schemaPath": "packages/schemas/published/wallet/versions/1.0.0/schema.json"
+    }
+  ]
+}
