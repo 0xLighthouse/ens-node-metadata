@@ -39,16 +39,16 @@ function escapeTableValue(value) {
   return raw.replace(/\|/g, '\\|').replace(/\n/g, ' ')
 }
 
-function renderAttributesTable(attributes) {
-  if (!attributes || attributes.length === 0) {
+function renderAttributesTable(properties, required) {
+  if (!properties || Object.keys(properties).length === 0) {
     return 'No attributes found.\n'
   }
 
-  const header = '| Key | Name | Type | Required | Description |'
-  const divider = '| --- | --- | --- | --- | --- |'
-  const rows = attributes.map((attr) => {
-    const required = attr.isRequired ? 'Yes' : 'No'
-    return `| ${escapeTableValue(attr.key)} | ${escapeTableValue(attr.name)} | ${escapeTableValue(attr.type)} | ${required} | ${escapeTableValue(attr.description)} |`
+  const header = '| Key | Type | Required | Description |'
+  const divider = '| --- | --- | --- | --- |'
+  const rows = Object.entries(properties).map(([key, attr]) => {
+    const isRequired = required?.includes(key) ? 'Yes' : 'No'
+    return `| ${escapeTableValue(key)} | ${escapeTableValue(attr.type)} | ${isRequired} | ${escapeTableValue(attr.description)} |`
   })
 
   return [header, divider, ...rows].join('\n') + '\n'
@@ -92,10 +92,10 @@ function buildPage({
   publishedByVersion,
   weight,
 }) {
-  const pageTitle = schema?.name || toTitleCase(schemaId)
+  const pageTitle = schema?.title || toTitleCase(schemaId)
   const source = schema?.source || 'N/A'
   const description = schema?.description || 'No description provided.'
-  const attributesTable = renderAttributesTable(schema?.attributes)
+  const attributesTable = renderAttributesTable(schema?.properties, schema?.required)
   const versionHistoryTable = renderVersionHistory(versions, publishedByVersion, latestVersion)
 
   return `---
