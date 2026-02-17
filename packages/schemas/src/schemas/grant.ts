@@ -3,13 +3,13 @@ import { GITHUB_URL } from "../config/constants";
 import { ENSIP5 } from "../utils/ensip5";
 
 
-export const DELEGATE_SCHEMA: Schema = {
-  $id: 'https://github.com/0xLighthouse/ens-node-metadata/schemas/grantProgram/1.0.0',
+export const GRANT_SCHEMA: Schema = {
+  $id: GITHUB_URL + '/schemas/grantProgram/1.0.0',
   source: GITHUB_URL,
-  name: 'GrantProgram',
-  title: 'GrantProgram',
+  name: 'Grant',
+  title: 'Grant',
   version: '1.0.0',
-  description: 'A grant program.',
+  description: 'A grant issued by an organization.',
   attributes: [
     {
       name: 'name',

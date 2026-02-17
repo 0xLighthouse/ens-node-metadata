@@ -2,7 +2,7 @@ import { GITHUB_URL } from "../config/constants";
 import { Schema } from "../types";
 
 export const CONTRACT_SCHEMA: Schema = {
-  $id: 'https://github.com/0xLighthouse/ens-node-metadata/schemas/contract/1.1.1',
+  $id: GITHUB_URL + '/schemas/contract/1.1.1',
   source: GITHUB_URL,
   name: 'Contract',
   title: 'Contract',

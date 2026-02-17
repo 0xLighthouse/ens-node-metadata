@@ -3,7 +3,7 @@ import { ENSIP5 } from "../utils/ensip5";
 import { GITHUB_URL } from "../config/constants";
 
 export const COMMITTEE_SCHEMA: Schema = {
-  $id: 'https://github.com/0xLighthouse/ens-node-metadata/schemas/committee/1.0.0',
+  $id: GITHUB_URL + '/schemas/committee/1.0.0',
   source: GITHUB_URL,
   name: 'Committee',
   title: 'Committee',

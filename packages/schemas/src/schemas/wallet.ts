@@ -3,7 +3,7 @@ import { GITHUB_URL } from "../config/constants";
 import { ENSIP5 } from "../utils/ensip5";
 
 export const WALLET_SCHEMA: Schema = {
-  $id: 'https://github.com/0xLighthouse/ens-node-metadata/schemas/wallet/1.0.0',
+  $id: GITHUB_URL + '/schemas/wallet/1.0.0',
   source: GITHUB_URL,
   name: 'Wallet',
   title: 'Wallet',

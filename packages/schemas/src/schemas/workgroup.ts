@@ -3,7 +3,7 @@ import { GITHUB_URL } from "../config/constants";
 import { ENSIP5 } from "../utils/ensip5";
 
 export const WORKGROUP_SCHEMA: Schema = {
-  $id: 'https://github.com/0xLighthouse/ens-node-metadata/schemas/workgroup/1.0.0',
+  $id: GITHUB_URL + '/schemas/workgroup/1.0.0',
   source: GITHUB_URL,
   name: 'Workgroup',
   title: 'Workgroup',
@@ -44,5 +44,5 @@ export const WORKGROUP_SCHEMA: Schema = {
       isRequired: false,
     },
     ...ENSIP5.properties,
-  },
+  }
 }
