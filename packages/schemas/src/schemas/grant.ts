@@ -4,7 +4,7 @@ import { ENSIP5 } from "../utils/ensip5";
 
 
 export const GRANT_SCHEMA: Schema = {
-  $id: GITHUB_URL + '/schemas/grantProgram/1.0.0',
+  $id: `${GITHUB_URL}/schemas/grantProgram/1.0.0`,
   source: GITHUB_URL,
   name: 'Grant',
   title: 'Grant',

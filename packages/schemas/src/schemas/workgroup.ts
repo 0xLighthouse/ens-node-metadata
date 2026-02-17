@@ -3,7 +3,7 @@ import { GITHUB_URL } from "../config/constants";
 import { ENSIP5 } from "../utils/ensip5";
 
 export const WORKGROUP_SCHEMA: Schema = {
-  $id: GITHUB_URL + '/schemas/workgroup/1.0.0',
+  $id: `${GITHUB_URL}/schemas/workgroup/1.0.0`,
   source: GITHUB_URL,
   name: 'Workgroup',
   title: 'Workgroup',
