@@ -4,7 +4,7 @@ import { ENSIP5 } from "../utils/ensip5";
 
 
 export const DELEGATE_SCHEMA: Schema = {
-  $id: 'https://github.com/0xLighthouse/ens-node-metadata/schemas/delegate/1.0.0',
+  $id: GITHUB_URL + '/schemas/delegate/1.0.0',
   source: GITHUB_URL,
   name: 'Delegate',
   title: 'Delegate',

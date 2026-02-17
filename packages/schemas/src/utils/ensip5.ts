@@ -152,6 +152,5 @@ export const ENSIP5: Schema = {
       description: 'A website URL',
       isRequired: false,
     },
-  },
-  required: undefined,
+  }
 }

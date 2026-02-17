@@ -4,7 +4,7 @@ import { ENSIP5 } from "../utils/ensip5";
 
 
 export const PERSON_SCHEMA: Schema = {
-  $id: 'https://github.com/0xLighthouse/ens-node-metadata/schemas/person/1.0.0',
+  $id: GITHUB_URL + '/schemas/person/1.0.0',
   source: GITHUB_URL,
   name: 'Person',
   title: 'Person',

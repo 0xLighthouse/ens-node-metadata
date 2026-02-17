@@ -3,7 +3,7 @@ import { GITHUB_URL } from "../config/constants";
 import { ENSIP5 } from "../utils/ensip5";
 
 export const GROUP_SCHEMA: Schema = {
-  $id: 'https://github.com/0xLighthouse/ens-node-metadata/schemas/group/0.1.4',
+  $id: GITHUB_URL + '/schemas/group/0.1.4',
   source: GITHUB_URL,
   name: 'Group',
   title: 'Group',

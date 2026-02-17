@@ -3,7 +3,7 @@ import { GITHUB_URL } from "../config/constants";
 import { ENSIP5 } from "../utils/ensip5";
 
 export const ORGANIZATION_SCHEMA: Schema = {
-  $id: 'https://github.com/0xLighthouse/ens-node-metadata/schemas/org/0.1.4',
+  $id: GITHUB_URL + '/schemas/org/0.1.4',
   source: GITHUB_URL,
   name: 'Organizational Unit',
   title: 'Organizational Unit',

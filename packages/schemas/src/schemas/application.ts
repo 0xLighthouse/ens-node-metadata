@@ -2,7 +2,7 @@ import { Schema } from "../types";
 import { GITHUB_URL } from "../config/constants";
 
 export const APPLICATION_SCHEMA: Schema = {
-  $id: 'https://github.com/lighthouse-labs/ens-org-registrar/schemas/application/1.0.0',
+  $id: GITHUB_URL + '/schemas/application/1.0.0',
   source: GITHUB_URL,
   name: 'Application',
   title: 'Application',

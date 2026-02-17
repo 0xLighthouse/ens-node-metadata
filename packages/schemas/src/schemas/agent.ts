@@ -1,7 +1,8 @@
 import { Schema } from "../types";
+import { GITHUB_URL } from "../config/constants";
 
 export const AGENT_SCHEMA: Schema = {
-  $id: 'https://github.com/0xLighthouse/ens-node-metadata/schemas/agent/1.0.0',
+  $id: GITHUB_URL + '/schemas/agent/1.0.0',
   source: 'https://eips.ethereum.org/EIPS/eip-8004',
   name: 'Agent',
   title: 'Agent',
