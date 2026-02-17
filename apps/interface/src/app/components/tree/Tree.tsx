@@ -16,7 +16,7 @@ import dagre from '@dagrejs/dagre'
 import { useTreeControlsStore } from '@/stores/tree-controls'
 import { useTreeEditStore } from '@/stores/tree-edits'
 import type { TreeNode } from '@/lib/tree/types'
-import { DefaultNode, TreasuryNode, SignerNode } from './nodes'
+import { DefaultNode, TreasuryNode, SignerNode, BaseNode } from './nodes'
 import { ReferenceEdge } from './edges/ReferenceEdge'
 
 const MIN_ZOOM = 0.3
@@ -31,11 +31,17 @@ const FALLBACK_NODE_SIZES: Record<string, NodeDimensions> = {
   default: { width: 320, height: 220 },
   Treasury: { width: 320, height: 220 },
   Signer: { width: 256, height: 130 },
+  BaseNode: { width: 320, height: 220 },
 }
 
 const getFlowNodeType = (node: TreeNode): string => {
   const explicitType = (node as any).type
-  if (explicitType) return explicitType
+  if (explicitType) {
+    // Treasury and Signer keep their dedicated components
+    if (explicitType === 'Treasury' || explicitType === 'Signer') return explicitType
+    // All other schema-typed nodes route to BaseNode
+    return 'BaseNode'
+  }
 
   switch (node.nodeType) {
     case 'treasury':
@@ -178,6 +184,7 @@ const nodeTypes = {
   default: DefaultNode,
   Treasury: TreasuryNode,
   Signer: SignerNode,
+  BaseNode: BaseNode,
 }
 
 const edgeTypes = {
