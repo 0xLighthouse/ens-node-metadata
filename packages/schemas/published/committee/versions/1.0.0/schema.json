@@ -1,0 +1,55 @@
+{
+  "$id": "https://github.com/0xLighthouse/ens-node-metadata/schemas/committee/1.0.0",
+  "source": "https://github.com/0xLighthouse/ens-node-metadata",
+  "title": "Committee",
+  "version": "1.0.0",
+  "description": "A formal group with delegated decision‑making power over a particular function of the organization.",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "The name of the committee",
+      "isRequired": false
+    },
+    "avatar": {
+      "type": "string",
+      "description": "A URL to an image used as an avatar or logo"
+    },
+    "description": {
+      "type": "string",
+      "description": "A description of the name"
+    },
+    "display": {
+      "type": "string",
+      "description": "A canonical display name for the ENS name; this MUST match the ENS name when its case is folded, and clients should ignore this value if it does not (e.g. \"ricmoo.eth\" could set this to \"RicMoo.eth\")"
+    },
+    "email": {
+      "type": "string",
+      "description": "An e-mail address"
+    },
+    "keywords": {
+      "type": "string",
+      "description": "A list of comma-separated keywords, ordered by most significant first; clients that interpresent this field may choose a threshold beyond which to ignore"
+    },
+    "mail": {
+      "type": "string",
+      "description": "A physical mailing address"
+    },
+    "notice": {
+      "type": "string",
+      "description": "A notice regarding this name"
+    },
+    "location": {
+      "type": "string",
+      "description": "A generic location (e.g. \"Toronto, Canada\")"
+    },
+    "phone": {
+      "type": "string",
+      "description": "A phone number as an E.164 string"
+    },
+    "url": {
+      "type": "string",
+      "description": "A website URL"
+    }
+  }
+}

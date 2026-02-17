@@ -5,14 +5,24 @@ import crypto from "node:crypto";
 import { execSync } from "node:child_process";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { privateKeyToAccount } from "viem/accounts";
+import type { Schema } from "../src/types";
 
-type SchemaLike = {
-  name: string;
+interface PublishedSchema {
+  schemaId: string;
   version: string;
+  cid: string;
+  checksum: string;
+  timestamp: number;
+  schemaPath: string;
+  publisher: string;
+  notes?: string;
+  title?: string;
   description?: string;
   source?: string;
-  attributes: unknown[];
-};
+  signer?: string;
+  signature?: string;
+  eip712?: object;
+}
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -161,15 +171,15 @@ fs.writeFileSync(path.join(versionRoot, "checksum.sha256"), `${checksum}\n`, "ut
 const publishResult = dryRun
   ? { cid: "dry-run", publisher: provider }
   : await publishSchema({
-      provider,
-      filePath: schemaJsonPath,
-      ipfsCmd,
-      pinataJwt,
-      pinataKey,
-      pinataSecret,
-      schemaId,
-      version: nextVersion,
-    });
+    provider,
+    filePath: schemaJsonPath,
+    ipfsCmd,
+    pinataJwt,
+    pinataKey,
+    pinataSecret,
+    schemaId,
+    version: nextVersion,
+  });
 const { cid, publisher } = publishResult;
 fs.writeFileSync(path.join(versionRoot, "cid.txt"), `${cid}\n`, "utf8");
 
@@ -181,10 +191,10 @@ const publishedEntry = {
   schemaPath,
 };
 
-const meta = {
+const meta: PublishedSchema = {
   schemaId,
   version: nextVersion,
-  name: schema.name,
+  title: schema.title,
   description: schema.description,
   source: schema.source,
   cid,
@@ -212,7 +222,7 @@ if (signed) {
 }
 writeJson(path.join(versionRoot, "meta.json"), meta);
 
-const run = {
+const run: PublishedSchema = {
   schemaId,
   version: nextVersion,
   cid,
@@ -288,23 +298,25 @@ function bumpVersion(current: string, bump: string) {
   }
 }
 
-async function loadSchema(filePath: string): Promise<SchemaLike> {
+async function loadSchema(filePath: string): Promise<Schema> {
   const moduleUrl = `${pathToFileURL(filePath).href}?t=${Date.now()}`;
   const mod = await import(moduleUrl);
-  const candidates = Object.values(mod).filter(isSchemaLike);
+  const candidates = Object.values(mod).filter(isSchema);
   if (candidates.length === 0) {
     throw new Error(`No Schema export found in ${filePath}`);
   }
   return candidates[0];
 }
 
-function isSchemaLike(value: unknown): value is SchemaLike {
+function isSchema(value: unknown): value is Schema {
   if (!value || typeof value !== "object") return false;
-  const v = value as SchemaLike;
+  const v = value as Record<string, unknown>;
   return (
-    typeof v.name === "string" &&
+    typeof v.title === "string" &&
     typeof v.version === "string" &&
-    Array.isArray(v.attributes)
+    typeof v.properties === "object" &&
+    v.properties !== null &&
+    v.type === "object"
   );
 }
 
@@ -404,7 +416,7 @@ function readJson<T>(filePath: string, fallback: T): T {
 
 function writeJson(filePath: string, data: unknown) {
   fs.mkdirSync(path.dirname(filePath), { recursive: true });
-  fs.writeFileSync(filePath, JSON.stringify(data, null, 2) + "\n", "utf8");
+  fs.writeFileSync(filePath, `${JSON.stringify(data, null, 2)}\n`, "utf8");
 }
 
 function upsertPublished(
@@ -454,7 +466,7 @@ function buildEip712(
   return {
     domain,
     types,
-    primaryType: "PublishedSchema",
+    primaryType: "PublishedSchema" as const,
     message,
   };
 }

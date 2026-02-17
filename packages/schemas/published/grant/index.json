@@ -4,9 +4,9 @@
   "published": [
     {
       "version": "1.0.0",
-      "cid": "QmfRrxcA8aqhC89VnSrNdD7HkmUSaPgHwNwSDy3SdWXobR",
-      "checksum": "sha256:f1e8b3f9ca33bda4c8e575cc2a9f08e77a10a7b6772a0debd568b7a28487a6b1",
-      "timestamp": 1771328849,
+      "cid": "QmXXBG4s1uSSAzZt5dRxubasRzNM3KRdkc4XGzjLkpHF1E",
+      "checksum": "sha256:0eca9e02421d87d67a4da81a7913207c7accd4520eba4219849928caffce093d",
+      "timestamp": 1771348975,
       "schemaPath": "packages/schemas/published/grant/versions/1.0.0/schema.json"
     }
   ]

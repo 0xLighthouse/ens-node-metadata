@@ -40,7 +40,8 @@ export interface Schema {
   properties: { [key: string]: Attribute };
 
   /**
-  * @description Required keys get listed in here for JSON schema validation
+  * @description Required properties for the schema
+  * @see https://json-schema.org/draft/2020-12/json-schema-validation#section-6.5.3
   */
   required?: string[];
 
@@ -59,12 +60,8 @@ export interface Attribute {
   description: string;
 
   /**
-  * TODO: This needs to be moved to the JSON Schema required property format
-  */
-  isRequired: boolean;
-
-  /**
-  * @description An optional field specifying the format of the attribute - https://www.learnjsonschema.com/2020-12/format-assertion/format/
+  * @description An optional field specifying the format of the attribute
+  * @see https://www.learnjsonschema.com/2020-12/format-assertion/format/
   */
   format?: string;
 
