@@ -1,0 +1,4 @@
+export const getAvatarFallback = (address: string) => {
+  if (!address || address.length < 4) return '??'
+  return address.slice(2, 4).toUpperCase()
+}

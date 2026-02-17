@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/dialog'
 import { useTreeData } from '@/hooks/useTreeData'
 import { type TreeNode } from '@/lib/tree/types'
-import { Sparkles, Vault } from 'lucide-react'
+import { Sparkles, Vault, HandCoins, UserCheck } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { CreateNodeDrawer } from './drawers/CreateNodeDrawer'
 
@@ -54,6 +54,34 @@ export function SuggestionsDialog({ open, onOpenChange }: SuggestionsDialogProps
           title: 'Treasury',
           nodeType: 'treasury',
           kind: 'Safe',
+          description: '',
+        },
+      ],
+    },
+    {
+      id: 'grant',
+      title: 'Grant',
+      description: 'Create a grant program issued by the organization',
+      icon: HandCoins,
+      getNodes: (rootName) => [
+        {
+          name: `grant.${rootName}`,
+          title: 'Grant',
+          nodeType: 'grant',
+          description: '',
+        },
+      ],
+    },
+    {
+      id: 'delegate',
+      title: 'Delegate',
+      description: 'Add a delegate with statement and voting information',
+      icon: UserCheck,
+      getNodes: (rootName) => [
+        {
+          name: `delegate.${rootName}`,
+          title: 'Delegate',
+          nodeType: 'delegate',
           description: '',
         },
       ],

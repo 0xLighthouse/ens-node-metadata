@@ -29,12 +29,10 @@ const getBackgroundColor = (
 ) => {
   if (isSuggested) return '#f8fafc'
   if (isPendingCreation) {
-    // Use accent color for pending creation if provided
-    if (accentColor === '#f59e0b') return '#fffbeb' // Amber
-    if (accentColor === '#6366f1') return '#eef2ff' // Indigo
-    return '#f0fdf4' // Green default
+    if (accentColor) return `${accentColor}0d` // 5% opacity tint
+    return '#f0fdf4'
   }
-  if (hasPendingEdits) return '#fff7ed' // Orange
+  if (hasPendingEdits) return '#fff7ed'
   return 'white'
 }
 
@@ -51,11 +49,8 @@ const getBorderStyle = (
   }
   if (hasPendingEdits) return '2px dashed #fb923c'
 
-  // Default border with accent color
-  if (accentColor) {
-    // Lighten the accent color for border
-    if (accentColor === '#f59e0b') return '1px solid #fde68a'
-    if (accentColor === '#6366f1') return '1px solid #c7d2fe'
+  if (accentColor && accentColor !== '#94a3b8') {
+    return `1px solid ${accentColor}40` // 25% opacity
   }
   return '1px solid #e2e8f0'
 }
@@ -67,21 +62,18 @@ const getBoxShadow = (
   accentColor?: string,
 ) => {
   if (isSelected && accentColor) {
-    // Use accent color for selection shadow
-    if (accentColor === '#f59e0b') return '0 4px 12px rgba(245, 158, 11, 0.3)'
-    if (accentColor === '#6366f1') return '0 4px 12px rgba(99, 102, 241, 0.3)'
+    return `0 4px 12px ${accentColor}4d` // 30% opacity
   }
   if (isSelected) return '0 4px 12px rgba(0, 0, 0, 0.15)'
   if (isPendingCreation) {
-    if (accentColor === '#f59e0b') return '0 4px 12px rgba(245, 158, 11, 0.25)'
-    if (accentColor === '#6366f1') return '0 4px 12px rgba(99, 102, 241, 0.25)'
+    if (accentColor) return `0 4px 12px ${accentColor}40` // 25% opacity
     return '0 4px 12px rgba(34, 197, 94, 0.25)'
   }
   if (hasPendingEdits) return '0 4px 12px rgba(249, 115, 22, 0.25)'
 
-  // Default shadow with subtle accent
-  if (accentColor === '#f59e0b') return '0 2px 8px rgba(245, 158, 11, 0.15)'
-  if (accentColor === '#6366f1') return '0 2px 8px rgba(99, 102, 241, 0.15)'
+  if (accentColor && accentColor !== '#94a3b8') {
+    return `0 2px 8px ${accentColor}26` // 15% opacity
+  }
   return '0 2px 8px rgba(0, 0, 0, 0.1)'
 }
 
@@ -92,16 +84,22 @@ const getRingStyle = (
   hasPendingEdits?: boolean,
   isPendingCreation?: boolean,
   accentColor?: string,
-) => {
+): React.CSSProperties => {
   if (isSelected) {
-    const color = accentColor === '#f59e0b' ? 'ring-amber-500' : accentColor === '#6366f1' ? 'ring-indigo-500' : 'ring-indigo-500'
-    return `ring-2 ${color} ring-offset-2`
+    const color = accentColor || '#6366f1'
+    return {
+      outline: `2px solid ${color}`,
+      outlineOffset: '2px',
+    }
   }
   if (isCollapsed && hasChildren && !hasPendingEdits && !isPendingCreation) {
-    const color = accentColor === '#f59e0b' ? 'ring-amber-200' : accentColor === '#6366f1' ? 'ring-indigo-200' : 'ring-indigo-200'
-    return `ring-2 ${color}`
+    const color = accentColor ? `${accentColor}66` : '#c7d2fe' // 40% opacity or indigo-200
+    return {
+      outline: `2px solid ${color}`,
+      outlineOffset: '0px',
+    }
   }
-  return ''
+  return {}
 }
 
 export const NodeContainer = memo(({
@@ -130,10 +128,11 @@ export const NodeContainer = memo(({
     duration-200
     outline-none
     focus:outline-none
-    ${getRingStyle(isSelected, isCollapsed, hasChildren, hasPendingEdits, isPendingCreation, accentColor)}
     ${isSuggested ? 'opacity-50' : ''}
     ${className || ''}
   `.trim().replace(/\s+/g, ' ')
+
+  const ringStyle = getRingStyle(isSelected, isCollapsed, hasChildren, hasPendingEdits, isPendingCreation, accentColor)
 
   const baseStyle: React.CSSProperties = {
     width,
@@ -142,6 +141,7 @@ export const NodeContainer = memo(({
     borderRadius: '12px',
     overflow,
     boxShadow: getBoxShadow(isSelected, isPendingCreation, hasPendingEdits, accentColor),
+    ...ringStyle,
     ...style,
   }
 
