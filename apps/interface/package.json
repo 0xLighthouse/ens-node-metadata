@@ -12,8 +12,9 @@
     "test:watch": "jest --watch"
   },
   "dependencies": {
-    "@ensipXX/schemas": "workspace:*",
     "@dagrejs/dagre": "^1.1.8",
+    "@ensdomains/ensjs": "^4.2.2",
+    "@ensipXX/schemas": "workspace:*",
     "@phosphor-icons/react": "^2.1.7",
     "@ponder/client": "^0.10.4",
     "@privy-io/react-auth": "^2.23.0",

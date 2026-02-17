@@ -1,11 +1,18 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { useTreeEditStore } from '@/stores/tree-edits'
+import { useMutationsStore } from '@/stores/mutations'
+import { useWeb3 } from '@/contexts/Web3Provider'
+import { useTreeData } from '@/hooks/useTreeData'
+import type { TreeNodes } from '@/lib/tree/types'
 import { ApplyChangesDialog } from './ApplyChangesDialog'
 
 export function ChangesBar() {
   const { pendingMutations, clearPendingMutations } = useTreeEditStore()
+  const { submitMutations, status: mutationsStatus } = useMutationsStore()
+  const { walletClient } = useWeb3()
+  const { sourceTree } = useTreeData()
 
   // Helper to count all nodes including nested children
   const countNodes = (nodes: any[]): number => {
@@ -26,11 +33,28 @@ export function ChangesBar() {
 
   const [isDialogOpen, setIsDialogOpen] = useState(false)
 
-  const handleApplyChanges = () => {
-    // TODO: Apply changes to backend
-    console.log('Apply changes:', Array.from(pendingMutations.values()))
-    clearPendingMutations()
-    setIsDialogOpen(false)
+  const findNode = useCallback(
+    (name: string, node: TreeNodes | null = sourceTree): TreeNodes | null => {
+      if (!node) return null
+      if (node.name === name) return node
+      if (node.children) {
+        for (const child of node.children) {
+          const found = findNode(name, child)
+          if (found) return found
+        }
+      }
+      return null
+    },
+    [sourceTree],
+  )
+
+  const handleApplyChanges = async (mutationIds: string[]) => {
+    if (!walletClient) return
+    await submitMutations({ mutationIds, findNode, walletClient })
+    // Close dialog if no mutations remain
+    if (useTreeEditStore.getState().pendingMutations.size === 0) {
+      setIsDialogOpen(false)
+    }
   }
 
   if (changesCount === 0) return null
@@ -58,10 +82,11 @@ export function ChangesBar() {
             Clear
           </button>
           <button
-            className="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-full hover:bg-indigo-700 transition-colors"
+            className="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-full hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={() => setIsDialogOpen(true)}
+            disabled={mutationsStatus === 'executing'}
           >
-            Apply Changes
+            {mutationsStatus === 'executing' ? 'Submitting...' : 'Apply Changes'}
           </button>
         </div>
       </div>
