@@ -13,6 +13,10 @@ export async function fetchSchemas(): Promise<Schema[]> {
 
   // Extract all published versions of each schema from the registry
   for (const [schemaId, schemaData] of Object.entries(registry.schemas)) {
+    // Skip globals schema
+    // We fetch globals separately
+    if (schemaId === 'globals') continue
+
     const latestVersion = schemaData.latest
 
     for (const [version, versionEntry] of Object.entries(schemaData.published)) {
