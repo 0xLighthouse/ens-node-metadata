@@ -1,0 +1,18 @@
+import type { Schema as BaseSchema } from '@ensipXX/schemas/types'
+import { getPublishedRegistry } from '@ensipXX/schemas/published'
+
+/**
+ * Fetch all global sub-schemas (e.g. ENSIP-5) from the published globals bundle
+ * Returns a map keyed by global schema name (e.g. "ensip-5")
+ */
+export async function fetchGlobals(): Promise<Record<string, BaseSchema>> {
+  const registry = await getPublishedRegistry()
+  const globalsData = registry.schemas.globals
+  if (!globalsData) return {}
+
+  const latestVersion = globalsData.latest
+  const versionEntry = globalsData.published[latestVersion]
+  if (!versionEntry?.schema?.schemas) return {}
+
+  return versionEntry.schema.schemas as Record<string, BaseSchema>
+}

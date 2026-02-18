@@ -1,6 +1,7 @@
 'use client'
 
 import { APP_NAME } from '@/config/constants'
+import { MetricsStats } from '@/components/metrics-stats'
 import Link from 'next/link'
 
 export function Unauthenticated() {
@@ -18,6 +19,8 @@ export function Unauthenticated() {
           </p>
         </div>
       </div>
+
+      <MetricsStats />
     </div>
   )
 }

@@ -15,7 +15,7 @@ import { Label } from '@/components/ui/label'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { Loader2 } from 'lucide-react'
-import luxon, { DateTime } from 'luxon'
+import { DateTime } from 'luxon'
 import type { ENSRootDomain } from '@/types'
 import { MetricsStats } from '@/components/metrics-stats'
 
@@ -57,9 +57,7 @@ export function SelectDomain() {
       const domain = await loadDomain(trimmedDomain)
       handleSelectDomain(domain)
     } catch (error) {
-      setCustomDomainError(
-        error instanceof Error ? error.message : 'Unable to load that domain.',
-      )
+      setCustomDomainError(error instanceof Error ? error.message : 'Unable to load that domain.')
     } finally {
       setIsCustomDomainLoading(false)
     }
@@ -128,9 +126,7 @@ export function SelectDomain() {
               }}
               aria-invalid={!!customDomainError}
             />
-            {customDomainError && (
-              <div className="text-sm text-red-500">{customDomainError}</div>
-            )}
+            {customDomainError && <div className="text-sm text-red-500">{customDomainError}</div>}
           </div>
           <Button type="submit" disabled={isCustomDomainLoading || !customDomain.trim()}>
             {isCustomDomainLoading ? (
