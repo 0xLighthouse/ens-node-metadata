@@ -344,12 +344,13 @@ export function EditNodeDrawer() {
                   .length > 0 ? (
                   <fieldset className="bg-white dark:bg-gray-800 rounded-xl p-4">
                     <div className="space-y-4">
+                      {/* Required + recommended fields */}
                       {Object.entries(activeSchema.properties)
                         .filter(
                           ([key]) =>
                             !addressFieldKeys.has(key) &&
                             (activeSchema.required?.includes(key) ||
-                              visibleOptionalFields.has(key)),
+                              activeSchema.recommended?.includes(key)),
                         )
                         .map(([key, attribute]) => {
                           const isRequired = activeSchema.required?.includes(key)
@@ -397,6 +398,52 @@ export function EditNodeDrawer() {
                                   onChange={(e) => updateField(key, e.target.value)}
                                   placeholder={attribute.description}
                                   required={isRequired}
+                                  className="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-gray-900 dark:text-white"
+                                />
+                              )}
+                            </div>
+                          )
+                        })}
+                      {/* Visible optional fields — rendered last so they appear just above the "Add optional field" button */}
+                      {Object.entries(activeSchema.properties)
+                        .filter(
+                          ([key]) =>
+                            !addressFieldKeys.has(key) &&
+                            !activeSchema.required?.includes(key) &&
+                            !activeSchema.recommended?.includes(key) &&
+                            visibleOptionalFields.has(key),
+                        )
+                        .map(([key, attribute]) => {
+                          const isTextArea = attribute.type === 'text' || key === 'description'
+
+                          return (
+                            <div key={key}>
+                              <div className="flex items-center justify-between mb-1.5">
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                  {key}
+                                </label>
+                                <button
+                                  type="button"
+                                  onClick={() => removeOptionalField(key)}
+                                  className="text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                                >
+                                  Remove
+                                </button>
+                              </div>
+                              {isTextArea ? (
+                                <textarea
+                                  value={formData[key] ?? ''}
+                                  onChange={(e) => updateField(key, e.target.value)}
+                                  placeholder={attribute.description}
+                                  rows={4}
+                                  className="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-gray-900 dark:text-white resize-y"
+                                />
+                              ) : (
+                                <input
+                                  type={attribute.type === 'string' ? 'text' : attribute.type}
+                                  value={formData[key] ?? ''}
+                                  onChange={(e) => updateField(key, e.target.value)}
+                                  placeholder={attribute.description}
                                   className="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-gray-900 dark:text-white"
                                 />
                               )}

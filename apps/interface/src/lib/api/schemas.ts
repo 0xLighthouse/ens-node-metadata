@@ -1,11 +1,13 @@
 import type { Schema } from '@/stores/schemas'
 import { getPublishedRegistry } from '@ensipXX/schemas/published'
+import { fetchGlobals } from './globals'
 
 /**
  * Fetch all available schemas from the published registry
  */
 export async function fetchSchemas(): Promise<Schema[]> {
-  const registry = await getPublishedRegistry()
+  const [registry, globals] = await Promise.all([getPublishedRegistry(), fetchGlobals()])
+  const ensip5Properties = globals['ensip-5']?.properties ?? {}
   const schemas: Schema[] = []
 
   console.log('----- FETCHED REGISTRY -----')
@@ -27,6 +29,10 @@ export async function fetchSchemas(): Promise<Schema[]> {
 
       schemas.push({
         ...versionEntry.schema,
+        properties: {
+          ...ensip5Properties,
+          ...versionEntry.schema.properties,
+        },
         id: `ipfs://${versionEntry.cid}`,
         title: `${schemaId}-v${version}`,
         class: versionEntry.schema.title,
