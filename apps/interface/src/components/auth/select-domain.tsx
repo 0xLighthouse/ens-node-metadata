@@ -17,6 +17,7 @@ import { useState } from 'react'
 import { Loader2 } from 'lucide-react'
 import luxon, { DateTime } from 'luxon'
 import type { ENSRootDomain } from '@/types'
+import { MetricsStats } from '@/components/metrics-stats'
 
 export function SelectDomain() {
   const {
@@ -107,6 +108,8 @@ export function SelectDomain() {
           Select one of your domains below, or load any ENS name to explore.
         </p>
       </div>
+
+      <MetricsStats />
 
       <div className="w-full max-w-4xl space-y-6">
         <form
