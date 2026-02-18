@@ -1,27 +1,24 @@
 ---
 title: Group
-weight: 8
+weight: 6
 ---
 
 # Group
 
-This node represents a logical grouping of multiple child nodes.
+This node describes a group of individuals or entities with a shared purpose or responsibility.
 
 ## Attributes
 
-| Key | Type | Required | Description |
-| --- | --- | --- | --- |
-| name | string | No | The name of the group |
-| avatar | string | No | A URL to an image used as an avatar or logo |
-| description | string | No | A description of the name |
-| display | string | No | A canonical display name for the ENS name; this MUST match the ENS name when its case is folded, and clients should ignore this value if it does not (e.g. "ricmoo.eth" could set this to "RicMoo.eth") |
-| email | string | No | An e-mail address |
-| keywords | string | No | A list of comma-separated keywords, ordered by most significant first; clients that interpresent this field may choose a threshold beyond which to ignore |
-| mail | string | No | A physical mailing address |
-| notice | string | No | A notice regarding this name |
-| location | string | No | A generic location (e.g. "Toronto, Canada") |
-| phone | string | No | A phone number as an E.164 string |
-| url | string | No | A website URL |
+| Key | Type | Required | Description | Values |
+| --- | --- | --- | --- | --- |
+| class | string | Y | High-level identifier of this node type | e.g. `Group`, `Committee`, `Council`, `Workgroup`, `Team` |
+| name | string | Y | The name of the group | - |
+| avatar | string | Y | A URL to an image used as an avatar or logo | - |
+| description | string | Y | A description of the name | - |
+| url | string | Y | URL of the group | - |
+| lead | string | Y | ENS name or address of the group leader | - |
+| lead-title | string | - | Title or role of the group leader | e.g. `Lead Steward`, `Chair`, `Manager`, `Owner` |
+| members-title | string | - | Title or role of the group members | e.g. `Member`, `Steward`, `Contributor`, `Participant` |
 
 
 ## Metadata
@@ -29,12 +26,12 @@ This node represents a logical grouping of multiple child nodes.
 - Schema ID: `group`
 - Latest version: `0.1.4`
 - Source: [https://github.com/0xLighthouse/ens-node-metadata](https://github.com/0xLighthouse/ens-node-metadata)
-- CID: `QmPBUE21FjmbUDKb5mUW4wS9xkB9kwVQqtpkG3ZX9qv2F7`
-- Checksum: `sha256:9d7e8b39e5f61aae35d1233d44121b56eb5fab0f818dc324ca39393b3d8ad419`
-- Published at (UTC): `2026-02-17T17:23:00.000Z`
+- CID: `QmYJieM3KXTeDhrwcFr3cMSi1LVWofxjCVkMzv1HTuoYSw`
+- Checksum: `sha256:ca4434bed698d565b4a5d24bf98c658dc3e6fa381c48f66cd49744fde1b47559`
+- Published at (UTC): `2026-02-18T13:18:14.000Z`
 
 ## Version history
 
 | Version | CID | IPFS | Published at (UTC) |
 | --- | --- | --- | --- |
-| `0.1.4 (latest)` | `QmPBUE21FjmbUDKb5mUW4wS9xkB9kwVQqtpkG3ZX9qv2F7` | [Open](https://ipfs.io/ipfs/QmPBUE21FjmbUDKb5mUW4wS9xkB9kwVQqtpkG3ZX9qv2F7) | `2026-02-17T17:23:00.000Z` |
+| `0.1.4 (latest)` | `QmYJieM3KXTeDhrwcFr3cMSi1LVWofxjCVkMzv1HTuoYSw` | [Open](https://ipfs.io/ipfs/QmYJieM3KXTeDhrwcFr3cMSi1LVWofxjCVkMzv1HTuoYSw) | `2026-02-18T13:18:14.000Z` |

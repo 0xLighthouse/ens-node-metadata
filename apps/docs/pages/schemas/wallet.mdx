@@ -1,6 +1,6 @@
 ---
 title: Wallet
-weight: 11
+weight: 10
 ---
 
 # Wallet
@@ -9,19 +9,10 @@ A wallet for holding or managing assets.
 
 ## Attributes
 
-| Key | Type | Required | Description |
-| --- | --- | --- | --- |
-| name | string | No | Human-readable wallet name |
-| avatar | string | No | A URL to an image used as an avatar or logo |
-| description | string | No | A description of the name |
-| display | string | No | A canonical display name for the ENS name; this MUST match the ENS name when its case is folded, and clients should ignore this value if it does not (e.g. "ricmoo.eth" could set this to "RicMoo.eth") |
-| email | string | No | An e-mail address |
-| keywords | string | No | A list of comma-separated keywords, ordered by most significant first; clients that interpresent this field may choose a threshold beyond which to ignore |
-| mail | string | No | A physical mailing address |
-| notice | string | No | A notice regarding this name |
-| location | string | No | A generic location (e.g. "Toronto, Canada") |
-| phone | string | No | A phone number as an E.164 string |
-| url | string | No | A website URL |
+| Key | Type | Required | Description | Values |
+| --- | --- | --- | --- | --- |
+| class | string | Y | High-level identifier of this node type | e.g. `Wallet`, `Account` |
+| description | string | Y | Indicates the purpose of the wallet | - |
 
 
 ## Metadata
@@ -29,12 +20,12 @@ A wallet for holding or managing assets.
 - Schema ID: `wallet`
 - Latest version: `1.0.0`
 - Source: [https://github.com/0xLighthouse/ens-node-metadata](https://github.com/0xLighthouse/ens-node-metadata)
-- CID: `QmY4nfnQqqpfhuS6dgfCK1SY6QkN3itscWguwKboUWU6Td`
-- Checksum: `sha256:5bb00730dedcf05012ef94ecda9133046eec3a24673f8e7915b9e5a0592f55fa`
-- Published at (UTC): `2026-02-17T17:23:34.000Z`
+- CID: `QmTdnHbDob1Cf7Uy1dYmrRezyETvf19QWcaNpFP3WSe2JD`
+- Checksum: `sha256:1a6fadb35c51e238e7ddb947b1ac6b9e899df71247f0eb85c7724092fd075988`
+- Published at (UTC): `2026-02-18T13:18:32.000Z`
 
 ## Version history
 
 | Version | CID | IPFS | Published at (UTC) |
 | --- | --- | --- | --- |
-| `1.0.0 (latest)` | `QmY4nfnQqqpfhuS6dgfCK1SY6QkN3itscWguwKboUWU6Td` | [Open](https://ipfs.io/ipfs/QmY4nfnQqqpfhuS6dgfCK1SY6QkN3itscWguwKboUWU6Td) | `2026-02-17T17:23:34.000Z` |
+| `1.0.0 (latest)` | `QmTdnHbDob1Cf7Uy1dYmrRezyETvf19QWcaNpFP3WSe2JD` | [Open](https://ipfs.io/ipfs/QmTdnHbDob1Cf7Uy1dYmrRezyETvf19QWcaNpFP3WSe2JD) | `2026-02-18T13:18:32.000Z` |

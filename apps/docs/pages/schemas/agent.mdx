@@ -1,6 +1,6 @@
 ---
 title: Agent
-weight: 2
+weight: 1
 ---
 
 # Agent
@@ -9,18 +9,19 @@ AI agent identity metadata aligned with ERC-8004 registration format.
 
 ## Attributes
 
-| Key | Type | Required | Description |
-| --- | --- | --- | --- |
-| agent-uri | string | No | URI to the ERC-8004 registration file |
-| type | string | No | Registration file type discriminator |
-| name | string | No | Agent display name |
-| description | string | No | Natural-language description of the agent |
-| services | json | No | Advertised service endpoints |
-| x402-support | boolean | No | Whether x402 payment flow is supported |
-| active | boolean | No | Whether the agent is currently active |
-| registrations | json | No | Cross-chain identity registrations |
-| supported-trust | json | No | Trust models supported by the agent |
-| agent-wallet | string | No | Verified payout wallet for agent operations |
+| Key | Type | Required | Description | Values |
+| --- | --- | --- | --- | --- |
+| class | string | Y | High-level identifier of this node type | - |
+| agent-uri | string | Y | URI to the ERC-8004 registration file | - |
+| type | string | - | Registration file type discriminator | - |
+| name | string | - | Agent display name | - |
+| description | string | - | Natural-language description of the agent | - |
+| services | string | - | Advertised service endpoints | - |
+| x402-support | boolean | - | Whether x402 payment flow is supported | - |
+| active | string | - | Whether the agent is currently active | - |
+| registrations | string | - | Cross-chain identity registrations | - |
+| supported-trust | string | - | Trust models supported by the agent | - |
+| agent-wallet | string | - | Verified payout wallet for agent operations | - |
 
 
 ## Metadata
@@ -28,12 +29,12 @@ AI agent identity metadata aligned with ERC-8004 registration format.
 - Schema ID: `agent`
 - Latest version: `1.0.0`
 - Source: [https://eips.ethereum.org/EIPS/eip-8004](https://eips.ethereum.org/EIPS/eip-8004)
-- CID: `QmadaMaQcpGnTSsYMjf8Ju4AC9WzoRbk39niwBqrbURZTJ`
-- Checksum: `sha256:d6528cb684f92c37f3e5ca7c41c16002e032b13c17644d8297407dfee5ce6f2d`
-- Published at (UTC): `2026-02-17T17:22:20.000Z`
+- CID: `QmS1ZHmucPJCo8KGaBG2e27c6jqpjFrFWoZWoVPyBPqVyJ`
+- Checksum: `sha256:6778eeaf90b71eb75c2a174f50062e8a5dbfcb62152e0ab905339a6da5e01e3b`
+- Published at (UTC): `2026-02-18T13:13:22.000Z`
 
 ## Version history
 
 | Version | CID | IPFS | Published at (UTC) |
 | --- | --- | --- | --- |
-| `1.0.0 (latest)` | `QmadaMaQcpGnTSsYMjf8Ju4AC9WzoRbk39niwBqrbURZTJ` | [Open](https://ipfs.io/ipfs/QmadaMaQcpGnTSsYMjf8Ju4AC9WzoRbk39niwBqrbURZTJ) | `2026-02-17T17:22:20.000Z` |
+| `1.0.0 (latest)` | `QmS1ZHmucPJCo8KGaBG2e27c6jqpjFrFWoZWoVPyBPqVyJ` | [Open](https://ipfs.io/ipfs/QmS1ZHmucPJCo8KGaBG2e27c6jqpjFrFWoZWoVPyBPqVyJ) | `2026-02-18T13:13:22.000Z` |

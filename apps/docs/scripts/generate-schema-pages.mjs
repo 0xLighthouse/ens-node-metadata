@@ -39,16 +39,22 @@ function escapeTableValue(value) {
   return raw.replace(/\|/g, '\\|').replace(/\n/g, ' ')
 }
 
-function renderAttributesTable(properties, required) {
+function renderAttributesTable(properties, required, recommended) {
   if (!properties || Object.keys(properties).length === 0) {
     return 'No attributes found.\n'
   }
 
-  const header = '| Key | Type | Required | Description |'
-  const divider = '| --- | --- | --- | --- |'
+  const header = '| Key | Type | Required | Description | Values |'
+  const divider = '| --- | --- | --- | --- | --- |'
   const rows = Object.entries(properties).map(([key, attr]) => {
-    const isRequired = required?.includes(key) ? 'Yes' : 'No'
-    return `| ${escapeTableValue(key)} | ${escapeTableValue(attr.type)} | ${isRequired} | ${escapeTableValue(attr.description)} |`
+    const isRequired = required?.includes(key) || recommended?.includes(key) ? 'Y' : '-'
+    let values = '-'
+    if (attr.enum?.length) {
+      values = attr.enum.map((v) => `\`${v}\``).join(', ')
+    } else if (attr.examples?.length) {
+      values = `e.g. ${attr.examples.map((v) => `\`${v}\``).join(', ')}`
+    }
+    return `| ${escapeTableValue(key)} | ${escapeTableValue(attr.type)} | ${isRequired} | ${escapeTableValue(attr.description)} | ${values} |`
   })
 
   return [header, divider, ...rows].join('\n') + '\n'
@@ -95,7 +101,7 @@ function buildPage({
   const pageTitle = schema?.title || toTitleCase(schemaId)
   const source = schema?.source || 'N/A'
   const description = schema?.description || 'No description provided.'
-  const attributesTable = renderAttributesTable(schema?.properties, schema?.required)
+  const attributesTable = renderAttributesTable(schema?.properties, schema?.required, schema?.recommended)
   const versionHistoryTable = renderVersionHistory(versions, publishedByVersion, latestVersion)
 
   return `---
@@ -116,6 +122,59 @@ ${attributesTable}
 - Schema ID: \`${schemaId}\`
 - Latest version: \`${latestVersion}\`
 - Source: ${source !== 'N/A' ? `[${source}](${source})` : source}
+- CID: \`${latestMeta?.cid ?? 'N/A'}\`
+- Checksum: \`${latestMeta?.checksum ?? 'N/A'}\`
+- Published at (UTC): \`${formatTimestamp(latestMeta?.timestamp)}\`
+
+## Version history
+
+${versionHistoryTable}`
+}
+
+function buildGlobalsPage({
+  schemaId,
+  schema,
+  latestVersion,
+  latestMeta,
+  versions,
+  publishedByVersion,
+  weight,
+}) {
+  const versionHistoryTable = renderVersionHistory(versions, publishedByVersion, latestVersion)
+
+  const schemaSections = Object.entries(schema.schemas || {}).map(([key, sub]) => {
+    const sectionTitle = sub.title || toTitleCase(key)
+    const description = sub.description || 'No description provided.'
+    const source = sub.source || sub.$id
+    const sourceLink = source ? `[${source}](${source})` : 'N/A'
+    const attributesTable = renderAttributesTable(sub.properties, sub.required, sub.recommended)
+
+    return `## ${sectionTitle}
+
+${description}
+
+Source: ${sourceLink}
+
+### Attributes
+
+${attributesTable}`
+  }).join('\n')
+
+  return `---
+title: Globals
+weight: ${weight}
+---
+
+# Globals
+
+A collection of globally applicable ENS record schemas.
+
+${schemaSections}
+
+## Metadata
+
+- Schema ID: \`${schemaId}\`
+- Latest version: \`${latestVersion}\`
 - CID: \`${latestMeta?.cid ?? 'N/A'}\`
 - Checksum: \`${latestMeta?.checksum ?? 'N/A'}\`
 - Published at (UTC): \`${formatTimestamp(latestMeta?.timestamp)}\`
@@ -148,7 +207,8 @@ function main() {
     }
 
     const schema = JSON.parse(fs.readFileSync(schemaPath, 'utf8'))
-    const page = buildPage({
+    const builder = schema.schemas ? buildGlobalsPage : buildPage
+    const page = builder({
       schemaId,
       schema,
       latestVersion,

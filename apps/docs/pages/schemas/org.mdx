@@ -1,6 +1,6 @@
 ---
 title: Organization
-weight: 1
+weight: 7
 ---
 
 # Organization
@@ -9,19 +9,13 @@ A legal or organizational entity.
 
 ## Attributes
 
-| Key | Type | Required | Description |
-| --- | --- | --- | --- |
-| name | string | Yes | The name of the organization |
-| avatar | string | No | A URL to an image used as an avatar or logo |
-| description | string | Yes | A description of the name |
-| display | string | No | A canonical display name for the ENS name; this MUST match the ENS name when its case is folded, and clients should ignore this value if it does not (e.g. "ricmoo.eth" could set this to "RicMoo.eth") |
-| email | string | No | An e-mail address |
-| keywords | string | No | A list of comma-separated keywords, ordered by most significant first; clients that interpresent this field may choose a threshold beyond which to ignore |
-| mail | string | No | A physical mailing address |
-| notice | string | No | A notice regarding this name |
-| location | string | No | A generic location (e.g. "Toronto, Canada") |
-| phone | string | No | A phone number as an E.164 string |
-| url | string | No | A website URL |
+| Key | Type | Required | Description | Values |
+| --- | --- | --- | --- | --- |
+| class | string | Y | High-level identifier of this node type | e.g. `Organization`, `Foundation`, `OPCo` |
+| name | string | Y | The name of this business unit | - |
+| avatar | string | Y | A URL to an image used as an avatar or logo | - |
+| description | string | Y | A description of the name | - |
+| url | string | Y | URL of the organization | - |
 
 
 ## Metadata
@@ -29,12 +23,12 @@ A legal or organizational entity.
 - Schema ID: `org`
 - Latest version: `0.1.8`
 - Source: [https://github.com/0xLighthouse/ens-node-metadata](https://github.com/0xLighthouse/ens-node-metadata)
-- CID: `QmdqgEp4AmrKst4DmWLxuwdbiQaMBq5KBCWP6ofW5Pce6q`
-- Checksum: `sha256:633ab361d96912d40edf403b6106aeaf6d67b538c0765fc846d09c2026eb9a2b`
-- Published at (UTC): `2026-02-17T17:21:45.000Z`
+- CID: `QmfPD2L38hREq356GxhMkyMJMECVwRAxm6dEJZh3bpPAdd`
+- Checksum: `sha256:07522b2427846867ffd3a69c1955d08ec0d9a88a3da6d5a0efd5ec94ae103f2a`
+- Published at (UTC): `2026-02-18T13:18:19.000Z`
 
 ## Version history
 
 | Version | CID | IPFS | Published at (UTC) |
 | --- | --- | --- | --- |
-| `0.1.8 (latest)` | `QmdqgEp4AmrKst4DmWLxuwdbiQaMBq5KBCWP6ofW5Pce6q` | [Open](https://ipfs.io/ipfs/QmdqgEp4AmrKst4DmWLxuwdbiQaMBq5KBCWP6ofW5Pce6q) | `2026-02-17T17:21:45.000Z` |
+| `0.1.8 (latest)` | `QmfPD2L38hREq356GxhMkyMJMECVwRAxm6dEJZh3bpPAdd` | [Open](https://ipfs.io/ipfs/QmfPD2L38hREq356GxhMkyMJMECVwRAxm6dEJZh3bpPAdd) | `2026-02-18T13:18:19.000Z` |

@@ -26,6 +26,9 @@ pnpm publish:schema --id org
 
 # Publish and bump version
 pnpm publish:schema --id org --bump (patch|minor|major)
+
+# Sweeps common ENSIPs and publishes collection as globals
+pnpm publish:globals
 ```
 
 ## Outputs (per publish)
