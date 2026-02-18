@@ -28,9 +28,8 @@ const args = process.argv.slice(2);
 const usage = () => {
   console.log(
     [
-      "Usage: pnpm --filter @ensipXX/schemas publish:schema -- --id <schemaId> [--bump patch|minor|major|x.y.z]",
+      "Usage: pnpm --filter @ensipXX/schemas publish:globals [--bump patch|minor|major|x.y.z]",
       "Options:",
-      "  --id, -i        Schema id (file base name in packages/schemas/src/schemas)",
       "  --bump, -b      Semver bump (patch|minor|major) or explicit version (optional)",
       "  --notes         Short note for run log",
       "  --provider      Publish provider: pinata|ipfs (default: auto)",
@@ -46,13 +45,7 @@ const usage = () => {
   );
 };
 
-const schemaIdRaw = arg(args, "--id", "-i");
-if (!schemaIdRaw) {
-  usage();
-  process.exit(1);
-}
-
-const schemaId = schemaIdRaw.replace(/\.ts$/i, "");
+const schemaId = "globals";
 const bumpRaw = arg(args, "--bump", "-b");
 const bumpFlagUsed = args.includes("--bump") || args.includes("-b");
 const notes = arg(args, "--notes");
@@ -89,23 +82,15 @@ if (provider === "pinata" && !hasPinataCreds && !dryRun) {
   process.exit(1);
 }
 
-const schemaFile = path.join(packagesRoot, "src", "schemas", `${schemaId}.ts`);
-if (!fs.existsSync(schemaFile)) {
-  console.error(`Schema file not found: ${schemaFile}`);
+const globalsDir = path.join(packagesRoot, "src", "globals");
+const globalFiles = fs.readdirSync(globalsDir)
+  .filter((f) => f.endsWith(".ts"))
+  .sort();
+
+if (globalFiles.length === 0) {
+  console.error(`No global schema files found in ${globalsDir}`);
   process.exit(1);
 }
-
-const fileText = fs.readFileSync(schemaFile, "utf8");
-const versionMatch = fileText.match(/version:\s*['"](\d+\.\d+\.\d+)['"]/);
-if (!versionMatch) {
-  console.error(`Could not find version in ${schemaFile}`);
-  process.exit(1);
-}
-
-const currentVersion = versionMatch[1];
-const nextVersion = bumpRaw
-  ? bumpVersion(currentVersion, bumpRaw)
-  : currentVersion;
 
 const publishedRoot = path.join(packagesRoot, "published");
 const schemaRoot = path.join(publishedRoot, schemaId);
@@ -113,6 +98,11 @@ const registryPath = path.join(publishedRoot, "_registry.json");
 const indexPath = path.join(schemaRoot, "index.json");
 
 const registryCheck = readJson(registryPath, { schemas: {} as Record<string, any> });
+const currentVersion = registryCheck.schemas?.[schemaId]?.latest ?? "1.0.0";
+const nextVersion = bumpRaw
+  ? bumpVersion(currentVersion, bumpRaw)
+  : currentVersion;
+
 const publishedByRegistry =
   registryCheck.schemas?.[schemaId]?.published?.[nextVersion];
 const indexCheck = readJson(indexPath, { published: [] as Array<any> });
@@ -126,17 +116,14 @@ if (publishedByRegistry || publishedByIndex) {
   process.exit(1);
 }
 
-if (bumpRaw && nextVersion !== currentVersion) {
-  const updatedVersionLiteral = versionMatch[0].replace(
-    currentVersion,
-    nextVersion,
-  );
-  const updatedText = fileText.replace(versionMatch[0], updatedVersionLiteral);
-  fs.writeFileSync(schemaFile, updatedText);
+// Load all globals schemas sorted for stable checksum across platforms
+const schemas: Record<string, any> = {};
+for (const file of globalFiles) {
+  const filePath = path.join(globalsDir, file);
+  const key = path.basename(file, ".ts");
+  const schema = await loadSchema(filePath);
+  schemas[key] = schema;
 }
-
-const schema = await loadSchema(schemaFile);
-schema.version = nextVersion;
 
 const timestamp = Math.floor(Date.now() / 1000);
 const versionRoot = path.join(schemaRoot, "versions", nextVersion);
@@ -145,8 +132,12 @@ const runsRoot = path.join(schemaRoot, "runs", "ipfs");
 fs.mkdirSync(versionRoot, { recursive: true });
 fs.mkdirSync(runsRoot, { recursive: true });
 
+const globalsDocument = {
+  version: nextVersion,
+  schemas,
+};
 const schemaJsonPath = path.join(versionRoot, "schema.json");
-const schemaJson = JSON.stringify(schema, null, 2) + "\n";
+const schemaJson = JSON.stringify(globalsDocument, null, 2) + "\n";
 fs.writeFileSync(schemaJsonPath, schemaJson, "utf8");
 
 const checksum = `sha256:${hashSha256(schemaJson)}`;
@@ -178,9 +169,6 @@ const publishedEntry = {
 const meta: PublishedSchema = {
   schemaId,
   version: nextVersion,
-  title: schema.title,
-  description: schema.description,
-  source: schema.source,
   cid,
   checksum,
   timestamp,

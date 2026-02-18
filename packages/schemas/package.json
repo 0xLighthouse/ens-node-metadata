@@ -6,7 +6,8 @@
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "scripts": {
-    "publish:schema": "tsx ./scripts/publish-schema.ts"
+    "publish:schema": "tsx ./scripts/publish-schema.ts",
+    "publish:globals": "tsx ./scripts/publish-globals.ts"
   },
   "exports": {
     ".": "./src/index.ts",

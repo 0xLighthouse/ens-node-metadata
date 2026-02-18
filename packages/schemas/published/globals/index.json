@@ -1,0 +1,13 @@
+{
+  "schemaId": "globals",
+  "latest": "1.0.0",
+  "published": [
+    {
+      "version": "1.0.0",
+      "cid": "QmVPf3nP4KC12An7v94ziWLE3ptFHXwUxFcvKEaPNXGRYd",
+      "checksum": "sha256:128951c9c9c6e91ee0a07b36058180a2881dc0bf33e6216b9d89fb1288e7a27c",
+      "timestamp": 1771421607,
+      "schemaPath": "packages/schemas/published/globals/versions/1.0.0/schema.json"
+    }
+  ]
+}
