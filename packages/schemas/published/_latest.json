@@ -183,12 +183,12 @@
     }
   },
   "delegate": {
-    "version": "1.0.0",
-    "cid": "QmaDG9p9vJjsLBtbtCPTd6tmfJUh2wuXmYQfNwrpe2qQwe",
-    "checksum": "sha256:a44ced384a3e28682f4ba1fc70124dee9a30a0339657a6ab6b33c0c3516a959c",
-    "timestamp": 1771420683,
+    "version": "1.0.1",
+    "cid": "QmcHmNS3NhcrMgXmCm72bv77EKUx7inoeaS2QeWDuQGU1q",
+    "checksum": "sha256:4208b2eec2ddf8d4ded2df34999070a21779af793d3b09b95f0a5cede999adf7",
+    "timestamp": 1771433406,
     "signer": "0x6837047F46Da1d5d9A79846b25810b92adF456F6",
-    "signature": "0x9e96b9863c8076dc683196821e4647e088396fc197e0b98edb1beef16fce143d4bb54ef4b3efadd06799cb7759ec701db27b4580590acd321d15d9a94e6ada561b",
+    "signature": "0x64f92e40ec389534f2fc16c8502994587cbfcec97308fe2cbbcc3323cc24f71a7161f39aa61668a713e3e1385567d30c965aa484424cd9a3d054a515cebeef211b",
     "eip712": {
       "domain": {
         "name": "ENS Schema Publisher",
@@ -233,11 +233,11 @@
       "primaryType": "PublishedSchema",
       "message": {
         "schemaId": "delegate",
-        "version": "1.0.0",
-        "cid": "QmaDG9p9vJjsLBtbtCPTd6tmfJUh2wuXmYQfNwrpe2qQwe",
-        "checksum": "sha256:a44ced384a3e28682f4ba1fc70124dee9a30a0339657a6ab6b33c0c3516a959c",
-        "timestamp": 1771420683,
-        "schemaPath": "packages/schemas/published/delegate/versions/1.0.0/schema.json",
+        "version": "1.0.1",
+        "cid": "QmcHmNS3NhcrMgXmCm72bv77EKUx7inoeaS2QeWDuQGU1q",
+        "checksum": "sha256:4208b2eec2ddf8d4ded2df34999070a21779af793d3b09b95f0a5cede999adf7",
+        "timestamp": 1771433406,
+        "schemaPath": "packages/schemas/published/delegate/versions/1.0.1/schema.json",
         "publisher": "pinata",
         "notes": ""
       }

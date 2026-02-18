@@ -1,6 +1,9 @@
 {
   "schemaId": "delegate",
   "version": "1.0.1",
+  "title": "Delegate",
+  "description": "A delegate.",
+  "source": "https://github.com/0xLighthouse/ens-node-metadata",
   "cid": "QmcHmNS3NhcrMgXmCm72bv77EKUx7inoeaS2QeWDuQGU1q",
   "checksum": "sha256:4208b2eec2ddf8d4ded2df34999070a21779af793d3b09b95f0a5cede999adf7",
   "timestamp": 1771433406,
