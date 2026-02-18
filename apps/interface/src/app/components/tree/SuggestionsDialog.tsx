@@ -51,7 +51,6 @@ export function SuggestionsDialog({ open, onOpenChange }: SuggestionsDialogProps
       getNodes: (rootName) => [
         {
           name: `treasury.${rootName}`,
-          nodeType: 'treasury',
         } as TreeNode,
       ],
     },
@@ -63,7 +62,6 @@ export function SuggestionsDialog({ open, onOpenChange }: SuggestionsDialogProps
       getNodes: (rootName) => [
         {
           name: `grant.${rootName}`,
-          nodeType: 'default',
         } as TreeNode,
       ],
     },
@@ -75,7 +73,6 @@ export function SuggestionsDialog({ open, onOpenChange }: SuggestionsDialogProps
       getNodes: (rootName) => [
         {
           name: `delegate.${rootName}`,
-          nodeType: 'default',
         } as TreeNode,
       ],
     },

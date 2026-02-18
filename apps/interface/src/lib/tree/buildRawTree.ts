@@ -86,7 +86,9 @@ function collectOwnerAddresses(node: NormalizedTreeNode): Set<`0x${string}`> {
   if (node.children) {
     for (const child of node.children) {
       const childAddresses = collectOwnerAddresses(child)
-      childAddresses.forEach((addr) => addresses.add(addr))
+      for (const addr of childAddresses) {
+        addresses.add(addr)
+      }
     }
   }
 
@@ -148,6 +150,7 @@ export async function buildRawTree(rootName: string,): Promise<TreeNode | undefi
       ttl,
       subdomainCount: 0,
       children: [],
+      isWrapped: !!indexed.wrappedOwnerId && indexed.wrappedOwnerId !== ZERO_ADDRESS,
     }
 
     // If the resolver has texts, fetch them and add them to the node

@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useMemo, useEffect, useCallback, Fragment } from 'react'
-import { ExternalLink } from 'lucide-react'
+import { useState, useMemo, useEffect, useCallback } from 'react'
+import { ExternalLink, Loader2, XCircle, Receipt } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -14,17 +14,26 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { useTreeEditStore } from '@/stores/tree-edits'
 import { useTreeData } from '@/hooks/useTreeData'
+import { useTxnsStore } from '@/stores/txns'
 
 interface ApplyChangesDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   onConfirm: (mutationIds: string[]) => void
+  onCreateSubname: (nodeName: string) => Promise<void>
 }
 
-export function ApplyChangesDialog({ open, onOpenChange, onConfirm }: ApplyChangesDialogProps) {
+export function ApplyChangesDialog({
+  open,
+  onOpenChange,
+  onConfirm,
+  onCreateSubname,
+}: ApplyChangesDialogProps) {
   const { pendingMutations } = useTreeEditStore()
   const { sourceTree } = useTreeData()
+  const { getByLabel } = useTxnsStore()
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [creatingSubnames, setCreatingSubnames] = useState<Set<string>>(new Set())
 
   console.log('---- APPLY CHANGES DIALOG -----')
   console.log('pendingMutations', pendingMutations)
@@ -82,43 +91,12 @@ export function ApplyChangesDialog({ open, onOpenChange, onConfirm }: ApplyChang
     })
   }
 
-  const formatNodeType = (nodeType?: string) => {
-    if (!nodeType) return 'Unknown'
-    const labels: Record<string, string> = {
-      generic: 'Generic',
-      default: 'Default',
-      organizationRoot: 'Organization Root',
-      treasury: 'Treasury',
-      role: 'Role',
-      team: 'Team',
-    }
-    return labels[nodeType] ?? nodeType
-  }
-
   // Get key/value rows for a created node from its mutation changes
   const getCreationRows = (changes: Record<string, any>): { key: string; value: string }[] => {
     const rows: { key: string; value: string }[] = []
-    const skipKeys = new Set([
-      'children',
-      'name',
-      'id',
-      'owner',
-      'resolverId',
-      'resolverAddress',
-      'subdomainCount',
-      'isPendingCreation',
-      'isComputed',
-      'parentId',
-    ])
-
     for (const [key, value] of Object.entries(changes)) {
-      if (skipKeys.has(key)) continue
       if (value == null || value === '') continue
-      if (key === 'nodeType') {
-        rows.push({ key, value: formatNodeType(String(value)) })
-      } else {
-        rows.push({ key, value: String(value) })
-      }
+      rows.push({ key, value: String(value) })
     }
     return rows
   }
@@ -165,17 +143,44 @@ export function ApplyChangesDialog({ open, onOpenChange, onConfirm }: ApplyChang
 
                   if (change.createNode) {
                     const rows = getCreationRows(change.changes)
+                    const txn = getByLabel(nodeName)
+                    const isCreating = creatingSubnames.has(nodeName)
+                    const isPending = txn?.status === 'pending'
+                    const isConfirming = txn?.status === 'confirming'
+                    const isConfirmed = txn?.status === 'confirmed'
+                    const isFailed = txn?.status === 'failed'
+                    const inFlight = isCreating || isPending || isConfirming
+
+                    const handleCreate = async () => {
+                      setCreatingSubnames((prev) => new Set(prev).add(nodeName))
+                      try {
+                        await onCreateSubname(nodeName)
+                      } finally {
+                        setCreatingSubnames((prev) => {
+                          const next = new Set(prev)
+                          next.delete(nodeName)
+                          return next
+                        })
+                      }
+                    }
 
                     return (
                       <div
                         key={nodeName}
-                        className="border border-gray-200 dark:border-gray-700 rounded-lg p-3"
+                        className={`border rounded-lg p-3 transition-colors ${
+                          isConfirmed
+                            ? 'border-green-300 dark:border-green-800 bg-green-50 dark:bg-green-950/20'
+                            : isFailed
+                              ? 'border-red-300 dark:border-red-800 bg-red-50 dark:bg-red-950/20'
+                              : 'border-gray-200 dark:border-gray-700'
+                        }`}
                       >
                         {/* Header */}
                         <div className="flex items-center gap-2 mb-2">
                           <Checkbox
                             checked={isSelected}
                             onCheckedChange={() => toggleSelection(nodeName)}
+                            disabled={isConfirmed}
                           />
                           <span className="font-mono font-bold text-sm truncate">{nodeName}</span>
                           <Badge className="bg-green-100 text-green-700 border-green-200 dark:bg-green-900/40 dark:text-green-300 dark:border-green-800 text-[10px] px-1.5 py-0 shrink-0">
@@ -202,17 +207,65 @@ export function ApplyChangesDialog({ open, onOpenChange, onConfirm }: ApplyChang
                           </tbody>
                         </table>
 
-                        {/* Per-card Save */}
-                        <div className="flex justify-end mt-2">
-                          <Button variant="outline" size="sm" onClick={() => onConfirm([nodeName])}>
-                            Save
-                          </Button>
+                        {/* Txn status + action */}
+                        <div className="flex items-center justify-between mt-3 pt-2 border-t border-gray-100 dark:border-gray-800">
+                          {/* Status indicator */}
+                          <div className="flex items-center gap-1.5 text-xs">
+                            {inFlight && (
+                              <>
+                                <Loader2 className="size-3 animate-spin text-indigo-500" />
+                                <span className="text-gray-500 dark:text-gray-400">
+                                  {isConfirming ? 'Confirming (1/2)…' : 'Waiting for transaction…'}
+                                </span>
+                              </>
+                            )}
+                            {isConfirmed && (
+                              <>
+                                <Receipt className="size-3 text-green-500" />
+                                <span className="text-green-600 dark:text-green-400">
+                                  Confirmed
+                                </span>
+                              </>
+                            )}
+                            {isFailed && (
+                              <>
+                                <XCircle className="size-3 text-red-500" />
+                                <span className="text-red-600 dark:text-red-400 truncate max-w-48">
+                                  {txn.error ?? 'Failed'}
+                                </span>
+                              </>
+                            )}
+                            {txn?.hash && (
+                              <a
+                                href={`https://etherscan.io/tx/${txn.hash}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="ml-1 text-gray-400 hover:text-indigo-500 flex items-center gap-0.5"
+                              >
+                                <ExternalLink className="size-3" />
+                              </a>
+                            )}
+                          </div>
+
+                          {/* Action button */}
+                          {!isConfirmed && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={handleCreate}
+                              disabled={inFlight}
+                            >
+                              {inFlight ? <Loader2 className="size-3 animate-spin mr-1.5" /> : null}
+                              {isFailed ? 'Retry' : 'Create Subname'}
+                            </Button>
+                          )}
                         </div>
                       </div>
                     )
                   }
 
                   // Edit mutation
+                  const editTxn = getByLabel(nodeName)
                   const originalNode = findNode(nodeName)
 
                   // Resolve original value: check node.texts first, then top-level
@@ -272,10 +325,7 @@ export function ApplyChangesDialog({ open, onOpenChange, onConfirm }: ApplyChang
                       <table className="w-full text-xs">
                         <tbody>
                           {addedFields.map(([key, newValue]) => (
-                            <tr
-                              key={key}
-                              className="border-t border-gray-100 dark:border-gray-800"
-                            >
+                            <tr key={key} className="border-t border-gray-100 dark:border-gray-800">
                               <td className="py-1 pr-3 text-gray-500 dark:text-gray-400 font-medium w-36 align-top">
                                 {key}
                               </td>
@@ -324,11 +374,56 @@ export function ApplyChangesDialog({ open, onOpenChange, onConfirm }: ApplyChang
                         </tbody>
                       </table>
 
-                      {/* Per-card Save */}
-                      <div className="flex justify-end mt-2">
-                        <Button variant="outline" size="sm" onClick={() => onConfirm([nodeName])}>
-                          Save
-                        </Button>
+                      {/* Txn status + action */}
+                      <div className="flex items-center justify-between mt-3 pt-2 border-t border-gray-100 dark:border-gray-800">
+                        <div className="flex items-center gap-1.5 text-xs">
+                          {(editTxn?.status === 'pending' || editTxn?.status === 'confirming') && (
+                            <>
+                              <Loader2 className="size-3 animate-spin text-indigo-500" />
+                              <span className="text-gray-500 dark:text-gray-400">
+                                {editTxn.status === 'confirming'
+                                  ? 'Confirming (1/2)…'
+                                  : 'Waiting for transaction…'}
+                              </span>
+                            </>
+                          )}
+                          {editTxn?.status === 'confirmed' && (
+                            <>
+                              <Receipt className="size-3 text-green-500" />
+                              <span className="text-green-600 dark:text-green-400">Confirmed</span>
+                            </>
+                          )}
+                          {editTxn?.status === 'failed' && (
+                            <>
+                              <XCircle className="size-3 text-red-500" />
+                              <span className="text-red-600 dark:text-red-400 truncate max-w-48">
+                                {editTxn.error ?? 'Failed'}
+                              </span>
+                            </>
+                          )}
+                          {editTxn?.hash && (
+                            <a
+                              href={`https://etherscan.io/tx/${editTxn.hash}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="ml-1 text-gray-400 hover:text-indigo-500 flex items-center gap-0.5"
+                            >
+                              <ExternalLink className="size-3" />
+                            </a>
+                          )}
+                        </div>
+                        {editTxn?.status !== 'confirmed' && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => onConfirm([nodeName])}
+                            disabled={
+                              editTxn?.status === 'pending' || editTxn?.status === 'confirming'
+                            }
+                          >
+                            {editTxn?.status === 'failed' ? 'Retry' : 'Save'}
+                          </Button>
+                        )}
                       </div>
                     </div>
                   )
@@ -347,10 +442,21 @@ export function ApplyChangesDialog({ open, onOpenChange, onConfirm }: ApplyChang
               Cancel
             </Button>
             <Button
-              onClick={() => onConfirm(Array.from(selectedIds))}
-              disabled={selectedIds.size === 0}
+              onClick={() => {
+                // Only submit edit mutations via bulk save — creations use per-card flow
+                const editIds = Array.from(selectedIds).filter(
+                  (id) => !pendingMutations.get(id)?.createNode,
+                )
+                onConfirm(editIds)
+              }}
+              disabled={
+                Array.from(selectedIds).filter((id) => !pendingMutations.get(id)?.createNode)
+                  .length === 0
+              }
             >
-              Save Selected ({selectedIds.size})
+              Save Selected (
+              {Array.from(selectedIds).filter((id) => !pendingMutations.get(id)?.createNode).length}
+              )
             </Button>
           </div>
         </DialogFooter>

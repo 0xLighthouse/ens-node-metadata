@@ -10,8 +10,8 @@ import { ApplyChangesDialog } from './ApplyChangesDialog'
 
 export function ChangesBar() {
   const { pendingMutations, clearPendingMutations } = useTreeEditStore()
-  const { submitMutations, status: mutationsStatus } = useMutationsStore()
-  const { walletClient } = useWeb3()
+  const { submitMutations, submitCreation, status: mutationsStatus } = useMutationsStore()
+  const { walletClient, publicClient } = useWeb3()
   const { sourceTree } = useTreeData()
 
   // Each entry in pendingMutations is one mutation (flattened)
@@ -35,13 +35,21 @@ export function ChangesBar() {
   )
 
   const handleApplyChanges = async (mutationIds: string[]) => {
-    if (!walletClient) return
-    await submitMutations({ mutationIds, findNode, walletClient })
-    // Close dialog if no mutations remain
-    if (useTreeEditStore.getState().pendingMutations.size === 0) {
-      setIsDialogOpen(false)
-    }
+    if (!walletClient || !publicClient) return
+    await submitMutations({ mutationIds, findNode, walletClient, publicClient })
   }
+
+  const handleCreateSubname = useCallback(
+    async (nodeName: string) => {
+      if (!walletClient || !publicClient) return
+      const mutation = pendingMutations.get(nodeName)
+      if (!mutation?.createNode) return
+      const parentNode = findNode(mutation.parentName ?? '')
+      if (!parentNode) return
+      await submitCreation({ nodeName, parentNode, walletClient, publicClient })
+    },
+    [walletClient, publicClient, pendingMutations, findNode, submitCreation],
+  )
 
   if (changesCount === 0) return null
 
@@ -81,6 +89,7 @@ export function ChangesBar() {
         open={isDialogOpen}
         onOpenChange={setIsDialogOpen}
         onConfirm={handleApplyChanges}
+        onCreateSubname={handleCreateSubname}
       />
     </>
   )
