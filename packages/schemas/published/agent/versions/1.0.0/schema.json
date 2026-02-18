@@ -6,63 +6,64 @@
   "description": "AI agent identity metadata aligned with ERC-8004 registration format.",
   "type": "object",
   "properties": {
+    "class": {
+      "type": "string",
+      "default": "Agent",
+      "description": "High-level identifier of this node type"
+    },
     "agent-uri": {
       "type": "string",
       "format": "uri",
-      "description": "URI to the ERC-8004 registration file",
-      "isRequired": false
+      "description": "URI to the ERC-8004 registration file"
     },
     "type": {
       "type": "string",
-      "description": "Registration file type discriminator",
-      "isRequired": false
+      "description": "Registration file type discriminator"
     },
     "name": {
       "type": "string",
-      "description": "Agent display name",
-      "isRequired": false
+      "description": "Agent display name"
     },
     "description": {
       "type": "string",
-      "description": "Natural-language description of the agent",
-      "isRequired": false
+      "description": "Natural-language description of the agent"
     },
     "services": {
-      "type": "json",
-      "description": "Advertised service endpoints",
-      "isRequired": false
+      "type": "string",
+      "description": "Advertised service endpoints"
     },
     "x402-support": {
       "type": "boolean",
-      "description": "Whether x402 payment flow is supported",
-      "isRequired": false
+      "description": "Whether x402 payment flow is supported"
     },
     "active": {
-      "type": "boolean",
-      "description": "Whether the agent is currently active",
-      "isRequired": false
+      "type": "string",
+      "format": "boolean",
+      "description": "Whether the agent is currently active"
     },
     "registrations": {
-      "type": "json",
-      "description": "Cross-chain identity registrations",
-      "isRequired": false
+      "type": "string",
+      "description": "Cross-chain identity registrations"
     },
     "supported-trust": {
-      "type": "json",
-      "description": "Trust models supported by the agent",
-      "isRequired": false
+      "type": "string",
+      "description": "Trust models supported by the agent"
     },
     "agent-wallet": {
       "type": "string",
-      "description": "Verified payout wallet for agent operations",
-      "isRequired": false
+      "description": "Verified payout wallet for agent operations"
     }
   },
   "patternProperties": {
     "^service([[^]]+])?$": {
       "type": "string",
-      "description": "Service endpoints for the agent (A2A, MCP, etc)",
-      "isRequired": false
+      "description": "service[name] => endpoint, per ERC-8004 eg. service[MCP] => <ENDPOINT_URL>"
     }
-  }
+  },
+  "required": [
+    "class"
+  ],
+  "recommended": [
+    "agent-uri"
+  ]
 }

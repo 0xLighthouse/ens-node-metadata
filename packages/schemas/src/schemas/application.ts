@@ -11,39 +11,37 @@ export const APPLICATION_SCHEMA: Schema = {
   properties: {
     class: {
       type: 'string',
-      description: 'The class of the application',
-      isRequired: false,
+      default: 'Application',
+      description: 'High-level identifier of this node type',
+      examples: ['Application', 'Service', 'Website'],
     },
     name: {
       type: 'string',
       description: 'The name of the application',
-      isRequired: false,
     },
     description: {
       type: 'string',
       description: 'Description of the application\'s purpose and functionality',
-      isRequired: false,
     },
     url: {
       type: 'string',
-      description: 'URL where the application is hosted or accessed',
       format: 'uri',
-      isRequired: false,
+      description: 'URL where the application is hosted or accessed',
     },
     repository: {
       type: 'string',
       description: 'Source code repository URL',
-      isRequired: false,
     },
     version: {
       type: 'string',
       description: 'Current version of the application',
-      isRequired: false,
     },
     status: {
       type: 'string',
-      description: 'Application status (e.g., Active, Development, Deprecated)',
-      isRequired: false,
+      description: 'Application status',
+      enum: ['Active', 'Development', 'Deprecated'],
     },
   },
+  required: ['class'],
+  recommended: ['name', 'description', 'url', 'status']
 }

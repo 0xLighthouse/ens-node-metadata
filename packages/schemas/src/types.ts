@@ -1,4 +1,3 @@
-
 /**
  * @description We strive to align with the JSON Schema specification
  * @see https://json-schema.org/specification
@@ -6,6 +5,7 @@
 export interface Schema {
   /**
    * @description The unique identifier for the schema
+   * @see https://json-schema.org/understanding-json-schema/basics#declaring-a-unique-identifier
   */
   $id: string;
 
@@ -45,8 +45,14 @@ export interface Schema {
   */
   required?: string[];
 
+
+  recommended?: string[];
+
   /**
-  * @description Pattern properties get listed in here for JSON schema validation (each key is a regex pattern)
+  * @description Complex properties expressed using a regex pattern
+  * @example { '^statement(\\[[^\\]]+\\])?$': { type: 'string', description: 'Delegate statement per organization (e.g. statement[dao.eth])' } }
+  * @example { '^conflict-of-interest(\\[[^\\]]+\\])?$': { type: 'string', description: 'Conflict of interest declaration per organization (e.g. conflict-of-interest[dao.eth])' } }
+  * @see https://json-schema.org/understanding-json-schema/reference/object#patternProperties
   */
   patternProperties?: { [key: string]: Attribute };
 }
@@ -64,6 +70,18 @@ export interface Attribute {
   * @see https://www.learnjsonschema.com/2020-12/format-assertion/format/
   */
   format?: string;
+
+
+  default?: string;
+
+  examples?: string[];
+
+  /**
+   * @description An optional field specifying the allowed values for the attribute
+   * @example { enum: ['Active', 'Development', 'Deprecated'] }
+   * @see https://json-schema.org/understanding-json-schema/reference/enum
+   */
+  enum?: string[];
 
   /**
   * @description An optional field specifying which type of record to request from the resolver (text() or data())

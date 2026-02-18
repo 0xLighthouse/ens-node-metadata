@@ -1,0 +1,13 @@
+{
+  "schemaId": "application",
+  "latest": "1.0.0",
+  "published": [
+    {
+      "version": "1.0.0",
+      "cid": "QmSsjRkk2xZSU6yXxjgPmyKpyfQVGmUw5qLGaPkYcdPW9A",
+      "checksum": "sha256:79de7f6f9d48810193959754c27315a7558529d713a532d5c2566f3de2197819",
+      "timestamp": 1771420672,
+      "schemaPath": "packages/schemas/published/application/versions/1.0.0/schema.json"
+    }
+  ]
+}

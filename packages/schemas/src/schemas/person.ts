@@ -1,6 +1,6 @@
 import { Schema } from "../types";
 import { GITHUB_URL } from "../config/constants";
-import { ENSIP5 } from "../utils/ensip-5";
+import { ENSIP5 } from "../globals/ensip-5";
 
 
 export const PERSON_SCHEMA: Schema = {
@@ -11,16 +11,19 @@ export const PERSON_SCHEMA: Schema = {
   description: 'A person.',
   type: 'object' as const,
   properties: {
+    class: {
+      type: 'string',
+      default: 'Person',
+      description: 'High-level identifier of this node type',
+      examples: ['Person', 'Human', 'Signer', 'Officer', 'Employee', 'Secretary'],
+    },
     'full-name': {
       type: 'string',
       description: 'Full legal or preferred name',
-      isRequired: false,
     },
     'title': {
       type: 'string',
       description: 'Title within the organization, if any',
-      isRequired: false,
     },
-    ...ENSIP5.properties,
   },
 }

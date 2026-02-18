@@ -4,13 +4,13 @@
   "title": "Person",
   "description": "A person.",
   "source": "https://github.com/0xLighthouse/ens-node-metadata",
-  "cid": "QmNsus6RLTQa3qzhaYwPVP7nRNecTPYLPYZDRguLsJx9n1",
-  "checksum": "sha256:7db46e32bae7b1c95ee6b1957208df0acd888d0a897672847ef8e9d3a9c76005",
-  "timestamp": 1771348990,
+  "cid": "QmYZNmUKP751Vfj2ZEVwXawvGto1zsmi4oiTsnunzx6dsp",
+  "checksum": "sha256:c40c06eff4eae205f64a70eb8ab2bb639e6ec7a62aeceeab7d7ae5eaf9959760",
+  "timestamp": 1771420704,
   "schemaPath": "packages/schemas/published/person/versions/1.0.0/schema.json",
   "publisher": "pinata",
   "signer": "0x6837047F46Da1d5d9A79846b25810b92adF456F6",
-  "signature": "0x853539f21a87ddad20e47c6f00cb80f5eafefbca95aecc458ab4725fdd9a51725da7c11eb5604bce9e90fa74529e911d6661cb231abaebcbd55dc4c23388c4ee1c",
+  "signature": "0x780e2f78336490047dda383e9f5432de992e0c62e39b6867e9126e9bcd32bdd91bbaf60a29f75b9a852e663dfdcebcd7907f9b9c5d2b190aef3b50203df944141b",
   "eip712": {
     "domain": {
       "name": "ENS Schema Publisher",
@@ -56,9 +56,9 @@
     "message": {
       "schemaId": "person",
       "version": "1.0.0",
-      "cid": "QmNsus6RLTQa3qzhaYwPVP7nRNecTPYLPYZDRguLsJx9n1",
-      "checksum": "sha256:7db46e32bae7b1c95ee6b1957208df0acd888d0a897672847ef8e9d3a9c76005",
-      "timestamp": 1771348990,
+      "cid": "QmYZNmUKP751Vfj2ZEVwXawvGto1zsmi4oiTsnunzx6dsp",
+      "checksum": "sha256:c40c06eff4eae205f64a70eb8ab2bb639e6ec7a62aeceeab7d7ae5eaf9959760",
+      "timestamp": 1771420704,
       "schemaPath": "packages/schemas/published/person/versions/1.0.0/schema.json",
       "publisher": "pinata",
       "notes": ""

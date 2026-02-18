@@ -1,0 +1,59 @@
+{
+  "$id": "https://github.com/0xLighthouse/ens-node-metadata/schemas/application/1.0.0",
+  "source": "https://github.com/0xLighthouse/ens-node-metadata",
+  "title": "Application",
+  "version": "1.0.0",
+  "description": "An application, service, or dApp within the organization.",
+  "type": "object",
+  "properties": {
+    "class": {
+      "type": "string",
+      "default": "Application",
+      "description": "High-level identifier of this node type",
+      "examples": [
+        "Application",
+        "Service",
+        "Website"
+      ]
+    },
+    "name": {
+      "type": "string",
+      "description": "The name of the application"
+    },
+    "description": {
+      "type": "string",
+      "description": "Description of the application's purpose and functionality"
+    },
+    "url": {
+      "type": "string",
+      "format": "uri",
+      "description": "URL where the application is hosted or accessed"
+    },
+    "repository": {
+      "type": "string",
+      "description": "Source code repository URL"
+    },
+    "version": {
+      "type": "string",
+      "description": "Current version of the application"
+    },
+    "status": {
+      "type": "string",
+      "description": "Application status",
+      "enum": [
+        "Active",
+        "Development",
+        "Deprecated"
+      ]
+    }
+  },
+  "required": [
+    "class"
+  ],
+  "recommended": [
+    "name",
+    "description",
+    "url",
+    "status"
+  ]
+}

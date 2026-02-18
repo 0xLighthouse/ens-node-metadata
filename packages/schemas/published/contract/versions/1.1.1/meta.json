@@ -4,13 +4,13 @@
   "title": "Contract",
   "description": "Smart contract metadata profile following Enscribe smart contract metadata format.",
   "source": "https://github.com/0xLighthouse/ens-node-metadata",
-  "cid": "QmV6DufHmDEWrMg9oVnKL4BBpBXi2m2sEy32D2J147PqoB",
-  "checksum": "sha256:9d9033f4864158bf409dc107a0fd60462640298c604c4ecd9d2fea53a8dd6025",
-  "timestamp": 1771348953,
+  "cid": "QmPq5xpj5LoCnAswuLk8ofgvpFLFNsRhJDPjvPVssCyPw1",
+  "checksum": "sha256:ff0ef9190bc2e00e90ce30a7328187fdbe7bec54bf7945b17c25533685e6c014",
+  "timestamp": 1771420678,
   "schemaPath": "packages/schemas/published/contract/versions/1.1.1/schema.json",
   "publisher": "pinata",
   "signer": "0x6837047F46Da1d5d9A79846b25810b92adF456F6",
-  "signature": "0x0ffaf18e536c6f843b7a236239d0ba827e2042143e053112fe894bf062e479a83526425274e2cae0e1f8f240453d20311afa42860bde0cd37295463e65f71a631b",
+  "signature": "0x4bfdb84b4c3ecbe241928fe0a68e3b8e92780ffaffb180a91ec893e3426165001d7f653e2c8268dd5857a38ea1ca25657828828ebdfdc6015acac5c85484fb681b",
   "eip712": {
     "domain": {
       "name": "ENS Schema Publisher",
@@ -56,9 +56,9 @@
     "message": {
       "schemaId": "contract",
       "version": "1.1.1",
-      "cid": "QmV6DufHmDEWrMg9oVnKL4BBpBXi2m2sEy32D2J147PqoB",
-      "checksum": "sha256:9d9033f4864158bf409dc107a0fd60462640298c604c4ecd9d2fea53a8dd6025",
-      "timestamp": 1771348953,
+      "cid": "QmPq5xpj5LoCnAswuLk8ofgvpFLFNsRhJDPjvPVssCyPw1",
+      "checksum": "sha256:ff0ef9190bc2e00e90ce30a7328187fdbe7bec54bf7945b17c25533685e6c014",
+      "timestamp": 1771420678,
       "schemaPath": "packages/schemas/published/contract/versions/1.1.1/schema.json",
       "publisher": "pinata",
       "notes": ""

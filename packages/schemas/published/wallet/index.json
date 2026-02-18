@@ -4,9 +4,9 @@
   "published": [
     {
       "version": "1.0.0",
-      "cid": "QmY4nfnQqqpfhuS6dgfCK1SY6QkN3itscWguwKboUWU6Td",
-      "checksum": "sha256:5bb00730dedcf05012ef94ecda9133046eec3a24673f8e7915b9e5a0592f55fa",
-      "timestamp": 1771349014,
+      "cid": "QmTdnHbDob1Cf7Uy1dYmrRezyETvf19QWcaNpFP3WSe2JD",
+      "checksum": "sha256:1a6fadb35c51e238e7ddb947b1ac6b9e899df71247f0eb85c7724092fd075988",
+      "timestamp": 1771420712,
       "schemaPath": "packages/schemas/published/wallet/versions/1.0.0/schema.json"
     }
   ]
