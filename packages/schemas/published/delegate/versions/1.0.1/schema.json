@@ -1,0 +1,64 @@
+{
+  "$id": "https://github.com/0xLighthouse/ens-node-metadata/schemas/delegate/1.0.0",
+  "source": "https://github.com/0xLighthouse/ens-node-metadata",
+  "title": "Delegate",
+  "version": "1.0.1",
+  "description": "A delegate.",
+  "type": "object",
+  "properties": {
+    "class": {
+      "type": "string",
+      "default": "Delegate",
+      "description": "High-level identifier of this node type"
+    },
+    "address": {
+      "type": "string",
+      "format": "address",
+      "description": "The address of the delegate"
+    },
+    "legal-name": {
+      "type": "string",
+      "description": "The full legal or preferred name of the delegate (e.g. \"John Doe\")"
+    },
+    "display-name": {
+      "type": "string",
+      "description": "A canonical display name for the delegate"
+    },
+    "statement": {
+      "type": "string",
+      "description": "Generic delegate statement "
+    },
+    "conflict-of-interest": {
+      "type": "string",
+      "description": "Generic conflict of interest declaration "
+    },
+    "forum-handle": {
+      "type": "string",
+      "description": "Default forum handle (e.g. \"johndoe\")"
+    }
+  },
+  "patternProperties": {
+    "^statement(\\[[^\\]]+\\])?$": {
+      "type": "string",
+      "description": "Delegate statement per organization (e.g. statement[dao.eth])"
+    },
+    "^conflict-of-interest(\\[[^\\]]+\\])?$": {
+      "type": "string",
+      "description": "Conflict of interest declaration per organization (e.g. conflict-of-interest[dao.eth])"
+    },
+    "^forum-handle(\\[[^\\]]+\\])?$": {
+      "type": "string",
+      "description": "Forum handle per organization (e.g. forum-handle[dao.eth])"
+    }
+  },
+  "required": [
+    "class"
+  ],
+  "recommended": [
+    "address",
+    "display-name",
+    "statement",
+    "conflict-of-interest",
+    "forum-handle"
+  ]
+}

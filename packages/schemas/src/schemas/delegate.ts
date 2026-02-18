@@ -1,13 +1,11 @@
 import { Schema } from "../types";
 import { GITHUB_URL } from "../config/constants";
-import { ENSIP5 } from "../globals/ensip-5";
-
 
 export const DELEGATE_SCHEMA: Schema = {
   $id: `${GITHUB_URL}/schemas/delegate/1.0.0`,
   source: GITHUB_URL,
   title: 'Delegate',
-  version: '1.0.0',
+  version: '1.0.1',
   description: 'A delegate.',
   type: 'object' as const,
   properties: {
@@ -15,6 +13,11 @@ export const DELEGATE_SCHEMA: Schema = {
       type: 'string',
       default: 'Delegate',
       description: 'High-level identifier of this node type'
+    },
+    'address': {
+      type: 'string',
+      format: 'address',
+      description: 'The address of the delegate',
     },
     'legal-name': {
       type: 'string',
@@ -52,5 +55,5 @@ export const DELEGATE_SCHEMA: Schema = {
     },
   },
   required: ['class'],
-  recommended: ['display-name', 'statement', 'conflict-of-interest', 'forum-handle']
+  recommended: ['address', 'display-name', 'statement', 'conflict-of-interest', 'forum-handle']
 }
