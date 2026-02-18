@@ -43,12 +43,7 @@ const getFlowNodeType = (node: TreeNode): string => {
     return 'BaseNode'
   }
 
-  switch (node.nodeType) {
-    case 'treasury':
-      return 'Treasury'
-    default:
-      return 'default'
-  }
+  return 'default'
 }
 
 const getFallbackNodeSize = (node: TreeNode): NodeDimensions => {

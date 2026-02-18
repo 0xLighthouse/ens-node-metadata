@@ -1,6 +1,3 @@
-export type TreeNodeType = 'default' | 'organizationRoot' | 'treasury' | 'role' | 'team'
-
-
 /**
  * An ENS record/subdomain fetched from the subgraph and normalized into a tree node
  */
@@ -61,6 +58,8 @@ export interface NormalizedTreeNode {
 
   // Additional fields (will be refactored to BaseNode, TreasuryNode, etc later)
   schema?: string // Schema ID used for this node
+  // True when the name is registered in the ENS NameWrapper contract
+  isWrapped: boolean
   // Suggested nodes are placeholders for sparse trees
   isSuggested?: boolean
   // Pending creation nodes
@@ -78,33 +77,4 @@ export interface NormalizedTreeNode {
   }
 }
 
-export interface DefaultTreeNode extends NormalizedTreeNode {
-  // Omit nodeType for unknown kinds to fall back to generic.
-  nodeType?: 'default'
-}
-
-export interface TreasuryTreeNode extends NormalizedTreeNode {
-  nodeType: 'treasury'
-}
-
-export interface OrganizationRootTreeNode extends NormalizedTreeNode {
-  nodeType: 'organizationRoot'
-  website?: string
-  email?: string
-  organizationAddress?: string
-}
-
-export interface RoleTreeNode extends NormalizedTreeNode {
-  nodeType: 'role'
-}
-
-export interface TeamTreeNode extends NormalizedTreeNode {
-  nodeType: 'team'
-}
-
-export type TreeNode =
-  | DefaultTreeNode
-  | OrganizationRootTreeNode
-  | TreasuryTreeNode
-  | RoleTreeNode
-  | TeamTreeNode
+export type TreeNode = NormalizedTreeNode

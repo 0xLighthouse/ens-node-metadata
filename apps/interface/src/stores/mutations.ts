@@ -1,11 +1,11 @@
 import { create } from 'zustand'
-import { setRecords } from '@ensdomains/ensjs/wallet'
+import { setRecords, createSubname } from '@ensdomains/ensjs/wallet'
 import type { Account, Transport, WalletClient } from 'viem'
 import type { TreeNode } from '@/lib/tree/types'
 import { useTreeEditStore, type TreeMutation } from './tree-edits'
+import { useTxnsStore } from './txns'
 
 const NON_TEXT_RECORD_KEYS = new Set([
-  'nodeType',
   'inspectionData',
   'isSuggested',
   'isPendingCreation',
@@ -41,7 +41,14 @@ interface MutationsState {
     mutationIds: string[]
     findNode: (name: string) => TreeNode | null
     walletClient: WalletClient
+    publicClient: any
   }) => Promise<void>
+  submitCreation: (params: {
+    nodeName: string
+    parentNode: TreeNode
+    walletClient: WalletClient
+    publicClient: any
+  }) => Promise<`0x${string}`>
   reset: () => void
 }
 
@@ -49,7 +56,7 @@ export const useMutationsStore = create<MutationsState>((set, get) => ({
   jobs: [],
   status: 'idle',
 
-  submitMutations: async ({ mutationIds, findNode, walletClient }) => {
+  submitMutations: async ({ mutationIds, findNode, walletClient, publicClient }) => {
     const allMutations = useTreeEditStore.getState().pendingMutations
     const selectedMutations: [string, TreeMutation][] = []
     for (const id of mutationIds) {
@@ -76,7 +83,7 @@ export const useMutationsStore = create<MutationsState>((set, get) => ({
     // Group edits by ensName (setRecords works per-name)
     const editsByName = new Map<
       string,
-      { resolverAddress: string; texts: { key: string; value: string }[]; mutationIds: string[] }
+      { resolverAddress: string; texts: { key: string; value: string }[]; coins: { coin: string; value: string }[]; mutationIds: string[] }
     >()
 
     for (const [ensName, edit] of edits) {
@@ -105,14 +112,21 @@ export const useMutationsStore = create<MutationsState>((set, get) => ({
         }
       }
 
-      if (texts.length === 0) continue
+      // Extract address change as a coin record (batched into the same setRecords call)
+      const coins: { coin: string; value: string }[] = []
+      if (edit.changes?.address) {
+        coins.push({ coin: 'ETH', value: edit.changes.address })
+      }
+
+      if (texts.length === 0 && coins.length === 0) continue
 
       const existing = editsByName.get(ensName)
       if (existing) {
         existing.texts.push(...texts)
+        existing.coins.push(...coins)
         existing.mutationIds.push(ensName)
       } else {
-        editsByName.set(ensName, { resolverAddress, texts, mutationIds: [ensName] })
+        editsByName.set(ensName, { resolverAddress, texts, coins, mutationIds: [ensName] })
       }
     }
 
@@ -130,10 +144,8 @@ export const useMutationsStore = create<MutationsState>((set, get) => ({
 
     set({ jobs, status: 'executing' })
 
-    const completedMutationIds: string[] = []
-
     // Submit one setRecords call per ensName
-    for (const [ensName, { resolverAddress, texts, mutationIds: mIds }] of editsByName) {
+    for (const [ensName, { resolverAddress, texts, coins, mutationIds: mIds }] of editsByName) {
       // Update jobs to signing
       set({
         jobs: get().jobs.map((j) =>
@@ -142,29 +154,35 @@ export const useMutationsStore = create<MutationsState>((set, get) => ({
       })
 
       try {
-
-
-        console.log('---- Setting records ----')
-        console.log('texts', texts)
-        console.log('resolverAddress', resolverAddress)
-        console.log('ensName', ensName)
-
         const txHash = await setRecords(walletClient, {
           name: ensName,
           texts,
+          coins,
           resolverAddress: resolverAddress as `0x${string}`,
         })
 
-        // Update jobs to submitted
+        // Track in txns store; discard mutation only after on-chain confirmation
+        const { addTxn, watchTxn } = useTxnsStore.getState()
+        addTxn({ hash: txHash, type: 'setRecords', label: ensName })
+        watchTxn(txHash, publicClient).then(() => {
+          const { txns } = useTxnsStore.getState()
+          const txn = txns.find((t) => t.hash === txHash)
+          if (txn?.status === 'confirmed') {
+            const { discardPendingMutation } = useTreeEditStore.getState()
+            for (const id of mIds) {
+              discardPendingMutation(id)
+            }
+          }
+        })
+
+        // Update job to submitted (dialog tracks confirmed state via txns store)
         set({
           jobs: get().jobs.map((j) =>
             mIds.includes(j.mutationId)
-              ? { ...j, status: 'confirmed' as const, txHash }
+              ? { ...j, status: 'submitted' as const, txHash }
               : j,
           ),
         })
-
-        completedMutationIds.push(...mIds)
       } catch (err: any) {
         const errorMessage = err?.message ?? 'Transaction failed'
         set({
@@ -179,13 +197,8 @@ export const useMutationsStore = create<MutationsState>((set, get) => ({
       }
     }
 
-    // Discard completed mutations from tree-edits store
+    // Discard creation mutations that were skipped (edit mutations are discarded in watchTxn callbacks)
     const { discardPendingMutation } = useTreeEditStore.getState()
-    for (const id of completedMutationIds) {
-      discardPendingMutation(id)
-    }
-
-    // Also discard creation mutations that were skipped (they were only logged)
     for (const [nodeName] of creations) {
       discardPendingMutation(nodeName)
     }
@@ -194,6 +207,29 @@ export const useMutationsStore = create<MutationsState>((set, get) => ({
     const finalJobs = get().jobs
     const hasErrors = finalJobs.some((j) => j.status === 'error')
     set({ status: hasErrors ? 'error' : 'done' })
+  },
+
+  submitCreation: async ({ nodeName, parentNode, walletClient, publicClient }) => {
+    const { addTxn, watchTxn } = useTxnsStore.getState()
+
+    const hash = await createSubname(walletClient, {
+      name: nodeName,
+      owner: walletClient.account?.address as `0x${string}`,
+      contract: parentNode.isWrapped ? 'nameWrapper' : 'registry',
+    })
+
+    addTxn({ hash, type: 'createSubname', label: nodeName })
+
+    // Watch in background — discard the pending creation after 2 confirmations
+    watchTxn(hash, publicClient).then(() => {
+      const { txns } = useTxnsStore.getState()
+      const txn = txns.find((t) => t.hash === hash)
+      if (txn?.status === 'confirmed') {
+        useTreeEditStore.getState().discardPendingMutation(nodeName)
+      }
+    })
+
+    return hash
   },
 
   reset: () => set({ jobs: [], status: 'idle' }),
