@@ -1,12 +1,14 @@
 'use client'
 
 import { Drawer } from 'vaul'
-import { X } from 'lucide-react'
+import { X, Search, ChevronDown, Star } from 'lucide-react'
+import { AddressField } from './AddressField'
 import { useTreeEditStore } from '@/stores/tree-edits'
 import { useTreeData } from '@/hooks/useTreeData'
-import { type TreeNode, type TreeNodeType } from '@/lib/tree/types'
-import { useState, useEffect } from 'react'
-import { SchemaVersion } from '../SchemaVersion'
+import { type TreeNode } from '@/lib/tree/types'
+import { useState, useEffect, useRef } from 'react'
+import { useSchemaStore } from '@/stores/schemas'
+import { useNodeEditorStore } from '@/stores/node-editor'
 
 interface Props {
   isOpen: boolean
@@ -19,100 +21,162 @@ interface Props {
 export function CreateNodeDrawer({ isOpen, onClose, suggestionId, suggestionTitle, nodes }: Props) {
   const { sourceTree, previewTree } = useTreeData()
   const { queueCreation } = useTreeEditStore()
+  const { schemas, fetchSchemas } = useSchemaStore()
 
-  const formatNodeType = (nodeType?: TreeNodeType) => {
-    if (!nodeType) return undefined
-    const labels: Record<TreeNodeType, string> = {
-      default: 'Default',
-      organizationRoot: 'Organization Root',
-      treasury: 'Treasury',
-      role: 'Role',
-      team: 'Team',
-    }
-    return labels[nodeType] ?? nodeType
-  }
+  const {
+    formData,
+    currentSchemaId,
+    visibleOptionalFields,
+    isSchemaDropdownOpen,
+    schemaSearchQuery,
+    isLoadingSchemas,
+    isOptionalFieldDropdownOpen,
+    resetEditor,
+    updateField,
+    setCurrentSchema,
+    addOptionalField,
+    removeOptionalField,
+    toggleSchemaDropdown,
+    setSchemaSearchQuery,
+    setIsLoadingSchemas,
+    toggleOptionalFieldDropdown,
+  } = useNodeEditorStore()
 
   const [selectedParent, setSelectedParent] = useState<string>('')
+  const [parentSearch, setParentSearch] = useState('')
+  const [isParentDropdownOpen, setIsParentDropdownOpen] = useState(false)
 
-  // Reset to root when drawer opens
+  const parentDropdownRef = useRef<HTMLDivElement>(null)
+  const schemaDropdownRef = useRef<HTMLDivElement>(null)
+  const optionalFieldDropdownRef = useRef<HTMLDivElement>(null)
+
+  // Fetch schemas if not yet loaded
   useEffect(() => {
-    if (isOpen && sourceTree) {
-      console.log('----- NODE CREATE DRAWER -----')
-      console.log('Suggestion ID:', suggestionId)
-      console.log('Suggestion Title:', suggestionTitle)
-      console.log('Nodes to create:', nodes)
-      setSelectedParent(sourceTree.name)
+    if (schemas.length === 0 && !isLoadingSchemas) {
+      setIsLoadingSchemas(true)
+      fetchSchemas().finally(() => setIsLoadingSchemas(false))
     }
-  }, [isOpen, sourceTree, suggestionId, suggestionTitle, nodes])
+  }, [schemas.length, fetchSchemas, isLoadingSchemas, setIsLoadingSchemas])
 
-  if (!sourceTree || !previewTree) {
-    return null
-  }
+  // On open: reset state and auto-select matching schema
+  useEffect(() => {
+    if (!isOpen || !sourceTree) return
 
-  // Collect all nodes that can be parents (all existing nodes, including pending creations)
-  const collectAllNodes = (node: TreeNode): { name: string; depth: number }[] => {
-    const nodes: { name: string; depth: number }[] = []
+    setSelectedParent(sourceTree.name)
+    setParentSearch('')
+    setIsParentDropdownOpen(false)
+    resetEditor()
 
-    const traverse = (n: TreeNode, depth: number) => {
-      nodes.push({ name: n.name, depth })
-      if (n.children) {
-        for (const child of n.children) {
-          traverse(child, depth + 1)
-        }
+    const matched = schemas
+      .filter((s) => s.isLatest)
+      .find((s) => s.class.toLowerCase() === suggestionId.toLowerCase())
+
+    if (matched) {
+      setCurrentSchema(matched.id, matched, undefined)
+    }
+  }, [isOpen, sourceTree, suggestionId, schemas, resetEditor, setCurrentSchema])
+
+  // Close parent dropdown on outside click
+  useEffect(() => {
+    const handle = (e: MouseEvent) => {
+      if (parentDropdownRef.current && !parentDropdownRef.current.contains(e.target as Node)) {
+        setIsParentDropdownOpen(false)
       }
     }
+    if (isParentDropdownOpen) {
+      document.addEventListener('mousedown', handle)
+      return () => document.removeEventListener('mousedown', handle)
+    }
+  }, [isParentDropdownOpen])
 
+  // Close schema dropdown on outside click
+  useEffect(() => {
+    const handle = (e: MouseEvent) => {
+      if (schemaDropdownRef.current && !schemaDropdownRef.current.contains(e.target as Node)) {
+        if (isSchemaDropdownOpen) toggleSchemaDropdown()
+      }
+    }
+    if (isSchemaDropdownOpen) {
+      document.addEventListener('mousedown', handle)
+      return () => document.removeEventListener('mousedown', handle)
+    }
+  }, [isSchemaDropdownOpen, toggleSchemaDropdown])
+
+  // Close optional field dropdown on outside click
+  useEffect(() => {
+    const handle = (e: MouseEvent) => {
+      if (
+        optionalFieldDropdownRef.current &&
+        !optionalFieldDropdownRef.current.contains(e.target as Node)
+      ) {
+        if (isOptionalFieldDropdownOpen) toggleOptionalFieldDropdown()
+      }
+    }
+    if (isOptionalFieldDropdownOpen) {
+      document.addEventListener('mousedown', handle)
+      return () => document.removeEventListener('mousedown', handle)
+    }
+  }, [isOptionalFieldDropdownOpen, toggleOptionalFieldDropdown])
+
+  if (!sourceTree || !previewTree) return null
+
+  // Build flat list of all nodes for parent combobox
+  const collectAllNodes = (node: TreeNode): { name: string; depth: number }[] => {
+    const result: { name: string; depth: number }[] = []
+    const traverse = (n: TreeNode, depth: number) => {
+      result.push({ name: n.name, depth })
+      if (n.children) for (const child of n.children) traverse(child, depth + 1)
+    }
     traverse(node, 0)
-    return nodes
+    return result
   }
 
   const availableParents = collectAllNodes(previewTree)
+  const filteredParents = availableParents.filter((p) =>
+    p.name.toLowerCase().includes(parentSearch.toLowerCase()),
+  )
+
+  const activeSchema = currentSchemaId ? schemas.find((s) => s.id === currentSchemaId) : null
+  const addressFields = activeSchema?.properties
+    ? Object.entries(activeSchema.properties).filter(([key]) => key === 'address')
+    : []
+  const addressFieldKeys = new Set(addressFields.map(([key]) => key))
+
+  const filteredSchemas = schemas
+    .filter((s) => s.isLatest)
+    .filter((s) => s.class.toLowerCase().includes(schemaSearchQuery.toLowerCase()))
+
+  const handleSelectSchema = (schemaId: string) => {
+    const schema = schemas.find((s) => s.id === schemaId)
+    if (!schema) return
+    setCurrentSchema(schemaId, schema, undefined)
+  }
 
   const handleCreate = () => {
-    queueCreation(selectedParent, nodes)
+    // Collect non-empty form values to merge into the primary node
+    const schemaChanges: Record<string, any> = {}
+    for (const [key, value] of Object.entries(formData)) {
+      if (value !== '' && value !== null && value !== undefined) {
+        schemaChanges[key] = value
+      }
+    }
+
+    // Merge schema fields only into the first (primary) node
+    const augmentedNodes = nodes.map((node, i) =>
+      i === 0 ? { ...node, ...schemaChanges } : node,
+    )
+
+    queueCreation(selectedParent, augmentedNodes)
+    handleClose()
+  }
+
+  const handleClose = () => {
     onClose()
+    resetEditor()
   }
-
-  // Helper to count all nodes recursively
-  const countNodes = (nodesToCount: TreeNode[]): number => {
-    return nodesToCount.reduce((count, node) => {
-      return count + 1 + (node.children ? countNodes(node.children) : 0)
-    }, 0)
-  }
-
-  // Helper to render node tree preview
-  const renderNodePreview = (nodesToRender: TreeNode[], depth = 0) => {
-    return nodesToRender.map((node, idx) => (
-      <div key={idx} className={`${depth > 0 ? 'ml-6' : ''} space-y-2`}>
-        <div className="text-green-700 dark:text-green-300 flex items-start gap-2">
-          <span className="mt-1">+</span>
-          <div className="flex-1">
-            <div className="font-mono font-semibold text-sm">{node.name}</div>
-            {/* Attributes preview */}
-            <div className="text-xs text-gray-600 dark:text-gray-400 mt-1 space-y-1">
-              {node.nodeType && <div>Type: {formatNodeType(node.nodeType)}</div>}
-              {node.nodeType === 'organizationRoot' && node.website && (
-                <div>Website: {node.website}</div>
-              )}
-              {node.nodeType === 'organizationRoot' && node.organizationAddress && (
-                <div>Organization Address: {node.organizationAddress}</div>
-              )}
-              {node.nodeType === 'organizationRoot' && node.email && <div>Email: {node.email}</div>}
-            </div>
-          </div>
-        </div>
-        {/* Render children recursively */}
-        {node.children && node.children.length > 0 && (
-          <div>{renderNodePreview(node.children, depth + 1)}</div>
-        )}
-      </div>
-    ))
-  }
-
-  const totalNodes = countNodes(nodes)
 
   return (
-    <Drawer.Root open={isOpen} onOpenChange={(open) => !open && onClose()} direction="right">
+    <Drawer.Root open={isOpen} onOpenChange={(open) => !open && handleClose()} direction="right">
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 z-40 pointer-events-none" />
         <Drawer.Content
@@ -121,66 +185,340 @@ export function CreateNodeDrawer({ isOpen, onClose, suggestionId, suggestionTitl
         >
           <div className="h-full w-full grow p-6 flex flex-col rounded-r-[16px] border-l border-white bg-[rgb(247,247,248)] dark:bg-neutral-900">
             {/* Header */}
-            <div className="mb-4 relative">
+            <div className="mb-6 relative">
               <button
-                onClick={onClose}
+                onClick={handleClose}
                 className="absolute -top-2 -right-2 p-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
                 aria-label="Close drawer"
               >
                 <X size={20} />
               </button>
               <Drawer.Title className="font-semibold text-lg text-gray-900 dark:text-white mb-1">
-                Create Nodes
+                Create Node
               </Drawer.Title>
               <Drawer.Description className="text-sm text-gray-600 dark:text-gray-400">
                 {suggestionTitle}
               </Drawer.Description>
             </div>
 
-            {/* Schema Version */}
-            <div className="mb-6 pb-4 border-b border-gray-200 dark:border-gray-700">
-              <SchemaVersion />
-            </div>
-
             {/* Form */}
-            <div className="flex-1 overflow-y-auto space-y-6">
-              {/* Parent Node Selector */}
-              <div>
+            <div className="flex-1 overflow-y-auto space-y-6 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+              {/* Parent Node Combobox */}
+              <div ref={parentDropdownRef} className="relative">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Parent Node
                 </label>
-                <select
-                  value={selectedParent}
-                  onChange={(e) => setSelectedParent(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-800 dark:text-white"
+                <button
+                  type="button"
+                  onClick={() => setIsParentDropdownOpen((v) => !v)}
+                  className="w-full flex items-center justify-between px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800 hover:border-gray-400 dark:hover:border-gray-500 transition-colors"
                 >
-                  {availableParents.map((parent) => (
-                    <option key={parent.name} value={parent.name}>
-                      {'  '.repeat(parent.depth)}
-                      {parent.name}
-                    </option>
-                  ))}
-                </select>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  Choose where to create these nodes
-                </p>
+                  <span className="text-gray-900 dark:text-white font-mono text-xs truncate">
+                    {selectedParent || 'Select parent…'}
+                  </span>
+                  <ChevronDown size={16} className="text-gray-500 dark:text-gray-400 shrink-0 ml-2" />
+                </button>
+
+                {isParentDropdownOpen && (
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg z-50">
+                    <div className="p-2 border-b border-gray-200 dark:border-gray-700">
+                      <div className="relative">
+                        <Search
+                          size={14}
+                          className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"
+                        />
+                        <input
+                          type="text"
+                          placeholder="Search nodes…"
+                          value={parentSearch}
+                          onChange={(e) => setParentSearch(e.target.value)}
+                          className="w-full pl-7 pr-2 py-1.5 text-sm border border-gray-200 dark:border-gray-700 rounded bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                          autoFocus
+                        />
+                      </div>
+                    </div>
+                    <div className="max-h-48 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                      {filteredParents.length === 0 ? (
+                        <div className="p-4 text-center text-sm text-gray-500 dark:text-gray-400">
+                          No nodes found
+                        </div>
+                      ) : (
+                        filteredParents.map((parent) => (
+                          <button
+                            key={parent.name}
+                            type="button"
+                            onClick={() => {
+                              setSelectedParent(parent.name)
+                              setIsParentDropdownOpen(false)
+                              setParentSearch('')
+                            }}
+                            className={`w-full text-left px-3 py-2 text-sm transition-colors ${
+                              selectedParent === parent.name
+                                ? 'bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400'
+                                : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-white'
+                            }`}
+                          >
+                            <span
+                              className="font-mono text-xs"
+                              style={{ paddingLeft: `${parent.depth * 12}px` }}
+                            >
+                              {parent.name}
+                            </span>
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
 
-              {/* Preview */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Preview ({totalNodes} {totalNodes === 1 ? 'node' : 'nodes'})
-                </label>
-                <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-gray-50 dark:bg-gray-950 space-y-3">
-                  {renderNodePreview(nodes)}
+              {/* Lifted address fields */}
+              {addressFields.length > 0 && (
+                <>
+                <div className="space-y-2">
+                  {addressFields.map(([key]) => (
+                    <AddressField
+                      key={key}
+                      label={key}
+                      value={formData[key] ?? ''}
+                      onChange={(v) => updateField(key, v)}
+                    />
+                  ))}
                 </div>
-              </div>
+                <hr className="border-gray-200 dark:border-gray-700" />
+                </>
+              )}
+
+              {/* Schema Fields */}
+              {activeSchema?.properties && Object.keys(activeSchema.properties).filter((k) => !addressFieldKeys.has(k)).length > 0 ? (
+                <fieldset className="bg-white dark:bg-gray-800 rounded-xl p-4">
+                  {/* Schema selector header */}
+                  <div
+                    className="mb-4 pb-4 border-b border-gray-200 dark:border-gray-700 relative"
+                    ref={schemaDropdownRef}
+                  >
+                    <button
+                      type="button"
+                      onClick={toggleSchemaDropdown}
+                      className="flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:underline transition-colors mb-1"
+                    >
+                      <span>
+                        {activeSchema.class} - v{activeSchema.version}
+                      </span>
+                      <ChevronDown size={14} />
+                    </button>
+                    {activeSchema.description && (
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        {activeSchema.description}
+                      </p>
+                    )}
+
+                    {isSchemaDropdownOpen && (
+                      <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg z-50">
+                        <div className="p-2 border-b border-gray-200 dark:border-gray-700">
+                          <div className="relative">
+                            <Search
+                              size={14}
+                              className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"
+                            />
+                            <input
+                              type="text"
+                              placeholder="Search schemas…"
+                              value={schemaSearchQuery}
+                              onChange={(e) => setSchemaSearchQuery(e.target.value)}
+                              className="w-full pl-7 pr-2 py-1.5 text-sm border border-gray-200 dark:border-gray-700 rounded bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                              autoFocus
+                            />
+                          </div>
+                        </div>
+                        <div className="max-h-48 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                          {filteredSchemas.map((schema) => (
+                            <button
+                              key={schema.id}
+                              onClick={() => handleSelectSchema(schema.id)}
+                              className={`w-full text-left px-3 py-2 text-sm transition-colors ${
+                                activeSchema?.id === schema.id
+                                  ? 'bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400'
+                                  : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-white'
+                              }`}
+                            >
+                              <div className="font-medium">
+                                {schema.class}{' '}
+                                <span className="text-xs font-normal text-gray-500 dark:text-gray-400">
+                                  (v{schema.version})
+                                </span>
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Fields */}
+                  <div className="space-y-4">
+                    {Object.entries(activeSchema.properties)
+                      .filter(
+                        ([key]) =>
+                          !addressFieldKeys.has(key) &&
+                          (activeSchema.required?.includes(key) || visibleOptionalFields.has(key)),
+                      )
+                      .map(([key, attribute]: [string, any]) => {
+                        const isRequired = activeSchema.required?.includes(key)
+                        const isRecommended = !isRequired && activeSchema.recommended?.includes(key)
+                        const isTextArea = attribute.type === 'text' || key === 'description'
+
+                        return (
+                          <div key={key}>
+                            <div className="flex items-center justify-between mb-1.5">
+                              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                {key}
+                                {isRequired && <span className="text-red-500 ml-1">*</span>}
+                                {isRecommended && <Star size={10} className="inline ml-1 text-gray-400 dark:text-gray-500" title="recommended" />}
+                              </label>
+                              {!isRequired && (
+                                <button
+                                  type="button"
+                                  onClick={() => removeOptionalField(key)}
+                                  className="text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                                >
+                                  Remove
+                                </button>
+                              )}
+                            </div>
+                            {isTextArea ? (
+                              <textarea
+                                value={formData[key] ?? ''}
+                                onChange={(e) => updateField(key, e.target.value)}
+                                placeholder={attribute.description}
+                                rows={4}
+                                className="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-gray-900 dark:text-white resize-y"
+                              />
+                            ) : (
+                              <input
+                                type={attribute.type === 'string' ? 'text' : attribute.type}
+                                value={formData[key] ?? ''}
+                                onChange={(e) => updateField(key, e.target.value)}
+                                placeholder={attribute.description}
+                                className="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-gray-900 dark:text-white"
+                              />
+                            )}
+                          </div>
+                        )
+                      })}
+                  </div>
+
+                  {/* Add optional field */}
+                  {Object.entries(activeSchema.properties).some(
+                    ([key]) =>
+                      !addressFieldKeys.has(key) &&
+                      !activeSchema.required?.includes(key) &&
+                      !activeSchema.recommended?.includes(key) &&
+                      !visibleOptionalFields.has(key),
+                  ) && (
+                    <div
+                      className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 relative"
+                      ref={optionalFieldDropdownRef}
+                    >
+                      <button
+                        type="button"
+                        onClick={toggleOptionalFieldDropdown}
+                        className="w-full px-3 py-2 text-sm text-gray-600 dark:text-gray-400 border border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-gray-400 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors flex items-center justify-center gap-2"
+                      >
+                        + Add optional field
+                      </button>
+
+                      {isOptionalFieldDropdownOpen && (
+                        <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg z-50 max-h-48 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                          {Object.entries(activeSchema.properties)
+                            .filter(
+                              ([key]) =>
+                                !addressFieldKeys.has(key) &&
+                                !activeSchema.required?.includes(key) &&
+                                !activeSchema.recommended?.includes(key) &&
+                                !visibleOptionalFields.has(key),
+                            )
+                            .map(([key, attribute]: [string, any]) => (
+                              <button
+                                key={key}
+                                type="button"
+                                onClick={() => addOptionalField(key)}
+                                className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                              >
+                                <div className="font-medium text-gray-900 dark:text-white">{key}</div>
+                                {attribute.description && (
+                                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                                    {attribute.description}
+                                  </div>
+                                )}
+                              </button>
+                            ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </fieldset>
+              ) : (
+                /* No schema matched — manual schema picker */
+                <div className="bg-white dark:bg-gray-800 rounded-xl p-6">
+                  <div className="text-center py-4 text-gray-500 dark:text-gray-400 mb-4">
+                    <p className="text-sm font-medium">No schema selected</p>
+                    <p className="text-xs mt-1">Select a schema to see available fields</p>
+                  </div>
+                  <div className="relative" ref={schemaDropdownRef}>
+                    <button
+                      onClick={toggleSchemaDropdown}
+                      className="w-full flex items-center justify-between px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 hover:border-gray-400 dark:hover:border-gray-500 transition-colors"
+                    >
+                      <span className="text-gray-500 dark:text-gray-400">Select a schema…</span>
+                      <ChevronDown size={16} className="text-gray-500 dark:text-gray-400" />
+                    </button>
+
+                    {isSchemaDropdownOpen && (
+                      <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg z-50">
+                        <div className="p-2 border-b border-gray-200 dark:border-gray-700">
+                          <div className="relative">
+                            <Search
+                              size={14}
+                              className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"
+                            />
+                            <input
+                              type="text"
+                              placeholder="Search schemas…"
+                              value={schemaSearchQuery}
+                              onChange={(e) => setSchemaSearchQuery(e.target.value)}
+                              className="w-full pl-7 pr-2 py-1.5 text-sm border border-gray-200 dark:border-gray-700 rounded bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                              autoFocus
+                            />
+                          </div>
+                        </div>
+                        <div className="max-h-48 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                          {filteredSchemas.map((schema) => (
+                            <button
+                              key={schema.id}
+                              onClick={() => handleSelectSchema(schema.id)}
+                              className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-900 dark:text-white"
+                            >
+                              <div className="font-medium">
+                                {schema.class}{' '}
+                                <span className="text-xs font-normal text-gray-500 dark:text-gray-400">
+                                  (v{schema.version})
+                                </span>
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Actions */}
             <div className="flex gap-2 mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
               <button
-                onClick={onClose}
+                onClick={handleClose}
                 className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
               >
                 Cancel
@@ -189,7 +527,7 @@ export function CreateNodeDrawer({ isOpen, onClose, suggestionId, suggestionTitl
                 onClick={handleCreate}
                 className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors"
               >
-                Create {totalNodes} {totalNodes === 1 ? 'Node' : 'Nodes'}
+                Create Node
               </button>
             </div>
           </div>

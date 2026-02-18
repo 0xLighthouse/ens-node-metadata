@@ -55,7 +55,6 @@ export const useSchemaStore = create<SchemaState>()(
     {
       name: 'schema-storage',
       partialize: (state) => ({
-        schemas: state.schemas,
         selectedSchemaId: state.selectedSchemaId,
       }),
     },
