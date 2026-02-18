@@ -1,6 +1,6 @@
 import { Schema } from "../types";
 import { GITHUB_URL } from "../config/constants";
-import { ENSIP5 } from "../utils/ensip-5";
+import { ENSIP5 } from "../globals/ensip-5";
 
 
 export const DELEGATE_SCHEMA: Schema = {
@@ -11,43 +11,46 @@ export const DELEGATE_SCHEMA: Schema = {
   description: 'A delegate.',
   type: 'object' as const,
   properties: {
-    'full-name': {
+    class: {
       type: 'string',
-      description: 'Full legal or preferred name',
-      isRequired: false,
+      default: 'Delegate',
+      description: 'High-level identifier of this node type'
+    },
+    'legal-name': {
+      type: 'string',
+      description: 'The full legal or preferred name of the delegate (e.g. "John Doe")',
+    },
+    'display-name': {
+      type: 'string',
+      description: 'A canonical display name for the delegate',
     },
     statement: {
       type: 'string',
       description: 'Generic delegate statement ',
-      isRequired: false,
     },
-    conflictOfInterest: {
+    'conflict-of-interest': {
       type: 'string',
       description: 'Generic conflict of interest declaration ',
-      isRequired: false,
     },
-    forumHandle: {
+    'forum-handle': {
       type: 'string',
-      description: 'Default forum handle',
-      isRequired: false,
+      description: 'Default forum handle (e.g. "johndoe")',
     },
-    ...ENSIP5.properties,
   },
   patternProperties: {
     '^statement(\\[[^\\]]+\\])?$': {
       type: 'string',
       description: 'Delegate statement per organization (e.g. statement[dao.eth])',
-      isRequired: false,
     },
     '^conflict-of-interest(\\[[^\\]]+\\])?$': {
       type: 'string',
       description: 'Conflict of interest declaration per organization (e.g. conflict-of-interest[dao.eth])',
-      isRequired: false,
     },
     '^forum-handle(\\[[^\\]]+\\])?$': {
       type: 'string',
       description: 'Forum handle per organization (e.g. forum-handle[dao.eth])',
-      isRequired: false,
     },
   },
+  required: ['class'],
+  recommended: ['display-name', 'statement', 'conflict-of-interest', 'forum-handle']
 }

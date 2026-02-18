@@ -1,6 +1,5 @@
 import { Schema } from "../types";
 import { GITHUB_URL } from "../config/constants";
-import { ENSIP5 } from "../utils/ensip-5";
 
 export const WALLET_SCHEMA: Schema = {
   $id: `${GITHUB_URL}/schemas/wallet/1.0.0`,
@@ -10,11 +9,17 @@ export const WALLET_SCHEMA: Schema = {
   description: 'A wallet for holding or managing assets.',
   type: 'object' as const,
   properties: {
-    'name': {
+    class: {
       type: 'string',
-      description: 'Human-readable wallet name',
-      isRequired: false,
+      default: 'Wallet',
+      description: 'High-level identifier of this node type',
+      examples: ['Wallet', 'Account'],
     },
-    ...ENSIP5.properties,
+    description: {
+      type: 'string',
+      description: 'Indicates the purpose of the wallet',
+    },
   },
+  required: ['class'],
+  recommended: ['description']
 }

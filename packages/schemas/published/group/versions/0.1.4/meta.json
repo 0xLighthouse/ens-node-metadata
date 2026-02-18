@@ -2,15 +2,15 @@
   "schemaId": "group",
   "version": "0.1.4",
   "title": "Group",
-  "description": "This node represents a logical grouping of multiple child nodes.",
+  "description": "This node describes a group of individuals or entities with a shared purpose or responsibility.",
   "source": "https://github.com/0xLighthouse/ens-node-metadata",
-  "cid": "QmPBUE21FjmbUDKb5mUW4wS9xkB9kwVQqtpkG3ZX9qv2F7",
-  "checksum": "sha256:9d7e8b39e5f61aae35d1233d44121b56eb5fab0f818dc324ca39393b3d8ad419",
-  "timestamp": 1771348980,
+  "cid": "QmYJieM3KXTeDhrwcFr3cMSi1LVWofxjCVkMzv1HTuoYSw",
+  "checksum": "sha256:ca4434bed698d565b4a5d24bf98c658dc3e6fa381c48f66cd49744fde1b47559",
+  "timestamp": 1771420694,
   "schemaPath": "packages/schemas/published/group/versions/0.1.4/schema.json",
   "publisher": "pinata",
   "signer": "0x6837047F46Da1d5d9A79846b25810b92adF456F6",
-  "signature": "0xf9453fa317e972244b93f9ae48f1e7fbc2ee35a58517cbe39ccd18ba30e71538167e695e3af7f78e546fa99c7b7fe451290e56cbf07b96281a4e24cac912653b1b",
+  "signature": "0x50588cca660918a2d8e880af1573b852862e734b6dd5e87375faf42a55e2fa2c05ab798221392603db85eca759bd413b9e8152b732a7ee5e67d87d60abbcbe551b",
   "eip712": {
     "domain": {
       "name": "ENS Schema Publisher",
@@ -56,9 +56,9 @@
     "message": {
       "schemaId": "group",
       "version": "0.1.4",
-      "cid": "QmPBUE21FjmbUDKb5mUW4wS9xkB9kwVQqtpkG3ZX9qv2F7",
-      "checksum": "sha256:9d7e8b39e5f61aae35d1233d44121b56eb5fab0f818dc324ca39393b3d8ad419",
-      "timestamp": 1771348980,
+      "cid": "QmYJieM3KXTeDhrwcFr3cMSi1LVWofxjCVkMzv1HTuoYSw",
+      "checksum": "sha256:ca4434bed698d565b4a5d24bf98c658dc3e6fa381c48f66cd49744fde1b47559",
+      "timestamp": 1771420694,
       "schemaPath": "packages/schemas/published/group/versions/0.1.4/schema.json",
       "publisher": "pinata",
       "notes": ""

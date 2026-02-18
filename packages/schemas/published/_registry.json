@@ -1,35 +1,24 @@
 {
   "schemas": {
-    "org": {
-      "latest": "0.1.8",
-      "published": {
-        "0.1.8": {
-          "cid": "QmdqgEp4AmrKst4DmWLxuwdbiQaMBq5KBCWP6ofW5Pce6q",
-          "checksum": "sha256:633ab361d96912d40edf403b6106aeaf6d67b538c0765fc846d09c2026eb9a2b",
-          "timestamp": 1771348905,
-          "schemaPath": "packages/schemas/published/org/versions/0.1.8/schema.json"
-        }
-      }
-    },
     "agent": {
       "latest": "1.0.0",
       "published": {
         "1.0.0": {
-          "cid": "QmadaMaQcpGnTSsYMjf8Ju4AC9WzoRbk39niwBqrbURZTJ",
-          "checksum": "sha256:d6528cb684f92c37f3e5ca7c41c16002e032b13c17644d8297407dfee5ce6f2d",
-          "timestamp": 1771348940,
+          "cid": "QmS1ZHmucPJCo8KGaBG2e27c6jqpjFrFWoZWoVPyBPqVyJ",
+          "checksum": "sha256:6778eeaf90b71eb75c2a174f50062e8a5dbfcb62152e0ab905339a6da5e01e3b",
+          "timestamp": 1771420402,
           "schemaPath": "packages/schemas/published/agent/versions/1.0.0/schema.json"
         }
       }
     },
-    "committee": {
+    "application": {
       "latest": "1.0.0",
       "published": {
         "1.0.0": {
-          "cid": "QmbgN4pju4fxi9YZHKRCmyZQCkqR36GsbHG3WQkqJ2zvsA",
-          "checksum": "sha256:486d588759657dfc86e826b55f53190e4af25cc05c74fc1aff758935f87393ba",
-          "timestamp": 1771348947,
-          "schemaPath": "packages/schemas/published/committee/versions/1.0.0/schema.json"
+          "cid": "QmSsjRkk2xZSU6yXxjgPmyKpyfQVGmUw5qLGaPkYcdPW9A",
+          "checksum": "sha256:79de7f6f9d48810193959754c27315a7558529d713a532d5c2566f3de2197819",
+          "timestamp": 1771420672,
+          "schemaPath": "packages/schemas/published/application/versions/1.0.0/schema.json"
         }
       }
     },
@@ -37,21 +26,10 @@
       "latest": "1.1.1",
       "published": {
         "1.1.1": {
-          "cid": "QmV6DufHmDEWrMg9oVnKL4BBpBXi2m2sEy32D2J147PqoB",
-          "checksum": "sha256:9d9033f4864158bf409dc107a0fd60462640298c604c4ecd9d2fea53a8dd6025",
-          "timestamp": 1771348953,
+          "cid": "QmPq5xpj5LoCnAswuLk8ofgvpFLFNsRhJDPjvPVssCyPw1",
+          "checksum": "sha256:ff0ef9190bc2e00e90ce30a7328187fdbe7bec54bf7945b17c25533685e6c014",
+          "timestamp": 1771420678,
           "schemaPath": "packages/schemas/published/contract/versions/1.1.1/schema.json"
-        }
-      }
-    },
-    "council": {
-      "latest": "1.0.0",
-      "published": {
-        "1.0.0": {
-          "cid": "QmduUMFbH6ZArufSEZ6bt4iusgSRRTxoVMmMVBgMnizrfo",
-          "checksum": "sha256:d54da27aec99751a5fc4aa5ea4009b89b76d9289d39cbea5b4984c54ecfa4055",
-          "timestamp": 1771348961,
-          "schemaPath": "packages/schemas/published/council/versions/1.0.0/schema.json"
         }
       }
     },
@@ -59,9 +37,9 @@
       "latest": "1.0.0",
       "published": {
         "1.0.0": {
-          "cid": "QmQ2qzEyrndEXRqJ5iy3jK9eYyiLKKiqDhakoR6toqymAH",
-          "checksum": "sha256:a7723a8423e8569792370dbdb0b23e869b5248fb281bfd2582fb904620b203e3",
-          "timestamp": 1771348970,
+          "cid": "QmaDG9p9vJjsLBtbtCPTd6tmfJUh2wuXmYQfNwrpe2qQwe",
+          "checksum": "sha256:a44ced384a3e28682f4ba1fc70124dee9a30a0339657a6ab6b33c0c3516a959c",
+          "timestamp": 1771420683,
           "schemaPath": "packages/schemas/published/delegate/versions/1.0.0/schema.json"
         }
       }
@@ -70,9 +48,9 @@
       "latest": "1.0.0",
       "published": {
         "1.0.0": {
-          "cid": "QmXXBG4s1uSSAzZt5dRxubasRzNM3KRdkc4XGzjLkpHF1E",
-          "checksum": "sha256:0eca9e02421d87d67a4da81a7913207c7accd4520eba4219849928caffce093d",
-          "timestamp": 1771348975,
+          "cid": "QmdktToaxwvN31DGDEtWQ7uVKNURssW5k8oCtgceTFHemS",
+          "checksum": "sha256:205ff736e4ce769bbc86332aedf56fe55275154ffcfda4d2c5003bc809ca4df4",
+          "timestamp": 1771420688,
           "schemaPath": "packages/schemas/published/grant/versions/1.0.0/schema.json"
         }
       }
@@ -81,10 +59,21 @@
       "latest": "0.1.4",
       "published": {
         "0.1.4": {
-          "cid": "QmPBUE21FjmbUDKb5mUW4wS9xkB9kwVQqtpkG3ZX9qv2F7",
-          "checksum": "sha256:9d7e8b39e5f61aae35d1233d44121b56eb5fab0f818dc324ca39393b3d8ad419",
-          "timestamp": 1771348980,
+          "cid": "QmYJieM3KXTeDhrwcFr3cMSi1LVWofxjCVkMzv1HTuoYSw",
+          "checksum": "sha256:ca4434bed698d565b4a5d24bf98c658dc3e6fa381c48f66cd49744fde1b47559",
+          "timestamp": 1771420694,
           "schemaPath": "packages/schemas/published/group/versions/0.1.4/schema.json"
+        }
+      }
+    },
+    "org": {
+      "latest": "0.1.8",
+      "published": {
+        "0.1.8": {
+          "cid": "QmfPD2L38hREq356GxhMkyMJMECVwRAxm6dEJZh3bpPAdd",
+          "checksum": "sha256:07522b2427846867ffd3a69c1955d08ec0d9a88a3da6d5a0efd5ec94ae103f2a",
+          "timestamp": 1771420699,
+          "schemaPath": "packages/schemas/published/org/versions/0.1.8/schema.json"
         }
       }
     },
@@ -92,9 +81,9 @@
       "latest": "1.0.0",
       "published": {
         "1.0.0": {
-          "cid": "QmNsus6RLTQa3qzhaYwPVP7nRNecTPYLPYZDRguLsJx9n1",
-          "checksum": "sha256:7db46e32bae7b1c95ee6b1957208df0acd888d0a897672847ef8e9d3a9c76005",
-          "timestamp": 1771348990,
+          "cid": "QmYZNmUKP751Vfj2ZEVwXawvGto1zsmi4oiTsnunzx6dsp",
+          "checksum": "sha256:c40c06eff4eae205f64a70eb8ab2bb639e6ec7a62aeceeab7d7ae5eaf9959760",
+          "timestamp": 1771420704,
           "schemaPath": "packages/schemas/published/person/versions/1.0.0/schema.json"
         }
       }
@@ -103,9 +92,9 @@
       "latest": "1.0.0",
       "published": {
         "1.0.0": {
-          "cid": "QmVKo7GS9rtCwjAe5e567rMBmavWQZw1UT3UzUgbibpZWs",
-          "checksum": "sha256:d89392c97933aecfdaa08fb0599fb5130c606ef13e381f32e51b8cec64670a77",
-          "timestamp": 1771349003,
+          "cid": "QmcrTCuN3FmpTP66LzQqDtaxmK7j5wMNtHKQEjE2SCLUZr",
+          "checksum": "sha256:bd72ed65798aa3db260b2fa04c75263df19b06bff9dfbad540921d82c41a76a3",
+          "timestamp": 1771420708,
           "schemaPath": "packages/schemas/published/treasury/versions/1.0.0/schema.json"
         }
       }
@@ -114,21 +103,10 @@
       "latest": "1.0.0",
       "published": {
         "1.0.0": {
-          "cid": "QmY4nfnQqqpfhuS6dgfCK1SY6QkN3itscWguwKboUWU6Td",
-          "checksum": "sha256:5bb00730dedcf05012ef94ecda9133046eec3a24673f8e7915b9e5a0592f55fa",
-          "timestamp": 1771349014,
+          "cid": "QmTdnHbDob1Cf7Uy1dYmrRezyETvf19QWcaNpFP3WSe2JD",
+          "checksum": "sha256:1a6fadb35c51e238e7ddb947b1ac6b9e899df71247f0eb85c7724092fd075988",
+          "timestamp": 1771420712,
           "schemaPath": "packages/schemas/published/wallet/versions/1.0.0/schema.json"
-        }
-      }
-    },
-    "workgroup": {
-      "latest": "1.0.0",
-      "published": {
-        "1.0.0": {
-          "cid": "QmYW3Ppkg4W1dCG6ueiLAcZJ5ugsZn8CPz5mJE1682VQWQ",
-          "checksum": "sha256:b014f5079c5a60f2a2f74acae27b162b758ae1231df24d7d8248706fbebb1e81",
-          "timestamp": 1771349019,
-          "schemaPath": "packages/schemas/published/workgroup/versions/1.0.0/schema.json"
         }
       }
     }

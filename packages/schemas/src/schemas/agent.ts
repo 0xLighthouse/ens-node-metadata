@@ -9,63 +9,61 @@ export const AGENT_SCHEMA: Schema = {
   description: 'AI agent identity metadata aligned with ERC-8004 registration format.',
   type: 'object' as const,
   properties: {
+    class: {
+      type: 'string',
+      default: 'Agent',
+      description: 'High-level identifier of this node type'
+    },
     'agent-uri': {
       type: 'string',
       format: 'uri',
       description: 'URI to the ERC-8004 registration file',
-      isRequired: false,
     },
     type: {
       type: 'string',
       description: 'Registration file type discriminator',
-      isRequired: false,
     },
     name: {
       type: 'string',
       description: 'Agent display name',
-      isRequired: false,
     },
     description: {
       type: 'string',
       description: 'Natural-language description of the agent',
-      isRequired: false,
     },
     services: {
-      type: 'json',
+      type: 'string',
       description: 'Advertised service endpoints',
-      isRequired: false,
     },
     'x402-support': {
       type: 'boolean',
       description: 'Whether x402 payment flow is supported',
-      isRequired: false,
+
     },
     active: {
-      type: 'boolean',
+      type: 'string',
+      format: 'boolean',
       description: 'Whether the agent is currently active',
-      isRequired: false,
     },
     registrations: {
-      type: 'json',
+      type: 'string',
       description: 'Cross-chain identity registrations',
-      isRequired: false,
     },
     'supported-trust': {
-      type: 'json',
+      type: 'string',
       description: 'Trust models supported by the agent',
-      isRequired: false,
     },
     'agent-wallet': {
       type: 'string',
       description: 'Verified payout wallet for agent operations',
-      isRequired: false,
     },
   },
   patternProperties: {
     '^service(\[[^\]]+\])?$': {
       type: 'string',
-      description: 'Service endpoints for the agent (A2A, MCP, etc)',
-      isRequired: false,
+      description: 'service[name] => endpoint, per ERC-8004 eg. service[MCP] => <ENDPOINT_URL>',
     }
-  }
+  },
+  required: ['class'],
+  recommended: ['agent-uri']
 };
