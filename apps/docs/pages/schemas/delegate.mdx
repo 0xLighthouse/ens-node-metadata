@@ -1,6 +1,6 @@
 ---
 title: Delegate
-weight: 6
+weight: 4
 ---
 
 # Delegate
@@ -9,22 +9,14 @@ A delegate.
 
 ## Attributes
 
-| Key | Type | Required | Description |
-| --- | --- | --- | --- |
-| full-name | string | No | Full legal or preferred name |
-| statement | string | No | Generic delegate statement  |
-| conflictOfInterest | string | No | Generic conflict of interest declaration  |
-| forumHandle | string | No | Default forum handle |
-| avatar | string | No | A URL to an image used as an avatar or logo |
-| description | string | No | A description of the name |
-| display | string | No | A canonical display name for the ENS name; this MUST match the ENS name when its case is folded, and clients should ignore this value if it does not (e.g. "ricmoo.eth" could set this to "RicMoo.eth") |
-| email | string | No | An e-mail address |
-| keywords | string | No | A list of comma-separated keywords, ordered by most significant first; clients that interpresent this field may choose a threshold beyond which to ignore |
-| mail | string | No | A physical mailing address |
-| notice | string | No | A notice regarding this name |
-| location | string | No | A generic location (e.g. "Toronto, Canada") |
-| phone | string | No | A phone number as an E.164 string |
-| url | string | No | A website URL |
+| Key | Type | Required | Description | Values |
+| --- | --- | --- | --- | --- |
+| class | string | Y | High-level identifier of this node type | - |
+| legal-name | string | - | The full legal or preferred name of the delegate (e.g. "John Doe") | - |
+| display-name | string | Y | A canonical display name for the delegate | - |
+| statement | string | Y | Generic delegate statement  | - |
+| conflict-of-interest | string | Y | Generic conflict of interest declaration  | - |
+| forum-handle | string | Y | Default forum handle (e.g. "johndoe") | - |
 
 
 ## Metadata
@@ -32,12 +24,12 @@ A delegate.
 - Schema ID: `delegate`
 - Latest version: `1.0.0`
 - Source: [https://github.com/0xLighthouse/ens-node-metadata](https://github.com/0xLighthouse/ens-node-metadata)
-- CID: `QmQ2qzEyrndEXRqJ5iy3jK9eYyiLKKiqDhakoR6toqymAH`
-- Checksum: `sha256:a7723a8423e8569792370dbdb0b23e869b5248fb281bfd2582fb904620b203e3`
-- Published at (UTC): `2026-02-17T17:22:50.000Z`
+- CID: `QmaDG9p9vJjsLBtbtCPTd6tmfJUh2wuXmYQfNwrpe2qQwe`
+- Checksum: `sha256:a44ced384a3e28682f4ba1fc70124dee9a30a0339657a6ab6b33c0c3516a959c`
+- Published at (UTC): `2026-02-18T13:18:03.000Z`
 
 ## Version history
 
 | Version | CID | IPFS | Published at (UTC) |
 | --- | --- | --- | --- |
-| `1.0.0 (latest)` | `QmQ2qzEyrndEXRqJ5iy3jK9eYyiLKKiqDhakoR6toqymAH` | [Open](https://ipfs.io/ipfs/QmQ2qzEyrndEXRqJ5iy3jK9eYyiLKKiqDhakoR6toqymAH) | `2026-02-17T17:22:50.000Z` |
+| `1.0.0 (latest)` | `QmaDG9p9vJjsLBtbtCPTd6tmfJUh2wuXmYQfNwrpe2qQwe` | [Open](https://ipfs.io/ipfs/QmaDG9p9vJjsLBtbtCPTd6tmfJUh2wuXmYQfNwrpe2qQwe) | `2026-02-18T13:18:03.000Z` |

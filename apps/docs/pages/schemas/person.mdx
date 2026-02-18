@@ -1,6 +1,6 @@
 ---
 title: Person
-weight: 9
+weight: 8
 ---
 
 # Person
@@ -9,20 +9,11 @@ A person.
 
 ## Attributes
 
-| Key | Type | Required | Description |
-| --- | --- | --- | --- |
-| full-name | string | No | Full legal or preferred name |
-| title | string | No | Title within the organization, if any |
-| avatar | string | No | A URL to an image used as an avatar or logo |
-| description | string | No | A description of the name |
-| display | string | No | A canonical display name for the ENS name; this MUST match the ENS name when its case is folded, and clients should ignore this value if it does not (e.g. "ricmoo.eth" could set this to "RicMoo.eth") |
-| email | string | No | An e-mail address |
-| keywords | string | No | A list of comma-separated keywords, ordered by most significant first; clients that interpresent this field may choose a threshold beyond which to ignore |
-| mail | string | No | A physical mailing address |
-| notice | string | No | A notice regarding this name |
-| location | string | No | A generic location (e.g. "Toronto, Canada") |
-| phone | string | No | A phone number as an E.164 string |
-| url | string | No | A website URL |
+| Key | Type | Required | Description | Values |
+| --- | --- | --- | --- | --- |
+| class | string | - | High-level identifier of this node type | e.g. `Person`, `Human`, `Signer`, `Officer`, `Employee`, `Secretary` |
+| full-name | string | - | Full legal or preferred name | - |
+| title | string | - | Title within the organization, if any | - |
 
 
 ## Metadata
@@ -30,12 +21,12 @@ A person.
 - Schema ID: `person`
 - Latest version: `1.0.0`
 - Source: [https://github.com/0xLighthouse/ens-node-metadata](https://github.com/0xLighthouse/ens-node-metadata)
-- CID: `QmNsus6RLTQa3qzhaYwPVP7nRNecTPYLPYZDRguLsJx9n1`
-- Checksum: `sha256:7db46e32bae7b1c95ee6b1957208df0acd888d0a897672847ef8e9d3a9c76005`
-- Published at (UTC): `2026-02-17T17:23:10.000Z`
+- CID: `QmYZNmUKP751Vfj2ZEVwXawvGto1zsmi4oiTsnunzx6dsp`
+- Checksum: `sha256:c40c06eff4eae205f64a70eb8ab2bb639e6ec7a62aeceeab7d7ae5eaf9959760`
+- Published at (UTC): `2026-02-18T13:18:24.000Z`
 
 ## Version history
 
 | Version | CID | IPFS | Published at (UTC) |
 | --- | --- | --- | --- |
-| `1.0.0 (latest)` | `QmNsus6RLTQa3qzhaYwPVP7nRNecTPYLPYZDRguLsJx9n1` | [Open](https://ipfs.io/ipfs/QmNsus6RLTQa3qzhaYwPVP7nRNecTPYLPYZDRguLsJx9n1) | `2026-02-17T17:23:10.000Z` |
+| `1.0.0 (latest)` | `QmYZNmUKP751Vfj2ZEVwXawvGto1zsmi4oiTsnunzx6dsp` | [Open](https://ipfs.io/ipfs/QmYZNmUKP751Vfj2ZEVwXawvGto1zsmi4oiTsnunzx6dsp) | `2026-02-18T13:18:24.000Z` |
