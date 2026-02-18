@@ -2,7 +2,7 @@
 
 import { memo } from 'react'
 import type { Node, NodeProps } from '@xyflow/react'
-import type { TreeNode, TreeNodeType } from '@/lib/tree/types'
+import type { TreeNode } from '@/lib/tree/types'
 import { BaseNodeCard } from './BaseNode'
 
 interface DomainTreeNodeData {
@@ -19,19 +19,7 @@ interface DomainTreeNodeData {
 
 type DomainTreeNode = Node<DomainTreeNodeData>
 
-// Backward-compat accent colors for legacy nodeType values (when no schema type is set)
-const legacyAccent: Partial<Record<TreeNodeType, string>> = {
-  organizationRoot: '#0ea5e9',
-  role: '#8b5cf6',
-  team: '#10b981',
-}
-
 const DefaultNodeWrapper = ({ data }: NodeProps<DomainTreeNode>) => {
-  const schemaType = ((data.node as any).class || data.node.texts?.class) as string | undefined
-  const configOverride = !schemaType && data.node.nodeType
-    ? { accentColor: legacyAccent[data.node.nodeType] ?? '#94a3b8' }
-    : undefined
-
   return (
     <BaseNodeCard
       node={data.node}
@@ -41,7 +29,6 @@ const DefaultNodeWrapper = ({ data }: NodeProps<DomainTreeNode>) => {
       hasPendingEdits={data.hasPendingEdits}
       onToggleCollapse={data.onToggleCollapse}
       childrenCount={data.childrenCount}
-      configOverride={configOverride}
     />
   )
 }

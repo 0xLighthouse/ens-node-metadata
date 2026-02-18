@@ -1,18 +1,17 @@
 'use client'
 
 import { Drawer } from 'vaul'
-import { X, ExternalLink, Link2, ChevronDown, Search, RefreshCw, Trash2 } from 'lucide-react'
+import { X, ExternalLink, Search, RefreshCw, Trash2, Star } from 'lucide-react'
+import { AddressField } from './AddressField'
 import { useTreeEditStore } from '@/stores/tree-edits'
 import { useTreeData } from '@/hooks/useTreeData'
-import { type TreeNodeType } from '@/lib/tree/types'
-import { useState, useEffect, useRef } from 'react'
-import { SchemaVersion } from '../SchemaVersion'
+import { useEffect, useRef } from 'react'
 import { useSchemaStore } from '@/stores/schemas'
 import { useNodeEditorStore } from '@/stores/node-editor'
 
 export function EditNodeDrawer() {
   const { sourceTree, previewTree } = useTreeData()
-  const { schemas, selectSchema, fetchSchemas } = useSchemaStore()
+  const { schemas, fetchSchemas } = useSchemaStore()
   const {
     isEditDrawerOpen,
     selectedNode,
@@ -46,7 +45,6 @@ export function EditNodeDrawer() {
     setNewAttributeKey,
     addCustomAttribute,
     removeCustomAttribute,
-    getFormData,
     hasChanges: storeHasChanges,
     getChangedFields,
   } = useNodeEditorStore()
@@ -93,6 +91,11 @@ export function EditNodeDrawer() {
       ? schemas.find((s) => s.id === nodeSchemaId)
       : null
 
+  const addressFields = activeSchema?.properties
+    ? Object.entries(activeSchema.properties).filter(([key]) => key === 'address')
+    : []
+  const addressFieldKeys = new Set(addressFields.map(([key]) => key))
+
   // Close schema dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -138,9 +141,7 @@ export function EditNodeDrawer() {
 
   const filteredSchemas = schemas
     .filter((schema) => schema.isLatest)
-    .filter((schema) =>
-      schema.class.toLowerCase().includes(schemaSearchQuery.toLowerCase()),
-    )
+    .filter((schema) => schema.class.toLowerCase().includes(schemaSearchQuery.toLowerCase()))
 
   const handleSelectSchema = (schemaId: string) => {
     const schema = schemas.find((s) => s.id === schemaId)
@@ -221,7 +222,7 @@ export function EditNodeDrawer() {
         >
           <div className="h-full w-full grow p-6 flex flex-col rounded-r-[16px] border-l border-white bg-[rgb(247,247,248)] dark:bg-neutral-900">
             {/* Header */}
-            <div className="mb-4 relative">
+            <div className="mb-4 relative" ref={schemaDropdownRef}>
               <button
                 onClick={handleDrawerClose}
                 className="absolute -top-2 -right-2 p-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
@@ -230,148 +231,144 @@ export function EditNodeDrawer() {
                 <X size={20} />
               </button>
 
-              {nodeSchemaId && activeSchema ? (
-                // Header when schema is applied
-                <>
-                  <Drawer.Title className="font-semibold text-2xl text-gray-900 dark:text-white mb-1.5">
-                    {nodeWithEdits?.name}
-                  </Drawer.Title>
-                  <div className="flex items-center gap-2">
-                    <Drawer.Description className="text-base text-gray-700 dark:text-gray-300 font-medium">
+              <Drawer.Title className="font-semibold text-2xl text-gray-900 dark:text-white mb-3">
+                {nodeWithEdits?.name}
+              </Drawer.Title>
+
+              <Drawer.Description className="sr-only">{nodeWithEdits?.name}</Drawer.Description>
+
+              <div className="flex items-center justify-between pt-3 border-t border-gray-200 dark:border-gray-700">
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Schema</span>
+                {activeSchema ? (
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={toggleSchemaDropdown}
+                      className="text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors"
+                    >
                       {activeSchema.class}
-                    </Drawer.Description>
-                    <ExternalLink className="size-4 text-gray-400" />
-                    <span className="text-sm text-gray-500 dark:text-gray-400">
-                      ({activeSchema.version})
+                    </button>
+                    <a
+                      href={activeSchema.id.replace('ipfs://', 'https://ipfs.io/ipfs/')}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-indigo-400 dark:text-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-300 transition-colors"
+                    >
+                      <ExternalLink className="size-3" />
+                    </a>
+                    <span className="text-xs text-gray-400 dark:text-gray-500">
+                      v{activeSchema.version}
                     </span>
                   </div>
-                </>
-              ) : (
-                // Header when no schema
-                <>
-                  <Drawer.Title className="font-semibold text-2xl text-gray-900 dark:text-white mb-1">
-                    Edit Node
-                  </Drawer.Title>
-                  <Drawer.Description className="text-base text-gray-600 dark:text-gray-400">
-                    {nodeWithEdits?.name}
-                  </Drawer.Description>
-                </>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={toggleSchemaDropdown}
+                    className="text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors"
+                  >
+                    + Select
+                  </button>
+                )}
+              </div>
+
+              {/* Schema dropdown */}
+              {isSchemaDropdownOpen && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg z-50">
+                  <div className="p-2 border-b border-gray-200 dark:border-gray-700">
+                    <div className="flex items-center gap-2">
+                      <div className="relative flex-1">
+                        <Search
+                          size={14}
+                          className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"
+                        />
+                        <input
+                          type="text"
+                          placeholder="Search schemas..."
+                          value={schemaSearchQuery}
+                          onChange={(e) => setSchemaSearchQuery(e.target.value)}
+                          className="w-full pl-7 pr-2 py-1.5 text-sm border border-gray-200 dark:border-gray-700 rounded bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                          autoFocus
+                        />
+                      </div>
+                      <button
+                        onClick={handleRefreshSchemas}
+                        disabled={isLoadingSchemas}
+                        className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                        title="Refresh schemas"
+                      >
+                        <RefreshCw size={14} className={isLoadingSchemas ? 'animate-spin' : ''} />
+                      </button>
+                    </div>
+                  </div>
+                  <div className="max-h-64 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                    {isLoadingSchemas ? (
+                      <div className="p-4 text-center text-sm text-gray-500 dark:text-gray-400">
+                        Loading schemas...
+                      </div>
+                    ) : filteredSchemas.length === 0 ? (
+                      <div className="p-4 text-center text-sm text-gray-500 dark:text-gray-400">
+                        No schemas found
+                      </div>
+                    ) : (
+                      filteredSchemas.map((schema) => (
+                        <button
+                          key={schema.id}
+                          onClick={() => handleSelectSchema(schema.id)}
+                          className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
+                            activeSchema?.id === schema.id
+                              ? 'bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400'
+                              : 'text-gray-900 dark:text-white'
+                          }`}
+                        >
+                          <div className="font-medium">
+                            {schema.class}{' '}
+                            <span className="text-xs font-normal text-gray-500 dark:text-gray-400">
+                              (v{schema.version})
+                            </span>
+                          </div>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                </div>
               )}
             </div>
 
             {/* Form */}
             {nodeWithEdits && !nodeWithEdits.isSuggested && (
               <div className="flex-1 overflow-y-auto space-y-6 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                {/* Lifted address fields */}
                 {/* Schema-based Fields */}
-                {activeSchema?.properties && Object.keys(activeSchema.properties).length > 0 ? (
+                {activeSchema?.properties &&
+                Object.keys(activeSchema.properties).filter((k) => !addressFieldKeys.has(k))
+                  .length > 0 ? (
                   <fieldset className="bg-white dark:bg-gray-800 rounded-xl p-4">
-                    {/* Schema selector at top */}
-                    <div
-                      className="mb-4 pb-4 border-b border-gray-200 dark:border-gray-700 relative"
-                      ref={schemaDropdownRef}
-                    >
-                      <button
-                        type="button"
-                        onClick={toggleSchemaDropdown}
-                        className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:underline transition-colors mb-1"
-                      >
-                        <Link2 className="size-4" />
-                        <span>
-                          {activeSchema.class} - v{activeSchema.version}
-                        </span>
-                      </button>
-                      {activeSchema.description && (
-                        <p className="text-xs text-gray-500 dark:text-gray-400 pl-6">
-                          {activeSchema.description}
-                        </p>
-                      )}
-
-                      {/* Schema Dropdown */}
-                      {isSchemaDropdownOpen && (
-                        <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg z-50">
-                          {/* Search Input */}
-                          <div className="p-2 border-b border-gray-200 dark:border-gray-700">
-                            <div className="flex items-center gap-2">
-                              <div className="relative flex-1">
-                                <Search
-                                  size={14}
-                                  className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"
-                                />
-                                <input
-                                  type="text"
-                                  placeholder="Search schemas..."
-                                  value={schemaSearchQuery}
-                                  onChange={(e) => setSchemaSearchQuery(e.target.value)}
-                                  className="w-full pl-7 pr-2 py-1.5 text-sm border border-gray-200 dark:border-gray-700 rounded bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                                  autoFocus
-                                />
-                              </div>
-
-                              {/* Refresh Button */}
-                              <button
-                                onClick={handleRefreshSchemas}
-                                disabled={isLoadingSchemas}
-                                className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                                title="Refresh schemas"
-                              >
-                                <RefreshCw
-                                  size={14}
-                                  className={isLoadingSchemas ? 'animate-spin' : ''}
-                                />
-                              </button>
-                            </div>
-                          </div>
-
-                          {/* Schema List */}
-                          <div className="max-h-64 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-                            {isLoadingSchemas ? (
-                              <div className="p-4 text-center text-sm text-gray-500 dark:text-gray-400">
-                                Loading schemas...
-                              </div>
-                            ) : filteredSchemas.length === 0 ? (
-                              <div className="p-4 text-center text-sm text-gray-500 dark:text-gray-400">
-                                No schemas found
-                              </div>
-                            ) : (
-                              filteredSchemas.map((schema) => (
-                                <button
-                                  key={schema.id}
-                                  onClick={() => handleSelectSchema(schema.id)}
-                                  className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
-                                    activeSchema?.id === schema.id
-                                      ? 'bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400'
-                                      : 'text-gray-900 dark:text-white'
-                                  }`}
-                                >
-                                  <div className="font-medium">
-                                    {schema.class}{' '}
-                                    <span className="text-xs font-normal text-gray-500 dark:text-gray-400">
-                                      (v{schema.version})
-                                    </span>
-                                  </div>
-                                </button>
-                              ))
-                            )}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
                     <div className="space-y-4">
                       {Object.entries(activeSchema.properties)
-                        .filter(([key]) => activeSchema.required?.includes(key) || visibleOptionalFields.has(key))
+                        .filter(
+                          ([key]) =>
+                            !addressFieldKeys.has(key) &&
+                            (activeSchema.required?.includes(key) ||
+                              visibleOptionalFields.has(key)),
+                        )
                         .map(([key, attribute]) => {
                           const isRequired = activeSchema.required?.includes(key)
-                          const isTextArea =
-                            attribute.type === 'text' || key === 'description'
+                          const isRecommended =
+                            !isRequired && activeSchema.recommended?.includes(key)
+                          const isTextArea = attribute.type === 'text' || key === 'description'
 
                           return (
                             <div key={key}>
                               <div className="flex items-center justify-between mb-1.5">
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                                   {key}
-                                  {isRequired && (
-                                    <span className="text-red-500 ml-1">*</span>
+                                  {isRequired && <span className="text-red-500 ml-1">*</span>}
+                                  {isRecommended && (
+                                    <Star
+                                      size={10}
+                                      className="inline ml-1 text-gray-400 dark:text-gray-500"
+                                      title="recommended"
+                                    />
                                   )}
                                 </label>
                                 {!isRequired && (
@@ -410,7 +407,11 @@ export function EditNodeDrawer() {
 
                     {/* Add Optional Field Button */}
                     {Object.entries(activeSchema.properties).some(
-                      ([key]) => !activeSchema.required?.includes(key) && !visibleOptionalFields.has(key),
+                      ([key]) =>
+                        !addressFieldKeys.has(key) &&
+                        !activeSchema.required?.includes(key) &&
+                        !activeSchema.recommended?.includes(key) &&
+                        !visibleOptionalFields.has(key),
                     ) && (
                       <div
                         className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 relative"
@@ -443,7 +444,11 @@ export function EditNodeDrawer() {
                           <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg z-50 max-h-64 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                             {Object.entries(activeSchema.properties)
                               .filter(
-                                ([key]) => !activeSchema.required?.includes(key) && !visibleOptionalFields.has(key),
+                                ([key]) =>
+                                  !addressFieldKeys.has(key) &&
+                                  !activeSchema.required?.includes(key) &&
+                                  !activeSchema.recommended?.includes(key) &&
+                                  !visibleOptionalFields.has(key),
                               )
                               .map(([key, attribute]) => (
                                 <button
@@ -468,88 +473,9 @@ export function EditNodeDrawer() {
                     )}
                   </fieldset>
                 ) : (
-                  <div className="bg-white dark:bg-gray-800 rounded-xl p-6">
-                    <div className="text-center py-4 text-gray-500 dark:text-gray-400 mb-4">
-                      <p className="text-sm font-medium">No schema selected</p>
-                      <p className="text-xs mt-1">Select a schema to see available fields</p>
-                    </div>
-
-                    {/* Schema selector when no schema */}
-                    <div className="relative" ref={schemaDropdownRef}>
-                      <button
-                        onClick={toggleSchemaDropdown}
-                        className="w-full flex items-center justify-between px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 hover:border-gray-400 dark:hover:border-gray-500 transition-colors"
-                      >
-                        <span className="text-gray-500 dark:text-gray-400">Select a schema...</span>
-                        <ChevronDown size={16} className="text-gray-500 dark:text-gray-400" />
-                      </button>
-
-                      {/* Schema Dropdown */}
-                      {isSchemaDropdownOpen && (
-                        <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg z-50">
-                          {/* Search Input */}
-                          <div className="p-2 border-b border-gray-200 dark:border-gray-700">
-                            <div className="flex items-center gap-2">
-                              <div className="relative flex-1">
-                                <Search
-                                  size={14}
-                                  className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"
-                                />
-                                <input
-                                  type="text"
-                                  placeholder="Search schemas..."
-                                  value={schemaSearchQuery}
-                                  onChange={(e) => setSchemaSearchQuery(e.target.value)}
-                                  className="w-full pl-7 pr-2 py-1.5 text-sm border border-gray-200 dark:border-gray-700 rounded bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                                  autoFocus
-                                />
-                              </div>
-
-                              {/* Refresh Button */}
-                              <button
-                                onClick={handleRefreshSchemas}
-                                disabled={isLoadingSchemas}
-                                className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                                title="Refresh schemas"
-                              >
-                                <RefreshCw
-                                  size={14}
-                                  className={isLoadingSchemas ? 'animate-spin' : ''}
-                                />
-                              </button>
-                            </div>
-                          </div>
-
-                          {/* Schema List */}
-                          <div className="max-h-64 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-                            {isLoadingSchemas ? (
-                              <div className="p-4 text-center text-sm text-gray-500 dark:text-gray-400">
-                                Loading schemas...
-                              </div>
-                            ) : filteredSchemas.length === 0 ? (
-                              <div className="p-4 text-center text-sm text-gray-500 dark:text-gray-400">
-                                No schemas found
-                              </div>
-                            ) : (
-                              filteredSchemas.map((schema) => (
-                                <button
-                                  key={schema.id}
-                                  onClick={() => handleSelectSchema(schema.id)}
-                                  className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-900 dark:text-white"
-                                >
-                                  <div className="font-medium">
-                                    {schema.class}{' '}
-                                    <span className="text-xs font-normal text-gray-500 dark:text-gray-400">
-                                      (v{schema.version})
-                                    </span>
-                                  </div>
-                                </button>
-                              ))
-                            )}
-                          </div>
-                        </div>
-                      )}
-                    </div>
+                  <div className="bg-white dark:bg-gray-800 rounded-xl p-6 text-center text-gray-500 dark:text-gray-400">
+                    <p className="text-sm font-medium">No schema selected</p>
+                    <p className="text-xs mt-1">Select a schema to see available fields</p>
                   </div>
                 )}
 
@@ -576,126 +502,141 @@ export function EditNodeDrawer() {
                     }
 
                     return (
-                      <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
-                        <div className="flex items-center justify-between mb-3">
-                          <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Text Records
-                          </h3>
-                          {!isAddingCustomAttribute && (
-                            <button
-                              type="button"
-                              onClick={() => setIsAddingCustomAttribute(true)}
-                              className="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium"
-                            >
-                              + Record
-                            </button>
-                          )}
-                        </div>
+                      <div>
+                        {/* Address fields */}
+                        {addressFields.length > 0 && (
+                          <div className="space-y-2 mb-6">
+                            {addressFields.map(([key]) => (
+                              <AddressField
+                                key={key}
+                                label={key}
+                                value={formData[key] ?? ''}
+                                onChange={(v) => updateField(key, v)}
+                              />
+                            ))}
+                          </div>
+                        )}
+                        <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+                          <div className="flex items-center justify-between mb-3">
+                            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                              Text Records
+                            </h3>
+                            {!isAddingCustomAttribute && (
+                              <button
+                                type="button"
+                                onClick={() => setIsAddingCustomAttribute(true)}
+                                className="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium"
+                              >
+                                + Record
+                              </button>
+                            )}
+                          </div>
 
-                        <div className="space-y-2">
-                          {/* Empty state */}
-                          {extraKeys.length === 0 && !isAddingCustomAttribute && (
-                            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                              <p className="text-sm">No text records yet</p>
-                              <p className="text-xs mt-1">Add custom ENSIP-5 text records</p>
-                            </div>
-                          )}
+                          <div className="space-y-2">
+                            {/* Empty state */}
+                            {extraKeys.length === 0 && !isAddingCustomAttribute && (
+                              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                                <p className="text-sm">No text records yet</p>
+                                <p className="text-xs mt-1">Add custom ENSIP-5 text records</p>
+                              </div>
+                            )}
 
-                          {/* Existing custom attributes */}
-                          {extraKeys.map((key) => {
-                            const isMarkedForDeletion = formData[key] === null
-                            const originalValue = (nodeWithEdits.texts as any)?.[key] ?? ''
-                            const currentValue = formData[key] ?? originalValue
+                            {/* Existing custom attributes */}
+                            {extraKeys.map((key) => {
+                              const isMarkedForDeletion = formData[key] === null
+                              const originalValue = (nodeWithEdits.texts as any)?.[key] ?? ''
+                              const currentValue = formData[key] ?? originalValue
 
-                            if (isMarkedForDeletion) {
+                              if (isMarkedForDeletion) {
+                                return (
+                                  <div
+                                    key={key}
+                                    className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800/50 rounded-lg p-3"
+                                  >
+                                    <div className="flex items-center justify-between gap-2 mb-2">
+                                      <label className="block text-sm font-medium text-red-500 dark:text-red-400 line-through">
+                                        {key}
+                                      </label>
+                                      <button
+                                        type="button"
+                                        onClick={() => updateField(key, originalValue)}
+                                        className="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium"
+                                      >
+                                        Undo
+                                      </button>
+                                    </div>
+                                    <div className="w-full px-3 py-2 text-sm text-red-400 dark:text-red-500 line-through truncate">
+                                      {String(originalValue)}
+                                    </div>
+                                  </div>
+                                )
+                              }
+
                               return (
                                 <div
                                   key={key}
-                                  className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800/50 rounded-lg p-3"
+                                  className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3"
                                 >
                                   <div className="flex items-center justify-between gap-2 mb-2">
-                                    <label className="block text-sm font-medium text-red-500 dark:text-red-400 line-through">
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                                       {key}
                                     </label>
                                     <button
                                       type="button"
-                                      onClick={() => updateField(key, originalValue)}
-                                      className="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium"
+                                      onClick={() => removeCustomAttribute(key)}
+                                      className="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
                                     >
-                                      Undo
+                                      Remove
                                     </button>
                                   </div>
-                                  <div className="w-full px-3 py-2 text-sm text-red-400 dark:text-red-500 line-through truncate">
-                                    {String(originalValue)}
-                                  </div>
+                                  <input
+                                    type="text"
+                                    value={currentValue}
+                                    onChange={(e) => updateField(key, e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                  />
                                 </div>
                               )
-                            }
+                            })}
 
-                            return (
-                              <div
-                                key={key}
-                                className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3"
-                              >
-                                <div className="flex items-center justify-between gap-2 mb-2">
-                                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    {key}
-                                  </label>
+                            {/* Add new custom attribute form */}
+                            {isAddingCustomAttribute && (
+                              <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <input
+                                    type="text"
+                                    value={newAttributeKey}
+                                    onChange={(e) => setNewAttributeKey(e.target.value)}
+                                    placeholder="Attribute key (e.g., com.twitter)"
+                                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                    autoFocus
+                                  />
                                   <button
                                     type="button"
-                                    onClick={() => removeCustomAttribute(key)}
-                                    className="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                                    onClick={() => {
+                                      if (newAttributeKey.trim()) {
+                                        addCustomAttribute(newAttributeKey)
+                                      }
+                                    }}
+                                    disabled={!newAttributeKey.trim()}
+                                    className="px-3 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
                                   >
-                                    Remove
+                                    Add
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => setIsAddingCustomAttribute(false)}
+                                    className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                                  >
+                                    Cancel
                                   </button>
                                 </div>
-                                <input
-                                  type="text"
-                                  value={currentValue}
-                                  onChange={(e) => updateField(key, e.target.value)}
-                                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                                />
+                                <p className="text-xs text-gray-500 dark:text-gray-400">
+                                  Add a custom text record following ENSIP-5 naming conventions
+                                </p>
                               </div>
-                            )
-                          })}
-
-                          {/* Add new custom attribute form */}
-                          {isAddingCustomAttribute && (
-                            <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3">
-                              <div className="flex items-center gap-2 mb-2">
-                                <input
-                                  type="text"
-                                  value={newAttributeKey}
-                                  onChange={(e) => setNewAttributeKey(e.target.value)}
-                                  placeholder="Attribute key (e.g., com.twitter)"
-                                  className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                                  autoFocus
-                                />
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    if (newAttributeKey.trim()) {
-                                      addCustomAttribute(newAttributeKey)
-                                    }
-                                  }}
-                                  disabled={!newAttributeKey.trim()}
-                                  className="px-3 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                  Add
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => setIsAddingCustomAttribute(false)}
-                                  className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
-                                >
-                                  Cancel
-                                </button>
-                              </div>
-                              <p className="text-xs text-gray-500 dark:text-gray-400">
-                                Add a custom text record following ENSIP-5 naming conventions
-                              </p>
-                            </div>
-                          )}
+                            )}
+                          </div>
                         </div>
                       </div>
                     )

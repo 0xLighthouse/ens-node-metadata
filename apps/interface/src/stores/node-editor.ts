@@ -85,8 +85,9 @@ export const useNodeEditorStore = create<NodeEditorState>((set, get) => ({
         const value = resolveNodeValue(nodeData, key) ?? ''
         nextFormData[key] = value
 
-        // Track optional fields that have values
-        if (!activeSchema.required?.includes(key) && value) {
+        // Track optional fields that have values or are recommended
+        const isRecommended = activeSchema.recommended?.includes(key)
+        if (!activeSchema.required?.includes(key) && (value || isRecommended)) {
           optionalFieldsWithValues.add(key)
         }
       })
@@ -137,8 +138,9 @@ export const useNodeEditorStore = create<NodeEditorState>((set, get) => ({
           const value = resolveNodeValue(nodeData, key) ?? ''
           nextFormData[key] = value
 
-          // Track optional fields with existing values
-          if (!schema.required?.includes(key) && value) {
+          // Track optional fields with existing values or that are recommended
+          const isRecommended = schema.recommended?.includes(key)
+          if (!schema.required?.includes(key) && (value || isRecommended)) {
             optionalFieldsWithValues.add(key)
           }
         }
