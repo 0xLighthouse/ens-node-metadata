@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { setRecords, createSubname } from '@ensdomains/ensjs/wallet'
-import type { Account, Transport, WalletClient } from 'viem'
+import type { WalletClient } from 'viem'
 import type { TreeNode } from '@/lib/tree/types'
 import { useTreeEditStore, type TreeMutation } from './tree-edits'
 import { useTxnsStore } from './txns'

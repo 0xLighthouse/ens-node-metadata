@@ -43,8 +43,10 @@ export function ChangesBar() {
     async (nodeName: string) => {
       if (!walletClient || !publicClient) return
       const mutation = pendingMutations.get(nodeName)
+
       if (!mutation?.createNode) return
       const parentNode = findNode(mutation.parentName ?? '')
+
       if (!parentNode) return
       await submitCreation({ nodeName, parentNode, walletClient, publicClient })
     },
