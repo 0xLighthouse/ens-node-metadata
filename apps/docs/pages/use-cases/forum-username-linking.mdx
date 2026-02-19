@@ -28,7 +28,7 @@ Because ENS records are public and permissionlessly readable, any governance too
 
 ### Reverse lookup
 
-To find the all users who who have registered their forum username we could index the `forum-handle[ens.eth]` text record.
+To find all users who have registered their forum username we could index the `forum-handle[ens.eth]` text record.
 Standard ENS `TextChanged` filtering will surface all relevant records.
 
 ## Verification
@@ -37,7 +37,7 @@ Text records set by ENS name owners are self-asserted by default.
 
 For stronger guarantees a `forum-proof[ens.eth]` or `forum-attestation[ens.eth]` could also be introduced using `zkTLS` or `EAS`.
 
-Regardless of the approach the ENS remains the cannoncial source.
+Regardless of the approach the ENS remains the canonical source.
 
 ## Why This Matters for DAOs
 
