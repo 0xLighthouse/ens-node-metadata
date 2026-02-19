@@ -11,8 +11,8 @@ import { RouteTracker } from './components/RouteTracker'
 import DefaultLayout from './components/layouts/default'
 
 export const metadata: Metadata = {
-  title: 'ENS Org Metadata',
-  description: 'ENS Org Metadata by Lighthouse Labs',
+  title: 'ENS Metadata Manager',
+  description: 'Classify your ENS names with rich metadata',
 }
 
 export default async function RootLayout({

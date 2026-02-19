@@ -1,5 +1,5 @@
 import type { Schema } from '@/stores/schemas'
-import { getPublishedRegistry } from '@ensipXX/schemas/published'
+import { getPublishedRegistry } from '@ens-node-metadata/schemas/published'
 import { fetchGlobals } from './globals'
 
 /**

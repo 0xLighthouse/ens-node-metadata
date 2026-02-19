@@ -13,7 +13,7 @@
     "lint": "biome check ."
   },
   "dependencies": {
-    "@ensipXX/schemas": "workspace:*",
+    "@ens-node-metadata/schemas": "workspace:*",
     "viem": "2.23.15"
   },
   "devDependencies": {
