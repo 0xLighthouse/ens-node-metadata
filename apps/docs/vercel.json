@@ -1,5 +1,4 @@
 {
   "outputDirectory": "dist",
-  "buildCommand": "pnpm build",
-  "ignoreCommand": "git diff HEAD^ HEAD --quiet -- apps/docs/ packages/schemas/published/ || exit 1"
+  "buildCommand": "pnpm build"
 }
