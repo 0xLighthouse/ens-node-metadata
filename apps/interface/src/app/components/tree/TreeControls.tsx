@@ -92,7 +92,7 @@ export function TreeControls() {
           onClick={triggerLayout}
           disabled={controlsDisabled}
           className="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-200 transition-colors shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-          title="Refit layout to view"
+          title="Fit layout to view"
         >
           <Maximize2 className="w-4 h-4" />
           Fit View

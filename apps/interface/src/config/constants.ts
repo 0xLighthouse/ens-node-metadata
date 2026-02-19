@@ -4,11 +4,11 @@
  */
 export const AUTH_TOKEN_COOKIE = 'privy-token'
 
-export const APP_NAME = 'ENSIP-XX Metadata Manager'
+export const APP_NAME = 'ENS Node Metadata'
 
 export const DOCS_NAV_URL =
   process.env.NEXT_PUBLIC_DOCS_URL ??
-  'https://github.com/0xLighthouse/ens-org-registrar/tree/main/apps/docs'
+  'https://ens-metadata-docs.vercel.app'
 
 export const SCHEMAS_NAV_URL =
   process.env.NEXT_PUBLIC_SCHEMAS_URL ??

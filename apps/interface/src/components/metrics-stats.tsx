@@ -16,7 +16,9 @@ export function MetricsStats() {
   if (isLoading && metrics.length === 0) {
     return (
       <div className="flex flex-col items-center gap-3">
-        <span className="text-sm font-medium text-muted-foreground">Ecosystem Usage</span>
+        <span className="text-sm font-medium text-muted-foreground">
+          Nodes using ENSIP-XX updated daily from Dune
+        </span>
         <div className="flex flex-wrap justify-center gap-2">
           {Array.from({ length: 6 }).map((_, i) => (
             <div

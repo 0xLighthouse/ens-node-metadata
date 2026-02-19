@@ -283,7 +283,7 @@ export function EditNodeDrawer() {
                             {extraKeys.length === 0 && !isAddingCustomAttribute && (
                               <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                                 <p className="text-sm">No text records yet</p>
-                                <p className="text-xs mt-1">Add custom ENSIP-5 text records</p>
+                                <p className="text-xs mt-1">Add metadata fields to this node</p>
                               </div>
                             )}
 
@@ -378,7 +378,7 @@ export function EditNodeDrawer() {
                                   </button>
                                 </div>
                                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                                  Add a custom text record following ENSIP-5 naming conventions
+                                  Add a metadata field (e.g., com.twitter)
                                 </p>
                               </div>
                             )}
@@ -394,8 +394,8 @@ export function EditNodeDrawer() {
             {nodeWithEdits?.isSuggested && (
               <div className="flex-1 flex items-center justify-center">
                 <div className="text-center text-gray-500 dark:text-gray-400">
-                  <p className="text-sm">This is a suggested node.</p>
-                  <p className="text-xs mt-1">Create it to edit properties.</p>
+                  <p className="text-sm">This node is suggested.</p>
+                  <p className="text-xs mt-1">Create it first to add metadata.</p>
                 </div>
               </div>
             )}
@@ -423,7 +423,7 @@ export function EditNodeDrawer() {
                   className="w-full px-4 py-2 text-red-600 dark:text-red-400 rounded-lg text-sm font-medium hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors flex items-center justify-center gap-2"
                 >
                   <Trash2 size={16} />
-                  Discard changes
+                  Revert changes
                 </button>
               )}
             </div>
