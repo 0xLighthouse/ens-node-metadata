@@ -1,4 +1,5 @@
 {
   "outputDirectory": "dist",
-  "buildCommand": "echo 'Using pre-built static files'"
+  "buildCommand": "pnpm build",
+  "ignoreCommand": "git diff HEAD^ HEAD --quiet -- apps/docs/ packages/schemas/published/ || exit 1"
 }
