@@ -24,7 +24,7 @@ export default defineConfig({
     },
     {
       text: 'Schemas',
-      collapsed: false,
+      collapsed: true,
       items: nav.navItems('/schemas'),
     },
     {

@@ -2,6 +2,8 @@
 
 A package for managing and publishing ENSIP schema definitions to IPFS.
 
+Explore existing schemas <https://ens-metadata-docs.vercel.app/schemas/agent>
+
 ## Overview
 
 Schemas are organized into two categories:
@@ -39,7 +41,7 @@ PINATA_JWT=
 
 Published artifacts are written to `packages/schemas/published/`:
 
-```
+```sh
 published/
   _latest.json              # Map of schemaId → latest { version, cid, checksum, timestamp, signer, signature, eip712 }
   _registry.json            # Full registry across all published versions
