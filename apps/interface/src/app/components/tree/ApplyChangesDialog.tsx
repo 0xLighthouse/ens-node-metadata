@@ -132,7 +132,7 @@ export function ApplyChangesDialog({
                   </a>
                 ) : (
                   <span className="text-xs text-gray-400 dark:text-gray-500 font-mono">
-                    Unknown
+                    Detecting…
                   </span>
                 )}
               </div>
@@ -454,7 +454,7 @@ export function ApplyChangesDialog({
                   .length === 0
               }
             >
-              Save Selected (
+              Publish Selected (
               {Array.from(selectedIds).filter((id) => !pendingMutations.get(id)?.createNode).length}
               )
             </Button>

@@ -57,7 +57,7 @@ export function SuggestionsDialog({ open, onOpenChange }: SuggestionsDialogProps
     {
       id: 'grant',
       title: 'Grant',
-      description: 'Create a grant program issued by the organization',
+      description: 'Set up a grant program for your organization',
       icon: HandCoins,
       getNodes: (rootName) => [
         {
@@ -68,7 +68,7 @@ export function SuggestionsDialog({ open, onOpenChange }: SuggestionsDialogProps
     {
       id: 'delegate',
       title: 'Delegate',
-      description: 'Add a delegate with statement and voting information',
+      description: 'Add a delegate with their voting statement and governance info',
       icon: UserCheck,
       getNodes: (rootName) => [
         {
@@ -100,10 +100,10 @@ export function SuggestionsDialog({ open, onOpenChange }: SuggestionsDialogProps
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-indigo-600" />
-              Smart Suggestions
+              Suggestions
             </DialogTitle>
             <DialogDescription>
-              Choose a preset to expand your domain tree structure
+              Add structured nodes to your ENS name in one click
             </DialogDescription>
           </DialogHeader>
 

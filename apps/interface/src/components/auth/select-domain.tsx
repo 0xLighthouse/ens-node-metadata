@@ -1,6 +1,9 @@
 'use client'
 
-import { useAppStore } from '@/stores/app'
+import { MetricsStats } from '@/components/metrics-stats'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import {
   Table,
   TableBody,
@@ -9,15 +12,12 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { useAppStore } from '@/stores/app'
+import type { ENSRootDomain } from '@/types'
+import { format, fromUnixTime } from 'date-fns'
+import { Loader2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { Loader2 } from 'lucide-react'
-import { DateTime } from 'luxon'
-import type { ENSRootDomain } from '@/types'
-import { MetricsStats } from '@/components/metrics-stats'
 
 export function SelectDomain() {
   const {
@@ -73,11 +73,11 @@ export function SelectDomain() {
     return (
       <div className="flex flex-col items-center justify-center space-y-8 p-4 py-16">
         <div className="text-center space-y-4">
-          <h1 className="text-3xl font-bold">Loading Spaces</h1>
+          <h1 className="text-3xl font-bold">Loading Domains</h1>
           <p className="text-muted-foreground text-lg">
             {status === 'initializing'
-              ? 'Initializing app...'
-              : 'Fetching your available spaces...'}
+              ? 'Initializing...'
+              : 'Fetching your domains...'}
           </p>
         </div>
       </div>
@@ -89,9 +89,9 @@ export function SelectDomain() {
     return (
       <div className="flex flex-col items-center justify-center space-y-8 p-4 py-16">
         <div className="text-center space-y-4">
-          <h1 className="text-3xl font-bold">Error Loading Spaces</h1>
+          <h1 className="text-3xl font-bold">Error Loading Domains</h1>
           <p className="text-muted-foreground text-lg">
-            Something went wrong while loading your spaces.
+            Something went wrong while loading your domains.
           </p>
         </div>
       </div>
@@ -103,7 +103,7 @@ export function SelectDomain() {
       <div className="text-center space-y-4">
         <h1 className="text-3xl font-bold">Select a Domain</h1>
         <p className="text-muted-foreground text-lg">
-          Select one of your domains below, or load any ENS name to explore.
+          Pick from your connected wallet, or enter any ENS name.
         </p>
       </div>
 
@@ -115,7 +115,7 @@ export function SelectDomain() {
           onSubmit={handleCustomDomainSubmit}
         >
           <div className="flex-1 space-y-2">
-            <Label htmlFor="custom-ens">Load a custom ENS</Label>
+            <Label htmlFor="custom-ens">Enter an ENS name</Label>
             <Input
               id="custom-ens"
               placeholder="vitalik.eth"
@@ -135,7 +135,7 @@ export function SelectDomain() {
                 Loading...
               </>
             ) : (
-              'Load ENS'
+              'Open'
             )}
           </Button>
         </form>
@@ -151,7 +151,7 @@ export function SelectDomain() {
             {domains.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={3} className="text-center text-muted-foreground">
-                  No ENS domains found for this wallet.
+                  No domains found. Connect a wallet with ENS names, or enter one above.
                 </TableCell>
               </TableRow>
             ) : (
@@ -166,9 +166,7 @@ export function SelectDomain() {
                   <TableCell>
                     {domain.expiryDate ? (
                       <code className="text-sm bg-muted px-2 py-1 rounded">
-                        {DateTime.fromSeconds(Number(domain.expiryDate)).toLocaleString(
-                          DateTime.DATETIME_MED,
-                        )}
+                        {format(fromUnixTime(Number(domain.expiryDate)), 'PP p')}
                       </code>
                     ) : (
                       <span className="text-muted-foreground">—</span>

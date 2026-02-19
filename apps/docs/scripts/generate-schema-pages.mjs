@@ -44,7 +44,7 @@ function renderAttributesTable(properties, required, recommended) {
     return 'No attributes found.\n'
   }
 
-  const header = '| Key | Type | Required | Description | Values |'
+  const header = '| Key | Type | Recommended | Description | Values |'
   const divider = '| --- | --- | --- | --- | --- |'
   const rows = Object.entries(properties).map(([key, attr]) => {
     const isRequired = required?.includes(key) || recommended?.includes(key) ? 'Y' : '-'

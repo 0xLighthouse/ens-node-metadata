@@ -1,5 +1,5 @@
 {
-  "name": "@ensipXX/schemas",
+  "name": "@ens-node-metadata/schemas",
   "version": "0.1.0",
   "private": true,
   "type": "module",

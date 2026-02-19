@@ -1,55 +1,63 @@
-# ENSIP Schemas
+# @ens-node-metadata/schemas
 
-This packages helps with the management of publishing ENSIP-XX schema JSON, signing (EIP-712), and tracking latest versions.
+A package for managing and publishing ENSIP schema definitions to IPFS.
+
+Explore existing schemas <https://ens-metadata-docs.vercel.app/schemas/agent>
 
 ## Overview
 
-- Schemas live in `packages/schemas/src/*.ts` and expose a `Schema` object with `version`.
-- Publishing creates versioned artifacts under `packages/schemas/published/` and records a signed run log.
-- `--bump` is optional. If omitted, the current version is reused. The script **refuses** to publish a version that already exists.
+Schemas are organized into two categories:
 
-## Environment variables
+- **Community schemas** — managed in `src/schemas`
+- **ENSIP-denoted schemas** — managed in `src/globals`
 
-If publishing a schema we expect the following environment variables to be avaliable.
+Each published schema is versioned, checksummed, and signed with an EIP-712 payload before being pinned to IPFS.
 
-```sh
-export SCHEMA_PUBLISHER_PRIVATE_KEY=
-export PINATA_API_KEY=
-export PINATA_API_SECRET=
-export PINATA_JWT=
-```
-
-## Command
+## Usage
 
 ```bash
+# Publish a schema by ID
 pnpm publish:schema --id org
 
-# Publish and bump version
+# Publish and bump the version
 pnpm publish:schema --id org --bump (patch|minor|major)
 
-# Sweeps common ENSIPs and publishes collection as globals
+# Publish all common ENSIPs as a global collection
 pnpm publish:globals
 ```
 
-## Outputs (per publish)
+## Environment Variables
+
+The following environment variables are required when publishing:
 
 ```sh
-packages/schemas/published/
-  _latest.json                # map of schemaId → latest {version,cid,checksum,timestamp,signer,signature,eip712}
-  _registry.json              # full registry with all published versions
-  {schemaId}/
-    versions/{version}/
-      schema.json             # exported Schema
-      checksum.sha256
-      cid.txt
-      meta.json               # includes signer, signature, eip712 payload
-    runs/ipfs/
-      run-<unix>.json         # append-only log (signed)
-      run-latest.json
-    index.json                # per-schema list with latest pointer
+SCHEMA_PUBLISHER_PRIVATE_KEY=
+PINATA_API_KEY=
+PINATA_API_SECRET=
+PINATA_JWT=
 ```
 
-## Behavior & safety
+## Output Structure
 
-- Refuses to publish if `{schemaId}@{version}` is already recorded.
-- Schemas are EIP-712 signed, check run files, for easy verification.
+Published artifacts are written to `packages/schemas/published/`:
+
+```sh
+published/
+  _latest.json              # Map of schemaId → latest { version, cid, checksum, timestamp, signer, signature, eip712 }
+  _registry.json            # Full registry across all published versions
+  {schemaId}/
+    versions/{version}/
+      schema.json           # Exported schema
+      checksum.sha256
+      cid.txt
+      meta.json             # Signer, signature, and EIP-712 payload
+    runs/ipfs/
+      run-<unix>.json       # Append-only signed publish log
+      run-latest.json
+    index.json              # Per-schema version list with latest pointer
+```
+
+## Behavior
+
+- Publishing is **idempotent by version** — if `{schemaId}@{version}` has already been published, the command will refuse to overwrite it.
+- All schemas are **EIP-712 signed**. Inspect any `run-*.json` file to verify a publish.
