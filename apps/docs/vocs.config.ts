@@ -19,7 +19,7 @@ export default defineConfig({
     },
     {
       text: 'Schemas',
-      collapsed: true,
+      collapsed: false,
       items: nav.navItems('/schemas'),
     },
     {
