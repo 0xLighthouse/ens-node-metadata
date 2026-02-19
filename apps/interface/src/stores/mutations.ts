@@ -1,9 +1,13 @@
 import { create } from 'zustand'
 import { setRecords, createSubname } from '@ensdomains/ensjs/wallet'
+import type { ClientWithAccount } from '@ensdomains/ensjs/contracts'
 import type { WalletClient } from 'viem'
 import type { TreeNode } from '@/lib/tree/types'
 import { useTreeEditStore, type TreeMutation } from './tree-edits'
 import { useTxnsStore } from './txns'
+
+const asEnsWalletClient = (walletClient: WalletClient): ClientWithAccount =>
+  walletClient as unknown as ClientWithAccount
 
 const NON_TEXT_RECORD_KEYS = new Set([
   'inspectionData',
@@ -57,6 +61,12 @@ export const useMutationsStore = create<MutationsState>((set, get) => ({
   status: 'idle',
 
   submitMutations: async ({ mutationIds, findNode, walletClient, publicClient }) => {
+    if (!walletClient.chain || !walletClient.account) {
+      console.error('[mutations] wallet client missing chain or account')
+      set({ status: 'error' })
+      return
+    }
+
     const allMutations = useTreeEditStore.getState().pendingMutations
     const selectedMutations: [string, TreeMutation][] = []
     for (const id of mutationIds) {
@@ -154,11 +164,12 @@ export const useMutationsStore = create<MutationsState>((set, get) => ({
       })
 
       try {
-        const txHash = await setRecords(walletClient, {
+        const txHash = await setRecords(asEnsWalletClient(walletClient), {
           name: ensName,
           texts,
           coins,
           resolverAddress: resolverAddress as `0x${string}`,
+          account: walletClient.account,
         })
 
         // Track in txns store; discard mutation only after on-chain confirmation
@@ -210,12 +221,17 @@ export const useMutationsStore = create<MutationsState>((set, get) => ({
   },
 
   submitCreation: async ({ nodeName, parentNode, walletClient, publicClient }) => {
+    if (!walletClient.chain || !walletClient.account) {
+      throw new Error('[mutations] wallet client missing chain or account')
+    }
+
     const { addTxn, watchTxn } = useTxnsStore.getState()
 
-    const hash = await createSubname(walletClient, {
+    const hash = await createSubname(asEnsWalletClient(walletClient), {
       name: nodeName,
-      owner: walletClient.account?.address as `0x${string}`,
+      owner: walletClient.account.address as `0x${string}`,
       contract: parentNode.isWrapped ? 'nameWrapper' : 'registry',
+      account: walletClient.account,
     })
 
     addTxn({ hash, type: 'createSubname', label: nodeName })

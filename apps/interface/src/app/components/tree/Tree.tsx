@@ -27,6 +27,20 @@ type NodeDimensions = {
   height: number
 }
 
+interface DomainTreeNodeData {
+  [key: string]: unknown
+  node: TreeNode
+  isSelected: boolean
+  hasChildren: boolean
+  isCollapsed: boolean
+  hasPendingEdits: boolean
+  childrenCount: number
+  orientation: 'vertical' | 'horizontal'
+  onToggleCollapse: () => void
+}
+
+type DomainTreeNode = Node<DomainTreeNodeData>
+
 const FALLBACK_NODE_SIZES: Record<string, NodeDimensions> = {
   default: { width: 320, height: 220 },
   Treasury: { width: 320, height: 220 },
@@ -204,7 +218,9 @@ export function Tree({ data }: Props) {
   } = useTreeControlsStore()
   const { openEditDrawer, hasPendingEdit } = useTreeEditStore()
   const pendingMutationCount = useTreeEditStore((state) => state.pendingMutations.size)
-  const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null)
+  const [reactFlowInstance, setReactFlowInstance] = useState<
+    ReactFlowInstance<DomainTreeNode, Edge> | null
+  >(null)
   const [nodeSizes, setNodeSizes] = useState<Map<string, NodeDimensions>>(new Map())
 
   // Two-pass layout: measuring -> visible (for smooth transitions)
@@ -221,10 +237,9 @@ export function Tree({ data }: Props) {
     setLayoutPhase('measuring')
   }, [data, collapsedNodes, orientation])
 
-  const initialNodes = useMemo(() => {
+  const initialNodes = useMemo<DomainTreeNode[]>(() => {
     return layout.layoutedNodes.map((node) => {
-      const treeNode = layout.nodeById.get(node.id)
-      if (!treeNode) return node
+      const treeNode = layout.nodeById.get(node.id) ?? node.data
 
       // Apply custom position if it exists, otherwise use dagre layout position
       const customPosition = nodePositions.get(node.id)
@@ -242,7 +257,7 @@ export function Tree({ data }: Props) {
           padding: 0,
           border: 'none',
           background: 'transparent',
-          visibility: layoutPhase === 'measuring' ? 'hidden' : 'visible',
+          visibility: layoutPhase === 'measuring' ? ('hidden' as const) : ('visible' as const),
         },
         data: {
           node: treeNode,
@@ -254,7 +269,7 @@ export function Tree({ data }: Props) {
           orientation,
           onToggleCollapse: () => toggleNodeCollapsed(node.id),
         },
-      }
+      } satisfies DomainTreeNode
     })
   }, [
     collapsedNodes,
@@ -273,12 +288,12 @@ export function Tree({ data }: Props) {
     nodeSizes,
   ])
 
-  const [nodes, setNodes, onNodesChangeInternal] = useNodesState(initialNodes)
+  const [nodes, setNodes, onNodesChangeInternal] = useNodesState<DomainTreeNode>(initialNodes)
   const [edges, setEdges, onEdgesChange] = useEdgesState(layout.edges)
 
   // Custom handler that saves position changes to store
   const onNodesChange = useCallback(
-    (changes: NodeChange[]) => {
+    (changes: NodeChange<DomainTreeNode>[]) => {
       onNodesChangeInternal(changes)
 
       // Save position changes to store
@@ -396,7 +411,7 @@ export function Tree({ data }: Props) {
   }, [layoutTrigger, reactFlowInstance, layoutPhase])
 
   return (
-    <ReactFlow
+    <ReactFlow<DomainTreeNode, Edge>
       nodes={nodes}
       edges={edges}
       onNodesChange={onNodesChange}
