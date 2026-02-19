@@ -8,7 +8,7 @@ export default defineConfig({
   aiCta: false,
   title: 'ENS Organizational Registry',
   description: 'ENS-based organizational identity and metadata registry protocol',
-  logoUrl: '/logo.png',
+  logoUrl: '/ens-mark-white.svg',
   iconUrl: '/favicon.ico',
   rootDir: '.',
   sidebar: [
