@@ -1,6 +1,9 @@
 'use client'
 
-import { useAppStore } from '@/stores/app'
+import { MetricsStats } from '@/components/metrics-stats'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import {
   Table,
   TableBody,
@@ -9,15 +12,12 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { useAppStore } from '@/stores/app'
+import type { ENSRootDomain } from '@/types'
+import { format, fromUnixTime } from 'date-fns'
+import { Loader2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { Loader2 } from 'lucide-react'
-import { DateTime } from 'luxon'
-import type { ENSRootDomain } from '@/types'
-import { MetricsStats } from '@/components/metrics-stats'
 
 export function SelectDomain() {
   const {
@@ -166,9 +166,7 @@ export function SelectDomain() {
                   <TableCell>
                     {domain.expiryDate ? (
                       <code className="text-sm bg-muted px-2 py-1 rounded">
-                        {DateTime.fromSeconds(Number(domain.expiryDate)).toLocaleString(
-                          DateTime.DATETIME_MED,
-                        )}
+                        {format(fromUnixTime(Number(domain.expiryDate)), 'PP p')}
                       </code>
                     ) : (
                       <span className="text-muted-foreground">—</span>

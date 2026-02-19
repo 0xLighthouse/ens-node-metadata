@@ -1,5 +1,5 @@
-import { clsx, type ClassValue } from 'clsx'
-import { DateTime } from 'luxon'
+import { type ClassValue, clsx } from 'clsx'
+import { formatDistanceToNow, fromUnixTime } from 'date-fns'
 import { twMerge } from 'tailwind-merge'
 
 export function cn(...inputs: ClassValue[]) {
@@ -7,7 +7,9 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function timeAgoWords(timestamp: number | string) {
-  return DateTime.fromSeconds(Number(timestamp)).toRelative()
+  const seconds = Number(timestamp)
+  if (!Number.isFinite(seconds)) return ''
+  return formatDistanceToNow(fromUnixTime(seconds), { addSuffix: true })
 }
 
 export function flatten<T>(arr: T[][]): T[] {
