@@ -13,14 +13,9 @@ export default defineConfig({
   rootDir: '.',
   sidebar: [
     {
-      text: 'Introduction',
+      text: 'Overview',
       collapsed: false,
-      items: nav.navItems('/introduction'),
-    },
-    {
-      text: 'Architecture',
-      collapsed: false,
-      items: nav.navItems('/architecture'),
+      items: nav.navItems('/overview'),
     },
     {
       text: 'Schemas',

@@ -1,0 +1,14 @@
+---
+title: AI Agents
+weight: 1
+---
+
+# AI Agents
+
+Existing work, such as [ERC-8004](https://eips.ethereum.org/EIPS/eip-8004), has attempted to standardize a way of publishing AI agent metadata on-chain to aid in discovery and verification. The ERC-8004 specification specifically explains how an `agent URI` can be attached to an agent's onchain identity, which then points to a JSON payload explaining additional metadata about the agent.
+
+Our `agent` schema (listed above) includes a field for the agent URI, which would allow agents who own an ENS name to broadcast their agent URI directly from their ENS name without needing to register with an additional ERC-8004 smart contract. The agent could also include metadata records on their ENS name which point to on-chain registries where the agent is registered.
+
+The agent metadata file, pointed to by the `agent URI`, is expected to include details about the agent's capabilities, such as the services the agent supports, the ability to receive payments, and other features. This metadata could also be attached directly to an ENS node, turning the agent's ENS name into their onchain identity and also the single source of truth of their capabilities, without requiring the need of additional registries or an `agent URI`.
+
+We have included fields in our `agent` schema which match some of the entries proposed in the ERC-8004 specification. Some of these fields are expected to have multilevel data structures which we have not yet standardized, therefore this is still a work in progress and we invite all contributions!

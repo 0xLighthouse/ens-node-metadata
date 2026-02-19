@@ -1,8 +1,25 @@
 ---
 title: Delegate statements
-weight: 1
+weight: 2
 ---
 
 # Delegate statements
 
-TBD.
+Voters in a DAO governance system often publish a delegate statement — a summary of their philosophy and why others might want to delegate voting power to them. Because many delegates participate in multiple DAOs, their statement often varies from one DAO to the next. It is therefore useful to allow delegates to publish statements on their ENS name with a unique version for each DAO they are active in.
+
+## Publishing a delegate statement
+
+To set themselves up as a delegate, a user should configure their personal ENS name or subname with a `class` of `Delegate` and add our `delegate` schema. They can then publish unique statements for each DAO they participate in, using the DAO's ENS name as the parameter for the `statement` attribute.
+
+Under the hood, the delegate schema uses parametrized keys to support one statement per DAO. A delegate could publish a default statement that would be returned any time the `statement` key is queried without a parameter. To check whether a delegate has written a statement for a specific DAO, a consumer can query the `statement` key with the DAO's ENS name as the parameter. If no DAO-specific statement has been provided, nothing will be returned, and the consumer knows to fall back to the default `statement` value.
+
+## Discovering delegates
+
+For DAOs with permissionless delegation systems, delegates can be discovered automatically:
+
+1. Look at on-chain token or voting power balances to generate a list of accounts that have been delegated to.
+2. For each account, perform a reverse ENS lookup to find their associated ENS name.
+3. Scan the metadata for that name to check whether they have a `delegate` class or schema set.
+4. If found, query that ENS node for a `statement` scoped to the DAO you are researching.
+
+Because this relies entirely on on-chain data and ENS metadata, any account with delegated voting power and a properly configured ENS name can be surfaced without any manual curation.
