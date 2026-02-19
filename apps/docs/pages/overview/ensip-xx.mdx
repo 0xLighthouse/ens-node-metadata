@@ -1,5 +1,5 @@
 ---
-title: "ENSIP: Node Classification Metadata"
+title: "ENSIP (Draft)"
 weight: 1
 ---
 
@@ -29,7 +29,7 @@ It is expected that each node will be configured to resolve to one or more on-ch
 
 Nodes can specify a text record with the key name of `class`, the value of which serves to label the general role or purpose of that node. These values are largely intended to be useful to humans who wish to understand what importance to give to each node, but can also be used programmatically in filtering and recognizing categories of node for automated systems.
 
-The value of this record MUST be pascal case, using only alphabet characters. Values SHOULD be limited to those outlined in the following table to maximize compatability across the ecosystem, however other values MAY be used for specialized use cases. 
+The value of this record MUST be pascal case, using only alphabet characters. Values SHOULD be limited to those outlined in the following table to maximize compatability across the ecosystem, however other values MAY be used for specialized use cases.
 
 | `class` Value | Meaning |
 |---|---|
@@ -47,6 +47,7 @@ The value of this record MUST be pascal case, using only alphabet characters. Va
 | Workgroup | This node represents an operational team focused on executing tasks or work within a specific domain |
 
 It is understood that all on-chain addresses could have the ability to perform a base set of actions, including:
+
 * sending and receiving funds
 * calling smart contracts
 * publishing new smart contracts
@@ -79,7 +80,7 @@ Clients that facilitate retrieving metadata records MAY ignore values that fail 
 * Schemas MAY include definitions for key names which are declared as global in other ENSIPs, however if present, the descriptions of these keys MUST NOT be in direct conflict of their original definition provided by existing ENSIPs.
 * Attributes can include an optional `recordType` ("text" | "data") keyword which indicates if the record is stored as `text` (ENSIP-5) or `data` (ENSIP-24) (default: `text`)
 
-#### Basic schema example:
+#### Basic schema example
 
 ```
 {
@@ -127,7 +128,7 @@ When parsing key names, the following regex can be used to isolate the base form
 
 **Note:** Defining which values are allowed to be passed inside of the brackets when setting and retrieving records is up to schema publishers and is outside the scope of this ENSIP.
 
-#### Basic schema example including parameterized properties:
+#### Basic schema example including parameterized properties
 
 ```
 {
@@ -143,7 +144,7 @@ When parsing key names, the following regex can be used to isolate the base form
     "lastName": {
       "type": "string",
       "description": "The person's last name."
-    },    
+    },
     "avatar": {
       "type": "string",
       "description": "a URL to an image used as an avatar or logo"
