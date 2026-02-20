@@ -1,5 +1,6 @@
 'use client'
 
+import { APP_NAME } from '@/config/constants'
 import { MetricsStats } from '@/components/metrics-stats'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -73,7 +74,7 @@ export function SelectDomain() {
     return (
       <div className="flex flex-col items-center justify-center space-y-8 p-4 py-16">
         <div className="text-center space-y-4">
-          <h1 className="text-3xl font-bold">Loading Domains</h1>
+          <h1 className="text-3xl font-bold">Loading Names</h1>
           <p className="text-muted-foreground text-lg">
             {status === 'initializing'
               ? 'Initializing...'
@@ -89,9 +90,9 @@ export function SelectDomain() {
     return (
       <div className="flex flex-col items-center justify-center space-y-8 p-4 py-16">
         <div className="text-center space-y-4">
-          <h1 className="text-3xl font-bold">Error Loading Domains</h1>
+          <h1 className="text-3xl font-bold">Error Loading Names</h1>
           <p className="text-muted-foreground text-lg">
-            Something went wrong while loading your domains.
+            Something went wrong while loading your names.
           </p>
         </div>
       </div>
@@ -101,9 +102,9 @@ export function SelectDomain() {
   return (
     <div className="flex flex-col items-center space-y-8 p-4 py-16">
       <div className="text-center space-y-4">
-        <h1 className="text-3xl font-bold">Select a Domain</h1>
+        <h1 className="text-3xl font-bold">{APP_NAME}</h1>
         <p className="text-muted-foreground text-lg">
-          Pick from your connected wallet, or enter any ENS name.
+        Enter an ENS name to view, or select from one of your owned names below to edit.
         </p>
       </div>
 
@@ -115,7 +116,7 @@ export function SelectDomain() {
           onSubmit={handleCustomDomainSubmit}
         >
           <div className="flex-1 space-y-2">
-            <Label htmlFor="custom-ens">Enter an ENS name</Label>
+            <Label htmlFor="custom-ens">ENS name</Label>
             <Input
               id="custom-ens"
               placeholder="vitalik.eth"
@@ -151,7 +152,7 @@ export function SelectDomain() {
             {domains.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={3} className="text-center text-muted-foreground">
-                  No domains found. Connect a wallet with ENS names, or enter one above.
+                No names found.
                 </TableCell>
               </TableRow>
             ) : (

@@ -4,7 +4,7 @@
  */
 export const AUTH_TOKEN_COOKIE = 'privy-token'
 
-export const APP_NAME = 'ENS Node Metadata'
+export const APP_NAME = 'ENS Metadata Manager'
 
 export const DOCS_NAV_URL =
   process.env.NEXT_PUBLIC_DOCS_URL ??
