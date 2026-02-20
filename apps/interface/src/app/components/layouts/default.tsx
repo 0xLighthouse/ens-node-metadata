@@ -5,7 +5,7 @@ import { AuthGate } from '@/components/auth/auth-gate'
 import { DomainGate } from '@/components/auth/domain-gate'
 import { DOCS_NAV_URL, SCHEMAS_NAV_URL } from '@/config/constants'
 import { colorSystem } from '@/config/theme'
-import { BookOpenText, ExternalLink, FileJson } from 'lucide-react'
+import { BookOpenText, ExternalLink, FileJson, Github } from 'lucide-react'
 import { TreeButtonGroup } from '../tree-button-group'
 
 export default function DefaultLayout({ children }: { children: React.ReactNode }) {
@@ -59,6 +59,15 @@ export default function DefaultLayout({ children }: { children: React.ReactNode 
               )}
             </a>
           </div>
+          <a
+            href="https://github.com/0xLighthouse/ens-node-metadata"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="GitHub repository (opens in new tab)"
+            className="flex items-center justify-center rounded-full p-2 text-neutral-400 hover:text-neutral-700 dark:text-neutral-500 dark:hover:text-neutral-200 transition-colors"
+          >
+            <Github className="size-4" />
+          </a>
           <ThemeToggle />
           <ConnectButton />
         </div>
