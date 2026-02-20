@@ -38,7 +38,7 @@ export function MetricsStats() {
   return (
     <div className="flex flex-col items-center gap-3">
       <div className="flex items-center gap-2">
-        <span className="text-sm font-medium text-muted-foreground">Ecosystem Usage</span>
+        <span className="text-sm font-medium text-muted-foreground">Registration Stats</span>
         <Button
           variant="ghost"
           size="icon"

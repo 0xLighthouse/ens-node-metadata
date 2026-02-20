@@ -11,7 +11,7 @@ import { RouteTracker } from './components/RouteTracker'
 import DefaultLayout from './components/layouts/default'
 
 export const metadata: Metadata = {
-  title: 'ENS Node Metadata',
+  title: 'ENS Metadata Manager',
   description: 'Structure your ENS names with rich, standardized metadata',
 }
 
