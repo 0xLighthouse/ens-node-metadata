@@ -46,7 +46,7 @@ export function SuggestionsDialog({ open, onOpenChange }: SuggestionsDialogProps
     {
       id: 'treasury',
       title: 'Treasury',
-      description: 'Declare wallet address and use of funds for the domain',
+      description: 'Create a node which points to a shared treasury or vault',
       icon: Vault,
       getNodes: (rootName) => [
         {
@@ -57,7 +57,7 @@ export function SuggestionsDialog({ open, onOpenChange }: SuggestionsDialogProps
     {
       id: 'grant',
       title: 'Grant',
-      description: 'Set up a grant program for your organization',
+      description: 'Create a node to represent a grant program',
       icon: HandCoins,
       getNodes: (rootName) => [
         {
@@ -67,8 +67,8 @@ export function SuggestionsDialog({ open, onOpenChange }: SuggestionsDialogProps
     },
     {
       id: 'delegate',
-      title: 'Delegate',
-      description: 'Add a delegate with their voting statement and governance info',
+      title: 'Delegate Information',
+      description: 'Publish your delegate statement and conflict of interest',
       icon: UserCheck,
       getNodes: (rootName) => [
         {
@@ -100,10 +100,10 @@ export function SuggestionsDialog({ open, onOpenChange }: SuggestionsDialogProps
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-indigo-600" />
-              Suggestions
+              Add a node
             </DialogTitle>
             <DialogDescription>
-              Add structured nodes to your ENS name in one click
+              Add a node to fulfill one of these roles
             </DialogDescription>
           </DialogHeader>
 

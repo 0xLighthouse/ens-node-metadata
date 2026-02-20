@@ -3,23 +3,65 @@ title: Delegate statements
 weight: 2
 ---
 
-# Delegate statements
+# Delegate Statements
 
-Voters in a DAO governance system often publish a delegate statement — a summary of their philosophy and why others might want to delegate voting power to them. Because many delegates participate in multiple DAOs, their statement often varies from one DAO to the next. It is therefore useful to allow delegates to publish statements on their ENS name with a unique version for each DAO they are active in.
+## The Problem
 
-## Publishing a delegate statement
+Delegates in a DAO governance system often publish a statement — a
+summary of their philosophy and why others should delegate voting power
+to them. Because many delegates participate in multiple DAOs, their
+statement often varies from one community to the next.
 
-To set themselves up as a delegate, a user should configure their personal ENS name or subname with a `class` of `Delegate` and add our `delegate` schema. They can then publish unique statements for each DAO they participate in, using the DAO's ENS name as the parameter for the `statement` attribute.
+Right now, every governance platform — Agora, Tally, Karma — stores
+delegate statements independently. Delegates update their statement in
+one place and it doesn't propagate anywhere else. There is no on-chain
+source of truth.
 
-Under the hood, the delegate schema uses parametrized keys to support one statement per DAO. A delegate could publish a default statement that would be returned any time the `statement` key is queried without a parameter. To check whether a delegate has written a statement for a specific DAO, a consumer can query the `statement` key with the DAO's ENS name as the parameter. If no DAO-specific statement has been provided, nothing will be returned, and the consumer knows to fall back to the default `statement` value.
+## Our Solution
+
+The ENS Organizational Registry allows delegates to publish statements
+directly on their ENS name, with a unique version scoped to each DAO
+they are active in — using the DAO's ENS name as the parameter.
+
+```
+delegate.alice.eth
+  └── statement[uniswap.eth] = "I prioritise..."   # Uniswap statement
+  └── statement[ens.eth]    = "My focus is..."     # ENS statement
+  └── statement             = "I am a delegate..."  # default fallback
+```
+
+Because ENS records are public and permissionlessly readable, any
+governance tool can resolve the statement without a proprietary API or
+platform-specific submission flow. One update propagates everywhere.
 
 ## Discovering delegates
 
-For DAOs with permissionless delegation systems, delegates can be discovered automatically:
+For DAOs with permissionless delegation systems, delegates can be
+discovered automatically:
 
-1. Look at on-chain token or voting power balances to generate a list of accounts that have been delegated to.
-2. For each account, perform a reverse ENS lookup to find their associated ENS name.
-3. Scan the metadata for that name to check whether they have a `delegate` class or schema set.
-4. If found, query that ENS node for a `statement` scoped to the DAO you are researching.
+1. Look at on-chain token balances to generate a list of accounts that
+   have been delegated to.
+2. For each account, perform a reverse ENS lookup to find their
+   associated ENS name.
+3. Check whether they have a `statement[your-dao.eth]` record set.
+4. If found, surface their statement directly — no manual curation needed.
 
-Because this relies entirely on on-chain data and ENS metadata, any account with delegated voting power and a properly configured ENS name can be surfaced without any manual curation.
+If no DAO-specific statement is found, consumers can fall back to the
+default `statement` value.
+
+## Real-World Context
+
+This problem is visible in ENS's own governance. The official
+[ENS delegation guide](https://discuss.ens.domains/t/managing-delegation-and-submitting-a-delegate-statement-guide/20197)
+notes that statements entered via the Agora UI "are stored off-chain and
+are NOT pulled from `eth.ens.delegate`" — meaning a delegate who
+updates their ENS record sees no change in Agora or Tally. Platforms
+have diverged from the on-chain record entirely.
+
+The parametrized `statement` key solves this by making the ENS name the
+single source of truth, with governance UIs as readers rather than stores.
+
+## Related
+
+- [Delegate schemas](/schemas/delegate)
+- [Forum username linking](/use-cases/forum-username-linking)
