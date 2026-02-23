@@ -1,5 +1,6 @@
 ---
 title: Forum Username Linking
+weight: 4
 ---
 
 # Forum Username Linking
@@ -12,7 +13,7 @@ Each platform asks delegates to submit their forum username through a platform-s
 
 ## Our Solution
 
-The ENS Organizational Registry provides a canonical place to express this relationship. A delegate sets their forum username once, as a record on their ENS name. Every platform that needs the mapping reads from the same on-chain source.
+ENS metadata provides a canonical place to express this relationship. A delegate sets their forum username once, as a record on their ENS name. Every platform that needs the mapping reads from the same on-chain source.
 
 No proprietary API. No platform-specific submission flow. One update propagates everywhere.
 
@@ -28,7 +29,7 @@ Because ENS records are public and permissionlessly readable, any governance too
 
 ### Reverse lookup
 
-To find all users who have registered their forum username we could index the `forum-handle[ens.eth]` text record.
+To find all users who have registered their ENS forum username, we could index the `forum-handle[ens.eth]` text record.
 Standard ENS `TextChanged` filtering will surface all relevant records.
 
 ## Verification
