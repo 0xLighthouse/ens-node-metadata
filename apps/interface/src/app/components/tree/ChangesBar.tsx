@@ -1,11 +1,12 @@
 'use client'
 
-import { useState, useCallback } from 'react'
-import { useTreeEditStore } from '@/stores/tree-edits'
-import { useMutationsStore } from '@/stores/mutations'
+import { NotAuthorizedDialog } from '@/components/dialogs/not-authorized-dialog'
 import { useWeb3 } from '@/contexts/Web3Provider'
 import { useTreeData } from '@/hooks/useTreeData'
 import type { TreeNode } from '@/lib/tree/types'
+import { useMutationsStore } from '@/stores/mutations'
+import { useTreeEditStore } from '@/stores/tree-edits'
+import { useCallback, useState } from 'react'
 import { ApplyChangesDialog } from './ApplyChangesDialog'
 
 export function ChangesBar() {
@@ -18,6 +19,8 @@ export function ChangesBar() {
   const changesCount = pendingMutations.size
 
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [unauthorizedNodes, setUnauthorizedNodes] = useState<string[]>([])
+  const [isNotAuthorizedOpen, setIsNotAuthorizedOpen] = useState(false)
 
   const findNode = useCallback(
     (name: string, node: TreeNode | null = sourceTree): TreeNode | null => {
@@ -60,26 +63,48 @@ export function ChangesBar() {
       <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-30 flex items-center gap-3 px-5 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-full shadow-lg">
         {/* Changes Count */}
         <div className="flex items-center gap-2">
-          <span className="w-2 h-2 bg-yellow-500 rounded-full"></span>
+          <span className="w-2 h-2 bg-yellow-500 rounded-full" />
           <span className="text-sm font-medium text-gray-900 dark:text-white">
             {changesCount} {changesCount === 1 ? 'Change' : 'Changes'}
           </span>
         </div>
 
         {/* Divider */}
-        <div className="w-px h-5 bg-gray-200 dark:bg-gray-700"></div>
+        <div className="w-px h-5 bg-gray-200 dark:bg-gray-700" />
 
         {/* Actions */}
         <div className="flex items-center gap-2">
           <button
+            type="button"
             onClick={clearPendingMutations}
             className="text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
           >
             Clear
           </button>
           <button
+            type="button"
             className="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-full hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            onClick={() => setIsDialogOpen(true)}
+            onClick={() => {
+              const connectedAddress = walletClient?.account?.address?.toLowerCase()
+
+              // Collect nodes the connected wallet is NOT owner/manager of
+              const notOwned: string[] = []
+              for (const [nodeName] of pendingMutations.entries()) {
+                const node = findNode(nodeName)
+                if (!node) continue
+                const nodeOwner = node.owner?.toLowerCase()
+                if (!connectedAddress || !nodeOwner || connectedAddress !== nodeOwner) {
+                  notOwned.push(nodeName)
+                }
+              }
+
+              if (notOwned.length > 0) {
+                setUnauthorizedNodes(notOwned)
+                setIsNotAuthorizedOpen(true)
+              } else {
+                setIsDialogOpen(true)
+              }
+            }}
             disabled={mutationsStatus === 'executing'}
           >
             {mutationsStatus === 'executing' ? 'Submitting...' : 'Apply Changes'}
@@ -92,6 +117,12 @@ export function ChangesBar() {
         onOpenChange={setIsDialogOpen}
         onConfirm={handleApplyChanges}
         onCreateSubname={handleCreateSubname}
+      />
+
+      <NotAuthorizedDialog
+        open={isNotAuthorizedOpen}
+        onOpenChange={setIsNotAuthorizedOpen}
+        unauthorizedNodes={unauthorizedNodes}
       />
     </>
   )
