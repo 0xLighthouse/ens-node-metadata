@@ -52,7 +52,7 @@ export function SchemaEditor({
   )
 
   const filteredSchemas = schemas
-    .filter((s) => s.isLatest)
+    .filter((s) => s.isLatest && s.class != null)
     .filter((s) => s.class.toLowerCase().includes(schemaSearchQuery.toLowerCase()))
 
   const hasNonAddressFields =
