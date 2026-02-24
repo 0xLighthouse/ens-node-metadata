@@ -8,10 +8,10 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
-import { Fragment } from 'react'
-import { usePathname } from 'next/navigation'
 import { FolderUp } from 'lucide-react'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { Fragment } from 'react'
 
 export const PageBreadcrumbs = () => {
   const pathname = usePathname()
@@ -28,7 +28,7 @@ export const PageBreadcrumbs = () => {
 
   const breadcrumbs = pathSegments.length
     ? pathSegments.map((segment, index) => {
-        const href = '/' + pathSegments.slice(0, index + 1).join('/')
+        const href = `/${pathSegments.slice(0, index + 1).join('/')}`
         return {
           href,
           label: formatSegment(segment),

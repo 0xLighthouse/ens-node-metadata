@@ -1,16 +1,11 @@
 'use client'
 
-import { APP_NAME } from '@/config/constants'
 import { MetricsStats } from '@/components/metrics-stats'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableRow,
-} from '@/components/ui/table'
+import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table'
+import { APP_NAME } from '@/config/constants'
 import { useAppStore } from '@/stores/app'
 import type { ENSRootDomain } from '@/types'
 import { fromUnixTime } from 'date-fns'
@@ -74,9 +69,7 @@ export function SelectDomain() {
         <div className="text-center space-y-4">
           <h1 className="text-3xl font-bold">Loading Names</h1>
           <p className="text-muted-foreground text-lg">
-            {status === 'initializing'
-              ? 'Initializing...'
-              : 'Fetching your domains...'}
+            {status === 'initializing' ? 'Initializing...' : 'Fetching your domains...'}
           </p>
         </div>
       </div>

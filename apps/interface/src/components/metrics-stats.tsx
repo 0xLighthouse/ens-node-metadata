@@ -1,8 +1,8 @@
 'use client'
 
-import { useEffect } from 'react'
-import { useMetricsStore } from '@/stores/metrics'
 import { getNodeConfig } from '@/config/nodes'
+import { useMetricsStore } from '@/stores/metrics'
+import { useEffect } from 'react'
 
 export function MetricsStats() {
   const { metrics, isLoading, fetchMetrics } = useMetricsStore()
