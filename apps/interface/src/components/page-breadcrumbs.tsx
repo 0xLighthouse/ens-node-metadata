@@ -50,7 +50,7 @@ export const PageBreadcrumbs = () => {
       <BreadcrumbList className="text-base text-neutral-600 leading-none">
         <BreadcrumbItem>
           <Link
-            href="/select-domain"
+            href="/select-name"
             className="flex h-6 w-6 items-center justify-center rounded-md text-neutral-400 hover:text-neutral-700 transition-colors"
             title="Back to domain selection"
           >

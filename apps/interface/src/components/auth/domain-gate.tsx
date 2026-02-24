@@ -8,7 +8,7 @@ interface Props {
   children: React.ReactNode
 }
 
-const SELECT_DOMAIN_PATH = '/select-domain'
+const SELECT_DOMAIN_PATH = '/select-name'
 
 export function DomainGate({ children }: Props) {
   const { activeDomain, isInitialized, status } = useAppStore()

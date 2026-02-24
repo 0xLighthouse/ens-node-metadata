@@ -25,7 +25,7 @@ export const TreeButtonGroup = () => {
   const pathname = usePathname()
 
   // Don't render if on home or select domain page
-  if (['/', '/select-domain'].includes(routeHistory.currentPath ?? '')) {
+  if (['/', '/select-name', '/select-domain'].includes(routeHistory.currentPath ?? '')) {
     return null
   }
 

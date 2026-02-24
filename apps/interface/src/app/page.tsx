@@ -9,10 +9,10 @@ export default function HomePage() {
   const { user } = usePrivy()
   const router = useRouter()
 
-  // Redirect to the select-domain page if the user is authenticated
+  // Redirect to the select-name page if the user is authenticated
   useEffect(() => {
     if (user) {
-      router.replace('/select-domain')
+      router.replace('/select-name')
     }
   }, [user, router])
 
