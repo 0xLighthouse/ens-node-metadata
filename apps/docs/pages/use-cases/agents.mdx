@@ -9,7 +9,7 @@ weight: 1
 
 AI agents are proliferating rapidly, but they lack a universal identity layer. Standards like [ERC-8004](https://eips.ethereum.org/EIPS/eip-8004) have emerged to address this — giving agents an on-chain anchor and a standardised way to publish capability metadata. However, ERC-8004 requires agents to register with a smart contract, which pushes the discoverability issue from the agent onto the smart contract. Many different registries could exist, which results in continued fragmentation where users who want to discover an agent have no single source of truth.
 
-## Our Solution
+## Proposed Solution
 
 ENS node classifications and metadata provide a canonical identity layer for AI agents. An agent that owns an ENS name can publish its `agent-uri` directly as a text record, allowing any consumer to resolve it with a standard ENS lookup. ENS becomes the single source of truth for all agents.
 
@@ -38,11 +38,11 @@ Because ENS records are public and indexed, agents that publish a `class = "Agen
 
 This gives any consumer a live, permissionless view of all agents that have opted in to on-chain discoverability.
 
-## Open Questions
+## 🚧 Open Questions 🚧
 
 The `agent-uri` field points to an off-chain JSON file. This means the capabilities it describes are only as reliable as the server hosting it — the URI could go stale, the file could be altered, and the content is not directly indexable on-chain.
 
-A natural extension would be publishing the registration file's contents directly as ENS text records. Fields like `services`, `x402-support`, `supported-trust`, and `active` already exist in the agent schema with this in mind. Done fully, an agent's ENS name would become a self-contained, on-chain source of truth for its identity and capabilities — with no external fetch required.
+A natural extension would be publishing the registration file's contents directly as ENS text records. Fields like `services`, `x402-support`, `supported-trust`, and `active` have been added to the proposed agent schema as placeholders for the future. Done fully, an agent's ENS name would become a self-contained, on-chain source of truth for its identity and capabilities — with no external fetch required.
 
 What the right structure for those fields looks like, and how to handle the multilevel data they imply, is an open question for the community. Contributions are welcome.
 

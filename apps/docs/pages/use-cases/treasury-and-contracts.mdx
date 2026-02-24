@@ -15,31 +15,27 @@ The first is discoverability. If you want to understand an organisation's on-cha
 
 The second is security. When there is no canonical source, scam contract addresses can circulate unchallenged. Someone posts a contract address in a governance forum or group chat and claims it belongs to the organisation — and there is no on-chain record to check it against. Phishing attacks that impersonate protocol contracts succeed in part because users have no simple way to verify whether an address is genuinely claimed by the organisation it purports to belong to.
 
-## Our Solution
+## Proposed Solution
 
 An organisation that owns an ENS name can publish its entire on-chain footprint as subnodes — one subnode per treasury or contract — each carrying structured metadata. The organisation's ENS name becomes the authoritative, on-chain index of everything it controls.
 
 ```
-uniswap.eth
-  ├── treasury.uniswap.eth
+supercooldao.eth
+  ├── treasury.supercooldao.eth
   │     └── class        = "Treasury"
-  │     └── name         = "Uniswap DAO Treasury"
   │     └── description  = "Primary DAO treasury managed by governance"
   │
-  ├── v3-factory.uniswap.eth
-  │     └── class        = "Contract"
-  │     └── alias        = "UniswapV3Factory"
-  │     └── description  = "Deploys new Uniswap V3 pools"
-  │     └── category     = "defi"
+  ├── hotwallet.supercooldao.eth
+  │     └── class        = "Wallet"
+  │     └── description  = "Hot wallet for the DAO"
   │
-  └── v3-router.uniswap.eth
+  └── governance.supercooldao.eth
         └── class        = "Contract"
-        └── alias        = "SwapRouter"
-        └── description  = "Routes swaps across Uniswap V3 pools"
-        └── category     = "defi"
+        └── alias        = "Governance Contract"
+        └── description  = "Governance contract for the DAO"
 ```
 
-Each subnode address resolves to the actual on-chain contract or wallet. The parent ENS name provides the attestation: the organisation that controls `uniswap.eth` is the one asserting these subnodes belong to it.
+Each subnode address resolves to the actual on-chain contract or wallet. The parent ENS name provides the attestation: the organisation that controls `supercooldao.eth` is the one asserting these subnodes belong to it.
 
 ## Discoverability
 
