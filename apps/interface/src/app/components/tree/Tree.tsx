@@ -8,7 +8,6 @@ import {
   type NodeChange,
   type ReactFlowInstance,
   Background,
-  Panel,
   useNodesState,
   useEdgesState,
 } from '@xyflow/react'
@@ -434,23 +433,9 @@ export function Tree({ data }: Props) {
       }}
       className="h-full w-full"
       onInit={setReactFlowInstance}
+      proOptions={{ hideAttribution: true }}
     >
       <Background gap={20} size={1} className="bg-white dark:bg-gray-950" />
-      <Panel
-        position="top-right"
-        className="bg-white dark:bg-gray-900 p-3 rounded-lg shadow-lg text-xs font-mono"
-      >
-        <div className="space-y-1">
-          <div>Nodes: {nodes.length}</div>
-          <div>Edges: {edges.length}</div>
-          <div>Selected: {selectedNodeName || 'None'}</div>
-          <div>Orientation: {orientation}</div>
-          <div>Collapsed: {collapsedNodes.size}</div>
-          {layoutPhase === 'measuring' && (
-            <div className="text-amber-600 font-semibold">Computing layout...</div>
-          )}
-        </div>
-      </Panel>
     </ReactFlow>
   )
 }

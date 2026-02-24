@@ -171,6 +171,7 @@ export const BaseNodeCard = ({
           <div className="px-4 py-3 border-b border-gray-100 text-left">
             {node.address ? (
               <div className="text-sm text-gray-700 font-mono truncate flex items-center gap-1.5">
+                <span className="text-xs font-sans font-medium text-gray-500 uppercase tracking-wide mr-0.5">Address:</span>
                 <span className="truncate">{shortAddress(node.address)}</span>
                 {addressUrl && (
                   <ExternalActionButton
@@ -188,6 +189,7 @@ export const BaseNodeCard = ({
           {/* Manager row */}
           <div className="px-4 py-2.5 bg-gray-50/50">
             <div className="flex items-center gap-2 leading-none">
+              <span className="text-xs font-medium text-gray-500 uppercase tracking-wide flex-shrink-0">Manager:</span>
               <Avatar className="size-4 flex-shrink-0 inline-flex">
                 <AvatarImage
                   src={node.ownerEnsAvatar || `https://avatar.vercel.sh/${node.owner}`}
