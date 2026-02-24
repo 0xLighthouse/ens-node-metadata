@@ -11,26 +11,26 @@ As DAOs adopt legal wrappers — such as Wyoming's Decentralised Unincorporated 
 
 Today these details live in off-chain registries, government databases, and legal documents that are difficult to discover and impossible to verify against the organisation's on-chain identity. There is no way to look at a DAO's ENS name and determine whether it has a legal entity, who its officers are, or where it is registered. Worse, there is no way to verify that a statement or transaction was authorised by someone who actually holds a named role in the organisation's legal structure.
 
-## Our Solution
+## Proposed Solution
 
 An organisation can represent its legal structure as subnodes under its ENS name. Officers, registration details, and office addresses are published as on-chain metadata — making the organisation's corporate structure discoverable from the same place as its treasury addresses and smart contracts.
 
 ```
-mydao.eth
+supercooldao.eth
   ├── class              = "Org"
   ├── description        = "A Wyoming DUNA"
   │
-  ├── ceo.mydao.eth
+  ├── ceo.supercooldao.eth
   │     └── class        = "Officer"
   │     └── full-name    = "Alice Johnson"
   │     └── title        = "Chief Executive Officer"
   │
-  ├── secretary.mydao.eth
+  ├── secretary.supercooldao.eth
   │     └── class        = "Officer"
   │     └── full-name    = "Bob Chen"
   │     └── title        = "Secretary"
   │
-  └── registered-agent.mydao.eth
+  └── registered-agent.supercooldao.eth
         └── class        = "Officer"
         └── full-name    = "Wyoming Registered Agents LLC"
         └── title        = "Registered Agent"
@@ -57,7 +57,7 @@ Regulatory disclosures are only useful if people can find them. Because the offi
 
 Governance dashboards, compliance tools, and legal registries could index this information automatically — providing a live view of an organisation's disclosed structure without relying on off-chain filings.
 
-## Open Questions
+## 🚧 Open Questions 🚧
 
 The `Person` schema currently supports `class`, `full-name`, and `title`. For full regulatory compliance, organisations may also need to publish details like jurisdiction of incorporation, registration numbers, office addresses, and filing dates. Whether these belong as additional fields on the organisation's root node, as dedicated subnodes, or as a new schema is an open question for the community.
 
