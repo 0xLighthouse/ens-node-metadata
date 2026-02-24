@@ -9,16 +9,19 @@ import {
   Table,
   TableBody,
   TableCell,
-  TableHead,
-  TableHeader,
   TableRow,
 } from '@/components/ui/table'
 import { useAppStore } from '@/stores/app'
 import type { ENSRootDomain } from '@/types'
-import { format, fromUnixTime } from 'date-fns'
+import { fromUnixTime } from 'date-fns'
 import { Loader2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+
+const isExpired = (domain: ENSRootDomain): boolean => {
+  if (!domain.expiryDate) return false
+  return fromUnixTime(Number(domain.expiryDate)) < new Date()
+}
 
 export function SelectDomain() {
   const {
@@ -32,11 +35,6 @@ export function SelectDomain() {
   const [customDomain, setCustomDomain] = useState('')
   const [customDomainError, setCustomDomainError] = useState<string | null>(null)
   const [isCustomDomainLoading, setIsCustomDomainLoading] = useState(false)
-
-  console.log('----- SELECT ACTIVE DOMAIN -----')
-  console.log('domains', domains)
-  console.log('status', status)
-  console.log('isInitialized', isInitialized)
 
   const handleSelectDomain = (domain: ENSRootDomain) => {
     setActiveDomain(domain)
@@ -99,12 +97,14 @@ export function SelectDomain() {
     )
   }
 
+  const activeDomains = domains.filter((d) => !isExpired(d))
+
   return (
     <div className="flex flex-col items-center space-y-8 p-4 py-16">
       <div className="text-center space-y-4">
         <h1 className="text-3xl font-bold">{APP_NAME}</h1>
         <p className="text-muted-foreground text-lg">
-        Enter an ENS name to view, or select from one of your owned names below to edit.
+          Enter an ENS name to view, or select from one of your owned names below to edit.
         </p>
       </div>
 
@@ -140,49 +140,36 @@ export function SelectDomain() {
             )}
           </Button>
         </form>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>ENS Record</TableHead>
-              <TableHead>Expires</TableHead>
-              <TableHead>Action</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {domains.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={3} className="text-center text-muted-foreground">
-                No names found.
-                </TableCell>
-              </TableRow>
-            ) : (
-              domains.map((domain) => (
-                <TableRow key={domain.id}>
-                  <TableCell className="flex items-center gap-3">
-                    <div>
-                      <div className="font-medium">{domain.name}</div>
-                      <div className="text-sm text-muted-foreground">{domain.id}</div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    {domain.expiryDate ? (
-                      <code className="text-sm bg-muted px-2 py-1 rounded">
-                        {format(fromUnixTime(Number(domain.expiryDate)), 'PP p')}
-                      </code>
-                    ) : (
-                      <span className="text-muted-foreground">—</span>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <Button onClick={() => handleSelectDomain(domain)} size="sm">
-                      Select
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
+
+        {activeDomains.length > 0 && (
+          <div className="space-y-3">
+            <h2 className="text-2xl font-bold">Your ENS names</h2>
+            <Table>
+              <TableBody>
+                {activeDomains.map((domain) => (
+                  <TableRow key={domain.id}>
+                    <TableCell>
+                      <span className="text-lg font-semibold">{domain.name}</span>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button onClick={() => handleSelectDomain(domain)} size="sm">
+                        Select
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+
+        {activeDomains.length === 0 && domains.length === 0 && (
+          <p className="text-center text-muted-foreground">No names found.</p>
+        )}
+
+        {activeDomains.length === 0 && domains.length > 0 && (
+          <p className="text-center text-muted-foreground">All your names have expired.</p>
+        )}
       </div>
     </div>
   )
