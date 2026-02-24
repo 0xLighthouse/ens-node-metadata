@@ -1,13 +1,11 @@
 'use client'
 
 import { useEffect } from 'react'
-import { RefreshCw } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { useMetricsStore } from '@/stores/metrics'
 import { getNodeConfig } from '@/config/nodes'
 
 export function MetricsStats() {
-  const { metrics, isLoading, refresh, fetchMetrics } = useMetricsStore()
+  const { metrics, isLoading, fetchMetrics } = useMetricsStore()
 
   useEffect(() => {
     fetchMetrics()
@@ -16,9 +14,6 @@ export function MetricsStats() {
   if (isLoading && metrics.length === 0) {
     return (
       <div className="flex flex-col items-center gap-3">
-        <span className="text-sm font-medium text-muted-foreground">
-          Nodes using ENSIP-XX updated daily from Dune
-        </span>
         <div className="flex flex-wrap justify-center gap-2">
           {Array.from({ length: 6 }).map((_, i) => (
             <div
@@ -37,18 +32,7 @@ export function MetricsStats() {
 
   return (
     <div className="flex flex-col items-center gap-3">
-      <div className="flex items-center gap-2">
-        <span className="text-sm font-medium text-muted-foreground">Registration Stats</span>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="size-6"
-          onClick={refresh}
-          disabled={isLoading}
-        >
-          <RefreshCw className={`size-3 ${isLoading ? 'animate-spin' : ''}`} />
-        </Button>
-      </div>
+      <span className="text-sm font-medium text-muted-foreground">Registration Stats</span>
       <div className="flex flex-wrap justify-center gap-2">
         {metrics.map((row) => {
           const config = getNodeConfig(row.class)
