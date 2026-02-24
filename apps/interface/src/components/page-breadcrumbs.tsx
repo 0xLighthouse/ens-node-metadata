@@ -72,16 +72,20 @@ export const PageBreadcrumbs = () => {
                   <img src="/images/ens-icon.svg" alt="ENS" className="h-3.5 w-3.5" />
                 </span>
               )}
-              {crumb.isLast ? (
-                <BreadcrumbPage className="text-neutral-700">{crumb.label}</BreadcrumbPage>
+              {crumb.isLast || crumb.isRoot ? (
+                <BreadcrumbPage
+                  className={
+                    crumb.isRoot && !crumb.isLast
+                      ? 'font-medium text-neutral-800'
+                      : 'text-neutral-700'
+                  }
+                >
+                  {crumb.label}
+                </BreadcrumbPage>
               ) : (
                 <BreadcrumbLink
                   href={crumb.href}
-                  className={
-                    crumb.isRoot
-                      ? 'font-medium text-neutral-800 underline decoration-2 underline-offset-4'
-                      : 'font-medium text-neutral-600 hover:text-neutral-800'
-                  }
+                  className="font-medium text-neutral-600 hover:text-neutral-800"
                 >
                   {crumb.label}
                 </BreadcrumbLink>
