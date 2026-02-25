@@ -2,24 +2,24 @@ import { readFileSync } from 'node:fs'
 import { Box, Text, useApp } from 'ink'
 import React from 'react'
 import { z } from 'zod'
-import { validateRegistrationFile } from '../index.js'
+import { AgentMetadataPayloadSchema } from '../../index.js'
 
-export const args = z.tuple([z.string().describe('file')])
+export const args = z.tuple([z.string().describe('payload.json')])
 
 type Props = {
   args: z.infer<typeof args>
 }
 
-export default function Validate({ args: [file] }: Props) {
+export default function MetadataValidate({ args: [file] }: Props) {
   const { exit } = useApp()
 
   let fileError: string | null = null
-  let result: ReturnType<typeof validateRegistrationFile> | null = null
+  let result: z.SafeParseReturnType<unknown, Record<string, string>> | null = null
 
   try {
     const contents = readFileSync(file, 'utf8')
     const raw: unknown = JSON.parse(contents)
-    result = validateRegistrationFile(raw)
+    result = AgentMetadataPayloadSchema.safeParse(raw)
   } catch (err) {
     fileError = (err as Error).message
   }
@@ -41,16 +41,18 @@ export default function Validate({ args: [file] }: Props) {
   }
 
   if (result!.success) {
+    const keys = Object.keys(result.data)
     return (
-      <Box>
-        <Text color="green">✅ Valid AgentRegistrationFile</Text>
+      <Box flexDirection="column">
+        <Text color="green">✅ Valid ENS agent metadata payload</Text>
+        <Text color="gray">  {keys.length} text records</Text>
       </Box>
     )
   }
 
   return (
     <Box flexDirection="column">
-      <Text color="red">❌ Invalid AgentRegistrationFile</Text>
+      <Text color="red">❌ Invalid agent metadata payload</Text>
       {result!.error.issues.map((issue) => {
         const path = issue.path.length > 0 ? issue.path.join('.') : '(root)'
         const key = `${path}.${issue.message}`

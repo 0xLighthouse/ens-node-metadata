@@ -5,11 +5,17 @@ import {
   AgentServiceSchema,
 } from './types.js'
 
-export type { AgentService, AgentRegistration, AgentRegistrationFile } from './types.js'
+export type {
+  AgentService,
+  AgentRegistration,
+  AgentRegistrationFile,
+  AgentMetadataPayload,
+} from './types.js'
 export {
   AgentServiceSchema,
   AgentRegistrationSchema,
   AgentRegistrationFileSchema,
+  AgentMetadataPayloadSchema,
 } from './types.js'
 
 /**
@@ -37,9 +43,7 @@ const BuildInputSchema = z
  * are missing or fail validation.
  * Unknown keys are stripped via Zod `.strict()` + `.parse()`.
  */
-export function buildRegistrationFile(
-  input: Record<string, unknown>,
-): z.infer<typeof AgentRegistrationFileSchema> {
+export function buildRegistrationFile(input: Record<string, unknown>) {
   return BuildInputSchema.parse(input)
 }
 
@@ -47,9 +51,10 @@ export function buildRegistrationFile(
  * Validate an unknown value against the `AgentRegistrationFile` schema.
  * Returns a Zod `SafeParseReturnType` — check `.success` for pass/fail,
  * and `.error` for structured validation errors.
+ *
+ * WA031: if the file uses the legacy `endpoints` field instead of `services`,
+ * the returned value will have `_legacyEndpoints: true`.
  */
-export function validateRegistrationFile(
-  file: unknown,
-): z.SafeParseReturnType<unknown, z.infer<typeof AgentRegistrationFileSchema>> {
+export function validateRegistrationFile(file: unknown) {
   return AgentRegistrationFileSchema.safeParse(file)
 }
