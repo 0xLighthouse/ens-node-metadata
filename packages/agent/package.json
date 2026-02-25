@@ -1,12 +1,12 @@
 {
   "name": "@ens-node-metadata/agent",
-  "version": "0.2.3",
+  "version": "0.2.7",
   "description": "CLI for registering AI agents on ENS using ERC-8004",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "bin": {
-    "agent": "./dist/cli.js"
+    "ens-agent": "./dist/cli.js"
   },
   "exports": {
     ".": "./dist/index.js"
@@ -25,9 +25,7 @@
     "lint": "biome check ."
   },
   "dependencies": {
-    "@ens-node-metadata/schemas": "workspace:*",
     "@ens-node-metadata/sdk": "workspace:*",
-    "@ens-node-metadata/shared": "workspace:*",
     "@ensdomains/ensjs": "^4.0.2",
     "ink": "^6.8.0",
     "pastel": "^3.0.0",

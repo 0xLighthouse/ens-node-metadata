@@ -15,22 +15,22 @@ A skill to help manage your agents metadata on ENS along with ERC-8004 managemen
 
 ## Command overview
 
-Run `agent --help` or `agent <command> --help` for full usage.
+Run `ens-agent --help` or `ens-agent <command> --help` for full usage.
 
 ```sh
-agent registration-file template            # prints example JSON
-agent registration-file validate <file>     # validates SCHEMA_8004_V2
-agent registration-file publish <file>      # upload to IPFS via Pinata
+ens-agent registration-file template            # prints example JSON
+ens-agent registration-file validate <file>     # validates SCHEMA_8004_V2
+ens-agent registration-file publish <file>      # upload to IPFS via Pinata
 # => Returns <agent-uri>
 
 # Register agent with canonical 8004 registries
-agent registry identity --chain-name <chain> <agent-uri> --private-key <0x...> [--broadcast]
+ens-agent registry identity --chain-name <chain> <agent-uri> --private-key <0x...> [--broadcast]
 
-agent metadata template                   # starter ENS text-record payload
-agent metadata validate <payload>         # validates metadata JSON schema
-agent metadata set <AGENT_ENS_NAME> <payload> --private-key <0x...> [--broadcast]
+ens-agent metadata template                   # starter ENS text-record payload
+ens-agent metadata validate <payload>         # validates metadata JSON schema
+ens-agent metadata set <AGENT_ENS_NAME> <payload> --private-key <0x...> [--broadcast]
 
-agent skill [--install]                   # Installs
+ens-agent skill [--install]                   # Installs
 ```
 
 ## Workflows
@@ -43,10 +43,10 @@ A registration file is required to register your Agent's identity.
 
 ```sh
 # edit with your details
-agent registration-file template > registration.json`
+ens-agent registration-file template > registration.json`
 
 # validate
-agent registration-file validate registration.json`
+ens-agent registration-file validate registration.json`
 ```
 
 #### Publishing a registration file
@@ -59,7 +59,7 @@ The following variables should be in your environment to use this command.
 
 ```sh
 # Publish to IPFS
-agent registration-file publish registration.json`
+ens-agent registration-file publish registration.json`
 # Returns => ipfs://CID henceforth referred to as <agent-uri>
 ```
 
@@ -68,7 +68,7 @@ agent registration-file publish registration.json`
 We publish to the cannonical registries <https://github.com/erc-8004/erc-8004-contracts>
 
 ```sh
-agent registry identity --chain-name <chain> <agent-uri> --private-key <0x...> [--broadcast]
+ens-agent registry identity --chain-name <chain> <agent-uri> --private-key <0x...> [--broadcast]
 # Returns => <agent-id>
 ```
 
@@ -80,10 +80,10 @@ A metadata payload descrbes which text records to set.
 
 ```sh
 # Agent metadata expressed as JSON schema
-agent metadata template > payload.json
+ens-agent metadata template > payload.json
 
 # Validator
-agent metadata validate payload.json
+ens-agent metadata validate payload.json
 ```
 
 #### Updating metadata on ENS
@@ -93,7 +93,7 @@ agent metadata validate payload.json
 * Remember to also update your `<agent-uri>`.
 
 ```sh
-agent metadata set <AGENT_ENS_NAME> payload.json --private-key 0x<KEY> --broadcast`
+ens-agent metadata set <AGENT_ENS_NAME> payload.json --private-key 0x<KEY> --broadcast`
 ```
 
 ## References

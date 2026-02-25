@@ -5,7 +5,8 @@ CLI for registering AI agents on ENS using [ERC-8004](https://best-practices.800
 ## Usage
 
 ```bash
-pnpm dlx @ens-node-metadata/agent --help
+pnpm dlx @ens-node-metadata/agent
+# then use: ens-agent --help
 ```
 
 ## Registration Flow

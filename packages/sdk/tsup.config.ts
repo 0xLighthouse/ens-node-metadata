@@ -8,5 +8,5 @@ export default defineConfig({
   format: ['esm'],
   dts: true,
   clean: true,
-  noExternal: ['@ens-node-metadata/shared'],
+  noExternal: ['@ens-node-metadata/shared', '@ens-node-metadata/schemas'],
 })

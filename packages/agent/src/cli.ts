@@ -10,19 +10,19 @@ if (isRootHelp) {
 CLI for registering AI agents on ENS using ERC-8004 (v2.0).
 
 Usage:
-  agent skill [--install]
+  ens-agent skill [--install]
 
-  agent registration-file template
-  agent registration-file validate <file.json>
-  agent registration-file publish <file.json>
+  ens-agent registration-file template
+  ens-agent registration-file validate <file.json>
+  ens-agent registration-file publish <file.json>
 
-  agent registry identity --chain-name <chain> <agent-uri>
+  ens-agent registry identity --chain-name <chain> <agent-uri>
 
-  agent metadata template
-  agent metadata validate <payload.json>
-  agent metadata set <ens-node> <payload.json> --private-key <key> [--broadcast]
+  ens-agent metadata template
+  ens-agent metadata validate <payload.json>
+  ens-agent metadata set <ens-node> <payload.json> --private-key <key> [--broadcast]
 
-Run \`agent <command> --help\` for details on a specific command.
+Run \`ens-agent <command> --help\` for details on a specific command.
 `)
   process.exit(0)
 }
