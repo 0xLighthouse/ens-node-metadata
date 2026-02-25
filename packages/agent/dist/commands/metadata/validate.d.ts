@@ -4,6 +4,6 @@ export declare const args: z.ZodTuple<[z.ZodString], null>;
 type Props = {
     args: z.infer<typeof args>;
 };
-export default function Validate({ args: [file] }: Props): React.JSX.Element;
+export default function MetadataValidate({ args: [file] }: Props): React.JSX.Element;
 export {};
 //# sourceMappingURL=validate.d.ts.map

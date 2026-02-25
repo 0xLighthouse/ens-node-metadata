@@ -6,10 +6,7 @@ import React from 'react'
 import { z } from 'zod'
 
 export const options = z.object({
-  install: z
-    .boolean()
-    .default(false)
-    .describe('Copy SKILL.md to the current working directory'),
+  install: z.boolean().default(false).describe('Copy SKILL.md to the current working directory'),
 })
 
 type Props = {

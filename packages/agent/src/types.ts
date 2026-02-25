@@ -96,7 +96,7 @@ export type AgentRegistration = z.infer<typeof AgentRegistrationSchema>
 
 export const AgentMetadataPayloadSchema = z
   .record(z.string(), z.string())
-  .refine((obj) => obj['class'] === 'Agent', {
+  .refine((obj) => obj.class === 'Agent', {
     message: 'class must be "Agent"',
     path: ['class'],
   })

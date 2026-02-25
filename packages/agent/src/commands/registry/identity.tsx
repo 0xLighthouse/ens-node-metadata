@@ -1,6 +1,6 @@
 import { Box, Text, useApp } from 'ink'
 import React from 'react'
-import { createPublicClient, http } from 'viem'
+import { http, createPublicClient } from 'viem'
 import { base, mainnet } from 'viem/chains'
 import { z } from 'zod'
 
@@ -23,9 +23,9 @@ type Props = {
  * Override via ERC8004_REGISTRY_BASE / ERC8004_REGISTRY_MAINNET env vars.
  */
 const REGISTRY_ADDRESSES: Record<string, `0x${string}`> = {
-  mainnet: (process.env['ERC8004_REGISTRY_MAINNET'] ??
+  mainnet: (process.env.ERC8004_REGISTRY_MAINNET ??
     '0x0000000000000000000000000000000000000000') as `0x${string}`,
-  base: (process.env['ERC8004_REGISTRY_BASE'] ??
+  base: (process.env.ERC8004_REGISTRY_BASE ??
     '0x0000000000000000000000000000000000000000') as `0x${string}`,
 }
 
@@ -63,10 +63,7 @@ type State =
   | { status: 'done'; identity: IdentityResult }
   | { status: 'error'; message: string }
 
-export default function RegistryIdentity({
-  options: { chainName },
-  args: [agentUri],
-}: Props) {
+export default function RegistryIdentity({ options: { chainName }, args: [agentUri] }: Props) {
   const { exit } = useApp()
   const [state, setState] = React.useState<State>({ status: 'loading' })
 
@@ -128,10 +125,10 @@ export default function RegistryIdentity({
       {state.status === 'done' && (
         <Box flexDirection="column">
           <Text color="green">✅ Agent Identity ({state.identity.chain})</Text>
-          <Text>  Agent URI:  {state.identity.agentUri}</Text>
-          <Text>  Owner:      {state.identity.owner}</Text>
-          <Text>  Token ID:   {state.identity.tokenId.toString()}</Text>
-          <Text>  Registry:   {state.identity.registryAddress}</Text>
+          <Text> Agent URI: {state.identity.agentUri}</Text>
+          <Text> Owner: {state.identity.owner}</Text>
+          <Text> Token ID: {state.identity.tokenId.toString()}</Text>
+          <Text> Registry: {state.identity.registryAddress}</Text>
         </Box>
       )}
       {state.status === 'error' && <Text color="red">❌ {state.message}</Text>}

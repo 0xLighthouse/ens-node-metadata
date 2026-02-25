@@ -1,33 +1,118 @@
-# @ens-node-metadata/agent-registration
+# @ens-node-metadata/agent
 
-Utilities and documentation for registering an AI agent on ENS using the [ERC-8004](https://ens-metadata-docs.vercel.app/schemas/agent) standard.
+CLI for registering AI agents on ENS using [ERC-8004](https://best-practices.8004scan.io/docs/01-agent-metadata-standard.html) (v2.0).
 
-## Overview
+## Usage
 
-ERC-8004 defines a JSON schema for describing AI agents that are addressable via ENS. This package provides:
+```bash
+pnpm dlx @ens-node-metadata/agent --help
+```
 
-- **TypeScript types** for the registration file schema
-- **`buildRegistrationFile`** — constructs a valid registration file with defaults
-- **`validateRegistrationFile`** — type-safe runtime validator
-- **`SKILL.md`** — machine-readable instructions for agents to self-register
+## Commands
 
-## Installation
+```
+agent skill [--install]
+  Print SKILL.md. With --install, copy it to the current directory.
 
-This is a private workspace package. It is available to any package in the monorepo via:
+agent registration-file template
+  Print an empty ERC-8004 v2.0 registration JSON to stdout.
+
+agent registration-file validate <registration-file.json>
+  Validate against Zod schema. Prints ✅ or errors ❌.
+  Emits WA031 deprecation warning if the legacy `endpoints` field is used.
+
+agent registration-file publish <registration-file.json>
+  Publish to IPFS via @web3-storage/w3up-client. Prints the ipfs:// URI.
+  Requires: W3_PRINCIPAL, W3_PROOF env vars (see below).
+
+agent registry identity --chain-name <chain> <agent-uri>
+  Read the ERC-8004 Identity Registry for the given chain.
+  Supported chains: base, mainnet.
+  Requires: ERC8004_REGISTRY_<CHAIN> env var.
+
+agent metadata template
+  Print a starter ENS metadata payload JSON (the text records to set).
+
+agent metadata validate <payload.json>
+  Validate ENS metadata payload against the agent schema.
+
+agent register <ENS> <payload.json> --private-key <key> [--broadcast]
+  Build ENS setTextRecords transaction. Dry run by default; --broadcast submits it.
+  Uses viem + @ensdomains/ensjs.
+
+agent update <ENS> <payload.json> --private-key <key> [--broadcast]
+  Same as register — for updating existing records.
+```
+
+## Environment Variables
+
+### IPFS Publishing (`registration-file publish`)
+
+| Variable | Description |
+|---|---|
+| `W3_PRINCIPAL` | Your DID key. Get it via: `w3 key create` (install `@web3-storage/w3cli`) |
+| `W3_PROOF` | UCAN proof delegation from your web3.storage space. See [w3up docs](https://web3.storage/docs/how-to/create-space/) |
+
+```bash
+# Quick setup
+npm install -g @web3-storage/w3cli
+w3 login you@example.com
+w3 space create my-agent
+export W3_PRINCIPAL=$(w3 key create)
+export W3_PROOF=$(w3 delegation create --can 'store/add' --can 'upload/add' | base64)
+```
+
+### On-chain Registry (`registry identity`)
+
+| Variable | Description |
+|---|---|
+| `ERC8004_REGISTRY_MAINNET` | ERC-8004 registry contract address on mainnet |
+| `ERC8004_REGISTRY_BASE` | ERC-8004 registry contract address on Base |
+
+## ERC-8004 v2.0 Registration File
+
+The registration file is a JSON document published to IPFS or HTTPS. Its `ipfs://` URI is stored as the `agent-uri` ENS text record.
 
 ```json
-"dependencies": {
-  "@ens-node-metadata/agent-registration": "workspace:*"
+{
+  "type": "Agent",
+  "name": "My Agent",
+  "description": "Does useful things on-chain.",
+  "services": [
+    { "name": "MCP", "endpoint": "https://myagent.example.com/mcp", "version": "1.0" },
+    { "name": "A2A", "endpoint": "https://myagent.example.com/a2a", "version": "0.3" }
+  ],
+  "x402Support": false,
+  "active": true,
+  "registrations": [],
+  "supportedTrust": ["reputation"]
 }
 ```
 
-## Usage
+> ⚠️ **v2.0 migration:** The field name changed from `endpoints` → `services` (Jan 2026).
+> The CLI accepts `endpoints` for backward compatibility with a WA031 deprecation warning.
+
+## Registration Flow
+
+1. `agent registration-file template > registration.json` — create the file
+2. Edit `registration.json`
+3. `agent registration-file validate registration.json` — validate
+4. `agent registration-file publish registration.json` — publish to IPFS → get `ipfs://` URI
+5. `agent metadata template > payload.json` — create the ENS record payload
+6. Set `agent-uri` to the `ipfs://` URI in `payload.json`
+7. `agent metadata validate payload.json` — validate
+8. `agent register myagent.eth payload.json --private-key $PK --broadcast` — register
+
+See [SKILL.md](./SKILL.md) for the full step-by-step guide.
+
+## TypeScript API
 
 ```ts
 import {
   buildRegistrationFile,
   validateRegistrationFile,
-} from "@ens-node-metadata/agent-registration";
+  AgentRegistrationFileSchema,
+} from "@ens-node-metadata/agent";
 
 // Build a registration file
 const file = buildRegistrationFile({
@@ -42,57 +127,17 @@ const file = buildRegistrationFile({
 
 // Validate an untrusted payload
 const raw = JSON.parse(maybeInvalidJson);
-if (validateRegistrationFile(raw)) {
-  // raw is now typed as AgentRegistrationFile
-  console.log(raw.name);
+const result = validateRegistrationFile(raw);
+if (result.success) {
+  console.log(result.data.name);
+  // Check for legacy `endpoints` field usage
+  if (result.data._legacyEndpoints) {
+    console.warn("WA031: migrate from `endpoints` to `services`");
+  }
 }
 ```
-
-## Types
-
-```ts
-interface AgentService {
-  name: string;
-  endpoint: string;
-  version?: string;
-}
-
-interface AgentRegistration {
-  agentId: string;
-  agentRegistry: string;
-}
-
-interface AgentRegistrationFile {
-  type: "Agent";
-  name: string;
-  description: string;
-  image?: string;
-  services: AgentService[];
-  x402Support: boolean;
-  active: boolean;
-  registrations: AgentRegistration[];
-  supportedTrust: string[];
-}
-```
-
-## Agent Instructions
-
-See [`SKILL.md`](./SKILL.md) for step-by-step instructions on:
-
-1. Building the registration file
-2. Publishing to IPFS or HTTPS
-3. Writing ENS text records (`class`, `agent-uri`, `service[MCP]`, …)
-4. Keeping records up to date
-
-## Example
-
-See [`examples/registration.json`](./examples/registration.json) for a complete example registration file.
-
-## Schema Reference
-
-https://ens-metadata-docs.vercel.app/schemas/agent
 
 ## Related Packages
 
-- [`@ensipXX/sdk`](../sdk) — ENS metadata read/write SDK
-- [`@ens-node-metadata/schemas`](../schemas) — JSON schemas
+- [`@ens-node-metadata/schemas`](../schemas) — JSON schemas for all ENS node types
+- [`@ens-node-metadata/sdk`](../sdk) — ENS metadata read SDK

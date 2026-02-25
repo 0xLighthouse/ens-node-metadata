@@ -1,11 +1,18 @@
 #!/usr/bin/env node
 /**
- * CLI entry point for @ens-node-metadata/agent-registration.
+ * CLI entry point for @ens-node-metadata/agent.
  * Powered by Pastel + Ink.
  *
- * Usage:
- *   agent-registration validate <file.json>   — validate a registration JSON file
- *   agent-registration build                  — print a starter registration JSON template
+ * Commands:
+ *   agent skill [--install]
+ *   agent registration-file template
+ *   agent registration-file validate <file.json>
+ *   agent registration-file publish <file.json>
+ *   agent registry identity --chain-name <chain> <agent-uri>
+ *   agent metadata template
+ *   agent metadata validate <payload.json>
+ *   agent register <ENS> <payload.json> --private-key <key> [--broadcast]
+ *   agent update <ENS> <payload.json> --private-key <key> [--broadcast]
  */
 import Pastel from 'pastel';
 const app = new Pastel({

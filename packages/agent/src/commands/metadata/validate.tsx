@@ -41,11 +41,11 @@ export default function MetadataValidate({ args: [file] }: Props) {
   }
 
   if (result!.success) {
-    const keys = Object.keys(result.data)
+    const keys = Object.keys(result!.data)
     return (
       <Box flexDirection="column">
         <Text color="green">✅ Valid ENS agent metadata payload</Text>
-        <Text color="gray">  {keys.length} text records</Text>
+        <Text color="gray"> {keys.length} text records</Text>
       </Box>
     )
   }

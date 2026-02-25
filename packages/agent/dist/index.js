@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { AgentRegistrationFileSchema, AgentRegistrationSchema, AgentServiceSchema, } from './types.js';
-export { AgentServiceSchema, AgentRegistrationSchema, AgentRegistrationFileSchema, } from './types.js';
+export { AgentServiceSchema, AgentRegistrationSchema, AgentRegistrationFileSchema, AgentMetadataPayloadSchema, } from './types.js';
 /**
  * Input schema for {@link buildRegistrationFile}.
  * `type` defaults to `'Agent'`; `description` defaults to `''`.
@@ -32,6 +32,9 @@ export function buildRegistrationFile(input) {
  * Validate an unknown value against the `AgentRegistrationFile` schema.
  * Returns a Zod `SafeParseReturnType` — check `.success` for pass/fail,
  * and `.error` for structured validation errors.
+ *
+ * WA031: if the file uses the legacy `endpoints` field instead of `services`,
+ * the returned value will have `_legacyEndpoints: true`.
  */
 export function validateRegistrationFile(file) {
     return AgentRegistrationFileSchema.safeParse(file);

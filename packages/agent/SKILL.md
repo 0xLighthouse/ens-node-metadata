@@ -1,6 +1,6 @@
 ---
 name: agent-self-registration
-description: Skill for registering an AI agent on ENS using ERC-8004. Covers building the registration file, publishing it, writing ENS text records, and keeping them up to date.
+description: Skill for registering an AI agent on ENS using ERC-8004. Covers the CLI commands, building the registration file, publishing it to IPFS, writing ENS text records, and keeping them up to date.
 allowed-tools: Bash(node:*), Bash(ipfs:*), Bash(cast:*)
 ---
 
@@ -9,6 +9,46 @@ allowed-tools: Bash(node:*), Bash(ipfs:*), Bash(cast:*)
 This skill teaches an agent how to register itself on ENS using the ERC-8004 standard. The full schema is documented at:
 
 > https://ens-metadata-docs.vercel.app/schemas/agent
+
+---
+
+## CLI Quick Reference
+
+All commands are available via the `agent` binary from `@ens-node-metadata/agent`.
+
+```
+agent skill [--install]
+  Print SKILL.md to stdout. Pass --install to copy it to ./SKILL.md.
+
+agent registration-file template
+  Print an empty ERC-8004 v2.0 JSON registration file template.
+
+agent registration-file validate <file.json>
+  Validate a registration file against the Zod schema. Exits non-zero on failure.
+
+agent registration-file publish <file.json>
+  Upload the registration file to IPFS via web3.storage.
+  Requires: W3_PRINCIPAL and W3_PROOF env vars.
+  Prints the resulting ipfs:// URI on success.
+
+agent registry identity --chain-name <chain> <agent-uri>
+  Read the on-chain identity for an agent URI from an ERC-8004 registry.
+  chain: base | mainnet (default: mainnet)
+  Requires: ERC8004_REGISTRY_<CHAIN> env var set to the registry contract address.
+
+agent metadata template
+  Print an empty ENS text record payload template (flat key/value JSON).
+
+agent metadata validate <payload.json>
+  Validate a metadata payload against the agent schema. Exits non-zero on failure.
+
+agent register <ENS> <payload.json> --private-key <0x...> [--broadcast]
+  Set ENS text records for the agent. Default is a dry run; add --broadcast to submit on-chain.
+
+agent update <ENS> <payload.json> --private-key <0x...> [--broadcast]
+  Update ENS text records for an already-registered agent. Identical to register but
+  semantically signals an update operation.
+```
 
 ---
 
@@ -21,16 +61,26 @@ These are **not enforced** by the skill but must be satisfied before proceeding:
 | ENS name ownership or control | You must be the controller of the ENS name to set text records |
 | Wallet with signing capability | Needed to sign and broadcast transactions |
 | ETH for gas on the target chain | Text-record writes are on-chain transactions |
-| IPFS node or Pinata/NFT.Storage API key | Required for IPFS publishing (preferred) |
+| web3.storage account (W3_PRINCIPAL + W3_PROOF) | Required for IPFS publishing via `registration-file publish` |
 
 ---
 
 ## Step 1 — Build the Registration File
 
-Use `buildRegistrationFile` from `@ens-node-metadata/agent-registration` to construct a valid ERC-8004 JSON file.
+### Option A — CLI (recommended)
+
+```bash
+# Print an empty template
+agent registration-file template > registration.json
+
+# Edit registration.json with your details, then validate:
+agent registration-file validate registration.json
+```
+
+### Option B — Programmatic API
 
 ```ts
-import { buildRegistrationFile } from "@ens-node-metadata/agent-registration";
+import { buildRegistrationFile } from "@ens-node-metadata/agent";
 
 const file = buildRegistrationFile({
   name: "My AI Agent",
@@ -42,7 +92,7 @@ const file = buildRegistrationFile({
   ],
   x402Support: false,
   active: true,
-  registrations: [],          // add on-chain registry entries if applicable
+  registrations: [],
   supportedTrust: ["reputation"],
 });
 
@@ -63,50 +113,56 @@ console.log(JSON.stringify(file, null, 2));
 | `registrations` | `AgentRegistration[]` | ✅ | On-chain registry references |
 | `supportedTrust` | string[] | ✅ | e.g. `["reputation", "attestation", "stake", "none"]` |
 
+> ⚠️ **Deprecation (WA031):** The legacy `endpoints` field is accepted for backward compatibility but will trigger a deprecation warning. Always use `services` in new files.
+
 ---
 
 ## Step 2 — Publish the Registration File
 
 The result of publishing is the **`agent-uri`** — an IPFS CID or HTTPS URL. This goes into the ENS text record `agent-uri`.
 
-### Option A — IPFS (preferred, more decentralised)
-
-IPFS gives content-addressable, censorship-resistant hosting. Recommended for production agents.
+### Option A — CLI via web3.storage (preferred)
 
 ```bash
-# Using the IPFS CLI
+export W3_PRINCIPAL="<your-ed25519-principal-did>"
+export W3_PROOF="<your-base64-encoded-proof>"
+
+agent registration-file publish registration.json
+# → ✅ Published to IPFS
+# → ipfs://bafybeig...
+```
+
+### Option B — IPFS CLI
+
+```bash
 ipfs add --cid-version=1 registration.json
 # → CID: bafybeig...
 # agent-uri = ipfs://bafybeig...
-
-# Using Pinata (HTTP API)
-curl -X POST https://api.pinata.cloud/pinning/pinFileToIPFS \
-  -H "Authorization: Bearer $PINATA_JWT" \
-  -F "file=@registration.json"
-# → IpfsHash in response
-# agent-uri = ipfs://<IpfsHash>
 ```
 
-Keep the CID. Every time you change the file you'll get a new CID — update `agent-uri` accordingly (see Step 5).
-
-### Option B — HTTPS
-
-Simpler but centralised. Suitable for development or when IPFS is not available.
+### Option C — HTTPS
 
 ```bash
-# Deploy to any public HTTPS host, e.g.:
 curl -X PUT https://my-s3-bucket.s3.amazonaws.com/agent/registration.json \
   --upload-file registration.json
 # agent-uri = https://my-s3-bucket.s3.amazonaws.com/agent/registration.json
 ```
 
-Make sure the URL is publicly reachable and returns `Content-Type: application/json`.
-
 ---
 
 ## Step 3 — Write ENS Text Records
 
-Use viem's `writeContract` with the Public Resolver ABI (same pattern as `packages/sdk`).
+### Option A — CLI (recommended)
+
+```bash
+# Dry run (no on-chain write)
+agent register myagent.eth payload.json --private-key 0x<KEY>
+
+# Broadcast on-chain
+agent register myagent.eth payload.json --private-key 0x<KEY> --broadcast
+```
+
+### Option B — Programmatic (viem)
 
 ```ts
 import { createWalletClient, http, namehash } from "viem";
@@ -144,24 +200,20 @@ async function setRecord(key: string, value: string) {
   });
 }
 
-// Core registration records
 await setRecord("class",          "Agent");
-await setRecord("agent-uri",      agentUri);           // ipfs://... or https://...
-
-// Optional but recommended
+await setRecord("agent-uri",      agentUri);
 await setRecord("name",           file.name);
 await setRecord("description",    file.description);
 await setRecord("active",         String(file.active));
 await setRecord("supported-trust",file.supportedTrust.join(","));
 await setRecord("agent-wallet",   client.account.address);
 
-// Service endpoints (one record per protocol)
 for (const svc of file.services) {
   await setRecord(`service[${svc.name}]`, svc.endpoint);
 }
 ```
 
-### Text record reference
+### ENS text record reference
 
 | Key | Value | Required |
 |---|---|---|
@@ -180,14 +232,26 @@ for (const svc of file.services) {
 
 ## Step 4 — Validate
 
-Before publishing, validate the file:
+```bash
+# Validate a registration file
+agent registration-file validate registration.json
+
+# Validate an ENS metadata payload
+agent metadata validate payload.json
+```
+
+Or programmatically:
 
 ```ts
-import { validateRegistrationFile } from "@ens-node-metadata/agent-registration";
+import { validateRegistrationFile } from "@ens-node-metadata/agent";
 
 const raw = JSON.parse(fs.readFileSync("registration.json", "utf8"));
-if (!validateRegistrationFile(raw)) {
-  throw new Error("Invalid registration file — check all required fields");
+const result = validateRegistrationFile(raw);
+if (!result.success) {
+  console.error(result.error.issues);
+}
+if (result.success && result.data._legacyEndpoints) {
+  console.warn("⚠️ WA031: migrate `endpoints` → `services`");
 }
 ```
 
@@ -197,32 +261,28 @@ if (!validateRegistrationFile(raw)) {
 
 ### When to update **only text records** (cheap)
 
-Text-record-only updates are appropriate when:
-
-- Toggling `active` status (e.g. the agent is going offline for maintenance)
-- Updating a service endpoint URL without changing the schema
-- Adding `agent-wallet` or other metadata that is not in the registration file
-
-```ts
-await setRecord("active", "false");
+```bash
+# Update active status
+agent update myagent.eth active-only.json --private-key 0x<KEY> --broadcast
 ```
 
-### When to re-publish the registration file and update `agent-uri` (more expensive)
-
-Re-publish whenever the **content** of the registration file changes:
-
-- Adding or removing services
-- Changing trust models
-- Updating `description` or `image`
-- Any change to `registrations`
-
-Workflow:
+### When to re-publish and update `agent-uri` (content changed)
 
 1. Edit the registration file
-2. Run `validateRegistrationFile` — fail fast
-3. Publish to IPFS → new CID
-4. Update `agent-uri` text record with the new CID
-5. Optionally sync other text records that changed (e.g. `active`, `description`)
+2. `agent registration-file validate registration.json`
+3. `agent registration-file publish registration.json` → new CID
+4. Update `agent-uri` in your payload JSON
+5. `agent update myagent.eth payload.json --private-key 0x<KEY> --broadcast`
+
+---
+
+## Step 6 — Check On-Chain Identity
+
+```bash
+# Query mainnet ERC-8004 registry
+export ERC8004_REGISTRY_MAINNET=0x<registry-contract-address>
+agent registry identity --chain-name mainnet ipfs://bafybeig...
+```
 
 ---
 
