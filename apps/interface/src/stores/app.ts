@@ -139,7 +139,8 @@ export const useAppStore = create<AppState>()(
         set({
           activeDomain: null,
           registeredDomains: [],
-          status: 'ready',
+          isInitialized: false,
+          status: 'idle',
           error: null,
         })
 
@@ -156,7 +157,8 @@ export const useAppStore = create<AppState>()(
         set({
           activeDomain: null,
           registeredDomains: [],
-          status: 'ready',
+          isInitialized: false,
+          status: 'idle',
           error: null,
         })
       },

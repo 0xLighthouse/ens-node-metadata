@@ -37,11 +37,14 @@ const Web3ContextProvider = ({ children }: { children: React.ReactNode }) => {
   const { isInitialized, status } = useAppStore()
 
   useEffect(() => {
-    // Initialize the app store only once
-    if (privyReady && walletReady && user && !isInitialized && status === 'idle') {
+    // Initialize the app store only once.
+    // walletReady is intentionally excluded: domain fetching only needs user.wallet.address
+    // from the Privy User object, which is set before wallets are ready. The wallet client
+    // creation below is a separate concern that waits for wallets.
+    if (privyReady && user && !isInitialized && status === 'idle') {
       useAppStore.getState().initialize(user)
     }
-  }, [privyReady, walletReady, user, isInitialized, status])
+  }, [privyReady, user, isInitialized, status])
 
   // Make a viem signer available once the app has initialized
   useEffect(() => {
