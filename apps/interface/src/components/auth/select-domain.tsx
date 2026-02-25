@@ -30,8 +30,10 @@ export function SelectDomain() {
   const [customDomain, setCustomDomain] = useState('')
   const [customDomainError, setCustomDomainError] = useState<string | null>(null)
   const [isCustomDomainLoading, setIsCustomDomainLoading] = useState(false)
+  const [loadingDomainId, setLoadingDomainId] = useState<string | null>(null)
 
   const handleSelectDomain = (domain: ENSRootDomain) => {
+    setLoadingDomainId(domain.id)
     setActiveDomain(domain)
     // Redirect to view [domain] page
     router.push(`/${domain.name}`)
@@ -90,7 +92,7 @@ export function SelectDomain() {
     )
   }
 
-  const activeDomains = domains.filter((d) => !isExpired(d))
+  const activeDomains = domains.filter((d) => !isExpired(d) && !d.name.endsWith('.reverse'))
 
   return (
     <div className="flex flex-col items-center space-y-8 p-4 py-16">
@@ -145,8 +147,20 @@ export function SelectDomain() {
                       <span className="text-lg font-semibold">{domain.name}</span>
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button onClick={() => handleSelectDomain(domain)} size="sm">
-                        Select
+                      <Button
+                        onClick={() => handleSelectDomain(domain)}
+                        size="sm"
+                        className="cursor-pointer"
+                        disabled={loadingDomainId !== null}
+                      >
+                        {loadingDomainId === domain.id ? (
+                          <>
+                            <Loader2 className="size-4 animate-spin" />
+                            Loading...
+                          </>
+                        ) : (
+                          'Select'
+                        )}
                       </Button>
                     </TableCell>
                   </TableRow>
