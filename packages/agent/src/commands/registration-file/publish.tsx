@@ -73,7 +73,9 @@ export default function RegistrationFilePublish({ args: [file] }: Props) {
           schemaId: result.data.name,
           version: '1.0.0',
         })
-        setState({ status: 'done', uri: `ipfs://${cid}` })
+        const uri = `ipfs://${cid}`
+        process.stdout.write(`${JSON.stringify({ cid, uri })}\n`)
+        setState({ status: 'done', uri })
         exit()
       } catch (err) {
         setState({ status: 'error', message: `Upload failed: ${(err as Error).message}` })

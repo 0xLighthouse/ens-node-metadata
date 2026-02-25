@@ -6,7 +6,7 @@ allowed-tools: Bash(node:*), Bash(ipfs:*), Bash(cast:*)
 
 # Agents
 
-A skill to help manage your agents metadata on ENS along with ERC-8004 management.
+A skill to help manage your agents their ERC-8004 metadata on ENS.
 
 ## Bootstrap
 
@@ -43,10 +43,10 @@ A registration file is required to register your Agent's identity.
 
 ```sh
 # edit with your details
-ens-agent registration-file template > registration.json`
+ens-agent registration-file template > registration.json
 
 # validate
-ens-agent registration-file validate registration.json`
+ens-agent registration-file validate registration.json
 ```
 
 #### Publishing a registration file
@@ -59,8 +59,9 @@ The following variables should be in your environment to use this command.
 
 ```sh
 # Publish to IPFS
-ens-agent registration-file publish registration.json`
-# Returns => ipfs://CID henceforth referred to as <agent-uri>
+ens-agent registration-file publish registration.json
+# Returns => {"cid":"<CID>","uri":"ipfs://<CID>"} — use jq to extract:
+# agent-uri=$(ens-agent registration-file publish registration.json | jq -r '.uri')
 ```
 
 #### Register your Agent
