@@ -1,14 +1,15 @@
 {
   "name": "@ens-node-metadata/agent",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "CLI for registering AI agents on ENS using ERC-8004",
   "type": "module",
-  "main": "./src/index.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "bin": {
     "agent": "./dist/cli.js"
   },
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./dist/index.js"
   },
   "files": [
     "dist",
@@ -17,8 +18,10 @@
     "examples"
   ],
   "scripts": {
+    "version:patch": "pnpm version patch --no-git-tag-version",
+    "version:minor": "pnpm version minor --no-git-tag-version",
     "agent": "bun src/cli.ts",
-    "build": "tsc",
+    "build": "tsup",
     "lint": "biome check ."
   },
   "dependencies": {
@@ -39,6 +42,7 @@
     "@types/node": "^25.3.0",
     "@types/react": "^19.2.14",
     "tsconfig": "workspace:*",
+    "tsup": "^8.5.1",
     "typescript": "^5"
   }
 }

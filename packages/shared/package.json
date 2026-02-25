@@ -11,6 +11,9 @@
   "scripts": {
     "lint": "biome check ."
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "devDependencies": {
     "tsconfig": "workspace:*",
     "typescript": "^5"
