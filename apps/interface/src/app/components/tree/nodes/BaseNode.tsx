@@ -1,15 +1,15 @@
 'use client'
 
-import { memo, type ReactNode } from 'react'
-import type { Node, NodeProps } from '@xyflow/react'
-import type { TreeNode } from '@/lib/tree/types'
-import { NodeContainer } from './NodeContainer'
-import { NodeIcon } from './NodeIcon'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { ExternalActionButton } from './ExternalActionButton'
-import { getNodeConfig, type NodeTypeConfig } from '@/config/nodes'
+import { type NodeTypeConfig, getNodeConfig } from '@/config/nodes'
 import { getAvatarFallback } from '@/lib/getAvatarFallback'
 import { shortAddress } from '@/lib/shortAddress'
+import type { TreeNode } from '@/lib/tree/types'
+import type { Node, NodeProps } from '@xyflow/react'
+import { type ReactNode, memo } from 'react'
+import { ExternalActionButton } from './ExternalActionButton'
+import { NodeContainer } from './NodeContainer'
+import { NodeIcon } from './NodeIcon'
 
 interface DomainTreeNodeData {
   [key: string]: unknown
@@ -171,6 +171,9 @@ export const BaseNodeCard = ({
           <div className="px-4 py-3 border-b border-gray-100 text-left">
             {node.address ? (
               <div className="text-sm text-gray-700 font-mono truncate flex items-center gap-1.5">
+                <span className="text-xs font-sans font-medium text-gray-500 uppercase tracking-wide mr-0.5">
+                  Address:
+                </span>
                 <span className="truncate">{shortAddress(node.address)}</span>
                 {addressUrl && (
                   <ExternalActionButton
@@ -188,6 +191,9 @@ export const BaseNodeCard = ({
           {/* Manager row */}
           <div className="px-4 py-2.5 bg-gray-50/50">
             <div className="flex items-center gap-2 leading-none">
+              <span className="text-xs font-medium text-gray-500 uppercase tracking-wide flex-shrink-0">
+                Manager:
+              </span>
               <Avatar className="size-4 flex-shrink-0 inline-flex">
                 <AvatarImage
                   src={node.ownerEnsAvatar || `https://avatar.vercel.sh/${node.owner}`}

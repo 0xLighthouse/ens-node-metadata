@@ -1,5 +1,5 @@
-import { SelectDomain } from '@/components/auth/select-domain'
+import { redirect } from 'next/navigation'
 
-export default function SelectSpacePage() {
-  return <SelectDomain />
+export default function SelectDomainRedirect() {
+  redirect('/select-name')
 }

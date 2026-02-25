@@ -8,10 +8,10 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
-import { Fragment } from 'react'
-import { usePathname } from 'next/navigation'
 import { FolderUp } from 'lucide-react'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { Fragment } from 'react'
 
 export const PageBreadcrumbs = () => {
   const pathname = usePathname()
@@ -28,7 +28,7 @@ export const PageBreadcrumbs = () => {
 
   const breadcrumbs = pathSegments.length
     ? pathSegments.map((segment, index) => {
-        const href = '/' + pathSegments.slice(0, index + 1).join('/')
+        const href = `/${pathSegments.slice(0, index + 1).join('/')}`
         return {
           href,
           label: formatSegment(segment),
@@ -50,7 +50,7 @@ export const PageBreadcrumbs = () => {
       <BreadcrumbList className="text-base text-neutral-600 leading-none">
         <BreadcrumbItem>
           <Link
-            href="/select-domain"
+            href="/select-name"
             className="flex h-6 w-6 items-center justify-center rounded-md text-neutral-400 hover:text-neutral-700 transition-colors"
             title="Back to domain selection"
           >
@@ -72,16 +72,20 @@ export const PageBreadcrumbs = () => {
                   <img src="/images/ens-icon.svg" alt="ENS" className="h-3.5 w-3.5" />
                 </span>
               )}
-              {crumb.isLast ? (
-                <BreadcrumbPage className="text-neutral-700">{crumb.label}</BreadcrumbPage>
+              {crumb.isLast || crumb.isRoot ? (
+                <BreadcrumbPage
+                  className={
+                    crumb.isRoot && !crumb.isLast
+                      ? 'font-medium text-neutral-800'
+                      : 'text-neutral-700'
+                  }
+                >
+                  {crumb.label}
+                </BreadcrumbPage>
               ) : (
                 <BreadcrumbLink
                   href={crumb.href}
-                  className={
-                    crumb.isRoot
-                      ? 'font-medium text-neutral-800 underline decoration-2 underline-offset-4'
-                      : 'font-medium text-neutral-600 hover:text-neutral-800'
-                  }
+                  className="font-medium text-neutral-600 hover:text-neutral-800"
                 >
                   {crumb.label}
                 </BreadcrumbLink>

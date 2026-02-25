@@ -8,7 +8,6 @@ import {
   type NodeChange,
   type ReactFlowInstance,
   Background,
-  Panel,
   useNodesState,
   useEdgesState,
 } from '@xyflow/react'
@@ -291,6 +290,9 @@ export function Tree({ data }: Props) {
   const [nodes, setNodes, onNodesChangeInternal] = useNodesState<DomainTreeNode>(initialNodes)
   const [edges, setEdges, onEdgesChange] = useEdgesState(layout.edges)
 
+  // Ref to track drag-start positions for parent and all visible descendants
+  const dragStartPositions = useRef<Map<string, { x: number; y: number }>>(new Map())
+
   // Custom handler that saves position changes to store
   const onNodesChange = useCallback(
     (changes: NodeChange<DomainTreeNode>[]) => {
@@ -304,6 +306,91 @@ export function Tree({ data }: Props) {
       })
     },
     [onNodesChangeInternal, setNodePosition],
+  )
+
+  // Returns all visible descendant node ids for a given node (using tree edges, not reference edges)
+  const getAllDescendants = useCallback(
+    (nodeId: string): string[] => {
+      const descendants: string[] = []
+      const queue = [nodeId]
+      while (queue.length > 0) {
+        const current = queue.shift()!
+        const children = edges
+          .filter((e) => e.source === current && !e.id.startsWith('edge-ref-'))
+          .map((e) => e.target)
+        for (const child of children) {
+          descendants.push(child)
+          queue.push(child)
+        }
+      }
+      return descendants
+    },
+    [edges],
+  )
+
+  // Record start positions of the dragged node and all visible descendants
+  const onNodeDragStart = useCallback(
+    (_: React.MouseEvent, draggedNode: DomainTreeNode) => {
+      const positions = new Map<string, { x: number; y: number }>()
+      positions.set(draggedNode.id, { x: draggedNode.position.x, y: draggedNode.position.y })
+      const descendants = getAllDescendants(draggedNode.id)
+      for (const descId of descendants) {
+        const descNode = nodes.find((n) => n.id === descId)
+        if (descNode) {
+          positions.set(descId, { x: descNode.position.x, y: descNode.position.y })
+        }
+      }
+      dragStartPositions.current = positions
+    },
+    [getAllDescendants, nodes],
+  )
+
+  // Move all descendants by the same delta as the dragged parent
+  const onNodeDrag = useCallback(
+    (_: React.MouseEvent, draggedNode: DomainTreeNode) => {
+      const startPos = dragStartPositions.current.get(draggedNode.id)
+      if (!startPos) return
+
+      const dx = draggedNode.position.x - startPos.x
+      const dy = draggedNode.position.y - startPos.y
+      if (dx === 0 && dy === 0) return
+
+      const descendants = getAllDescendants(draggedNode.id)
+      if (descendants.length === 0) return
+
+      setNodes((nds) =>
+        nds.map((n) => {
+          if (descendants.includes(n.id)) {
+            const origPos = dragStartPositions.current.get(n.id)
+            if (origPos) {
+              return { ...n, position: { x: origPos.x + dx, y: origPos.y + dy } }
+            }
+          }
+          return n
+        }),
+      )
+    },
+    [getAllDescendants, setNodes],
+  )
+
+  // Persist descendant positions to the store when drag ends
+  const onNodeDragStop = useCallback(
+    (_: React.MouseEvent, draggedNode: DomainTreeNode) => {
+      const startPos = dragStartPositions.current.get(draggedNode.id)
+      if (startPos) {
+        const dx = draggedNode.position.x - startPos.x
+        const dy = draggedNode.position.y - startPos.y
+        const descendants = getAllDescendants(draggedNode.id)
+        for (const descId of descendants) {
+          const origPos = dragStartPositions.current.get(descId)
+          if (origPos) {
+            setNodePosition(descId, { x: origPos.x + dx, y: origPos.y + dy })
+          }
+        }
+      }
+      dragStartPositions.current.clear()
+    },
+    [getAllDescendants, setNodePosition],
   )
 
   // Update nodes when layout changes (orientation, collapse, selection, etc)
@@ -428,29 +515,18 @@ export function Tree({ data }: Props) {
         setSelectedNode(node.id)
         openEditDrawer(node.id)
       }}
+      onNodeDragStart={onNodeDragStart}
+      onNodeDrag={onNodeDrag}
+      onNodeDragStop={onNodeDragStop}
       defaultEdgeOptions={{
         type: 'smoothstep',
         style: { stroke: '#cbd5e1', strokeWidth: 2, opacity: 0.6 },
       }}
       className="h-full w-full"
       onInit={setReactFlowInstance}
+      proOptions={{ hideAttribution: true }}
     >
       <Background gap={20} size={1} className="bg-white dark:bg-gray-950" />
-      <Panel
-        position="top-right"
-        className="bg-white dark:bg-gray-900 p-3 rounded-lg shadow-lg text-xs font-mono"
-      >
-        <div className="space-y-1">
-          <div>Nodes: {nodes.length}</div>
-          <div>Edges: {edges.length}</div>
-          <div>Selected: {selectedNodeName || 'None'}</div>
-          <div>Orientation: {orientation}</div>
-          <div>Collapsed: {collapsedNodes.size}</div>
-          {layoutPhase === 'measuring' && (
-            <div className="text-amber-600 font-semibold">Computing layout...</div>
-          )}
-        </div>
-      </Panel>
     </ReactFlow>
   )
 }
