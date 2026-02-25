@@ -1,4 +1,4 @@
-import { Schema } from "../types";
+import type { Schema } from "../types";
 
 export const ENSIP5: Schema = {
   $id: 'https://docs.ens.domains/ensip/5',

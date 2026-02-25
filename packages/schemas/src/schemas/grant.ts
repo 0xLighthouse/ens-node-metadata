@@ -1,4 +1,4 @@
-import { Schema } from "../types";
+import type { Schema } from "../types";
 import { GITHUB_URL } from "../config/constants";
 import { ENSIP5 } from "../globals/ensip-5";
 

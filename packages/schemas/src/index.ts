@@ -1,4 +1,4 @@
-import { Schema } from './types'
+import type { Schema } from './types'
 
 import { AGENT_SCHEMA } from './schemas/agent'
 import { APPLICATION_SCHEMA } from './schemas/application'

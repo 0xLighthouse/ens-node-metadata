@@ -1,5 +1,5 @@
 import { GITHUB_URL } from "../config/constants";
-import { Schema } from "../types";
+import type { Schema } from "../types";
 
 export const CONTRACT_SCHEMA: Schema = {
   $id: `${GITHUB_URL}/schemas/contract/1.1.1`,
