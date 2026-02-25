@@ -1,8 +1,11 @@
-import { Text, useApp } from 'ink'
+import { useApp } from 'ink'
 import React from 'react'
 
 export const description = 'Generate empty ERC-8004 v2.0 registration file template'
 
+/**
+ * Derived from <https://best-practices.8004scan.io/docs/01-agent-metadata-standard.html>
+ */
 const TEMPLATE = {
   type: 'https://eips.ethereum.org/EIPS/eip-8004#registration-v1',
   name: 'My Agent',
