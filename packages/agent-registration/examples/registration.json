@@ -1,0 +1,31 @@
+{
+  "type": "Agent",
+  "name": "Lighthouse Research Agent",
+  "description": "An AI agent that answers questions about ENS metadata, resolves ENS names, and assists with on-chain identity tasks. Supports MCP and A2A protocol interactions.",
+  "image": "ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi",
+  "services": [
+    {
+      "name": "MCP",
+      "endpoint": "https://agent.lighthouse.eth.limo/mcp",
+      "version": "1.0"
+    },
+    {
+      "name": "A2A",
+      "endpoint": "https://agent.lighthouse.eth.limo/a2a",
+      "version": "0.3"
+    },
+    {
+      "name": "ENS",
+      "endpoint": "https://agent.lighthouse.eth.limo/ens-resolver"
+    }
+  ],
+  "x402Support": true,
+  "active": true,
+  "registrations": [
+    {
+      "agentId": "0x000000000000000000000000abc123def456abc123def456abc123def456abc1",
+      "agentRegistry": "0xAgentRegistryContractAddressOnMainnet"
+    }
+  ],
+  "supportedTrust": ["reputation"]
+}

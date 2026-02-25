@@ -1,0 +1,19 @@
+{
+  "name": "@ens-node-metadata/agent-registration",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "lint": "biome check ."
+  },
+  "dependencies": {
+    "viem": "2.23.15"
+  },
+  "devDependencies": {
+    "typescript": "^5"
+  }
+}
