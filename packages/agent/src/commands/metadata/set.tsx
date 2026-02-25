@@ -1,15 +1,16 @@
 import { readFileSync } from 'node:fs'
 import { Box, Text, useApp } from 'ink'
 import React from 'react'
-import { http, createPublicClient, createWalletClient } from 'viem'
-import { privateKeyToAccount } from 'viem/accounts'
-import { mainnet } from 'viem/chains'
 import { z } from 'zod'
-import { AgentMetadataPayloadSchema } from '../index.js'
+import { SCHEMA_MAP } from '@ens-node-metadata/schemas'
+import { validateMetadataSchema } from '@ens-node-metadata/sdk'
+import { setEnsTextRecords } from '../../lib/ens-write.js'
+
+export const description = 'Set ENS metadata text records from a payload file'
 
 export const args = z.tuple([
   z.string().describe('ENS name (e.g. myagent.eth)'),
-  z.string().describe('payload.json — flat ENS text-record object'),
+  z.string().describe('payload.json'),
 ])
 
 export const options = z.object({
@@ -31,28 +32,18 @@ type State =
   | { status: 'done'; message: string }
   | { status: 'error'; message: string }
 
-/**
- * `agent update` — identical to `agent register` but semantically intended for
- * updating an already-registered agent's ENS text records.
- *
- * Uses viem + ensjs `setRecords` under the hood. Both commands call the same
- * on-chain function; the distinction is conceptual (initial set vs. update).
- */
-export default function Update({ args: [ensName, payloadFile], options }: Props) {
+export default function Set({ args: [ensName, payloadFile], options }: Props) {
   const { exit } = useApp()
   const [state, setState] = React.useState<State>({ status: 'idle' })
 
   React.useEffect(() => {
     async function run() {
-      // 1. Parse and validate payload
       let payload: Record<string, string>
       try {
         const raw: unknown = JSON.parse(readFileSync(payloadFile, 'utf8'))
-        const result = AgentMetadataPayloadSchema.safeParse(raw)
+        const result = validateMetadataSchema(raw, SCHEMA_MAP.Agent)
         if (!result.success) {
-          const issues = result.error.issues
-            .map((i) => `[${i.path.join('.') || 'root'}] ${i.message}`)
-            .join('\n')
+          const issues = result.errors.map((e) => `[${e.key}] ${e.message}`).join('\n')
           setState({ status: 'error', message: `Invalid payload:\n${issues}` })
           exit(new Error('validation failed'))
           return
@@ -67,9 +58,8 @@ export default function Update({ args: [ensName, payloadFile], options }: Props)
       const texts = Object.entries(payload).map(([key, value]) => ({ key, value }))
 
       if (!options.broadcast) {
-        // Dry run — print what would be updated
         const lines = [
-          `Dry run — would update ${texts.length} text records on ${ensName}:`,
+          `Dry run — would set ${texts.length} text records on ${ensName}:`,
           '',
           ...texts.map((t) => `  setText("${t.key}", "${t.value}")`),
           '',
@@ -80,47 +70,9 @@ export default function Update({ args: [ensName, payloadFile], options }: Props)
         return
       }
 
-      // 2. Broadcast
-      setState({
-        status: 'working',
-        message: `Updating ${texts.length} text records on ${ensName}…`,
-      })
+      setState({ status: 'working', message: `Setting ${texts.length} text records on ${ensName}…` })
       try {
-        const { addEnsContracts } = await import('@ensdomains/ensjs')
-        const { setRecords } = await import('@ensdomains/ensjs/wallet')
-        const { getResolver } = await import('@ensdomains/ensjs/public')
-
-        const account = privateKeyToAccount(options.privateKey as `0x${string}`)
-        const chain = addEnsContracts(mainnet)
-
-        const publicClient = createPublicClient({
-          chain,
-          transport: http(),
-        })
-
-        const walletClient = createWalletClient({
-          account,
-          chain,
-          transport: http(),
-        })
-
-        const resolverAddress = await getResolver(publicClient, { name: ensName })
-        if (!resolverAddress) {
-          setState({
-            status: 'error',
-            message: `No resolver found for ${ensName}. Set a resolver first.`,
-          })
-          exit(new Error('no resolver'))
-          return
-        }
-
-        const hash = await setRecords(walletClient, {
-          name: ensName,
-          texts,
-          coins: [],
-          resolverAddress,
-        })
-
+        const hash = await setEnsTextRecords(ensName, texts, options.privateKey)
         setState({ status: 'done', message: `✅ Transaction submitted: ${hash}` })
         exit()
       } catch (err) {

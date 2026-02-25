@@ -4,6 +4,8 @@ import { http, createPublicClient } from 'viem'
 import { base, mainnet } from 'viem/chains'
 import { z } from 'zod'
 
+export const description = 'Query ERC-8004 registry for agent identity'
+
 export const options = z.object({
   chainName: z
     .enum(['base', 'mainnet'])

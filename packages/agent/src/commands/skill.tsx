@@ -5,6 +5,8 @@ import { Text, useApp } from 'ink'
 import React from 'react'
 import { z } from 'zod'
 
+export const description = 'Print or install SKILL.md guide'
+
 export const options = z.object({
   install: z.boolean().default(false).describe('Copy SKILL.md to the current working directory'),
 })

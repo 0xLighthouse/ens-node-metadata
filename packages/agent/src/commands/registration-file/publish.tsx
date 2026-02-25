@@ -3,6 +3,9 @@ import { Box, Text, useApp } from 'ink'
 import React from 'react'
 import { z } from 'zod'
 import { validateRegistrationFile } from '../../index.js'
+import { publishFile } from '@ens-node-metadata/shared'
+
+export const description = 'Publish registration file to IPFS via Pinata'
 
 export const args = z.tuple([z.string().describe('registration-file.json')])
 
@@ -24,14 +27,14 @@ export default function RegistrationFilePublish({ args: [file] }: Props) {
   React.useEffect(() => {
     async function run() {
       // 1. Check env vars
-      const principal = process.env.W3_PRINCIPAL
-      const proof = process.env.W3_PROOF
-      if (!principal || !proof) {
+      const pinataJwt = process.env.PINATA_JWT
+      const pinataKey = process.env.PINATA_API_KEY
+      const pinataSecret = process.env.PINATA_API_SECRET
+      if (!pinataJwt && !(pinataKey && pinataSecret)) {
         setState({
           status: 'error',
           message:
-            'Missing required env vars: W3_PRINCIPAL and W3_PROOF must be set.\n' +
-            'See README for how to obtain them from web3.storage.',
+            'Missing Pinata credentials. Set PINATA_JWT or both PINATA_API_KEY and PINATA_API_SECRET.',
         })
         exit(new Error('missing env vars'))
         return
@@ -58,28 +61,19 @@ export default function RegistrationFilePublish({ args: [file] }: Props) {
         return
       }
 
-      // 3. Upload to IPFS via w3up-client
+      // 3. Upload to IPFS via Pinata
       setState({ status: 'uploading' })
       try {
-        // Dynamic import to allow tree-shaking and avoid startup cost
-        const { create } = await import('@web3-storage/w3up-client')
-        const { StoreMemory } = await import('@web3-storage/w3up-client/stores/memory')
-        const { parse: parseProof } = await import('@web3-storage/w3up-client/proof')
-        const { parse: parseSigner } = await import('@web3-storage/w3up-client/principal/ed25519')
-
-        const signer = parseSigner(principal)
-        const store = new StoreMemory()
-        const client = await create({ principal: signer, store })
-
-        const parsedProof = await parseProof(proof)
-        const space = await client.addSpace(parsedProof)
-        await client.setCurrentSpace(space.did())
-
-        const blob = new Blob([JSON.stringify(result.data, null, 2)], {
-          type: 'application/json',
+        const { cid } = await publishFile({
+          provider: 'pinata',
+          filePath: file,
+          pinataJwt,
+          pinataKey,
+          pinataSecret,
+          schemaId: result.data.name,
+          version: '1.0.0',
         })
-        const cid = await client.uploadFile(blob)
-        setState({ status: 'done', uri: `ipfs://${cid.toString()}` })
+        setState({ status: 'done', uri: `ipfs://${cid}` })
         exit()
       } catch (err) {
         setState({ status: 'error', message: `Upload failed: ${(err as Error).message}` })
@@ -94,9 +88,7 @@ export default function RegistrationFilePublish({ args: [file] }: Props) {
     <Box flexDirection="column">
       {state.status === 'idle' && <Text color="gray">Preparing…</Text>}
       {state.status === 'validating' && <Text color="cyan">Validating registration file…</Text>}
-      {state.status === 'uploading' && (
-        <Text color="cyan">Uploading to IPFS via web3.storage…</Text>
-      )}
+      {state.status === 'uploading' && <Text color="cyan">Uploading to IPFS via Pinata…</Text>}
       {state.status === 'done' && (
         <Box flexDirection="column">
           <Text color="green">✅ Published to IPFS</Text>

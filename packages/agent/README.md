@@ -10,7 +10,7 @@ pnpm dlx @ens-node-metadata/agent --help
 
 ## Commands
 
-```
+```sh
 agent skill [--install]
   Print SKILL.md. With --install, copy it to the current directory.
 
@@ -46,28 +46,11 @@ agent update <ENS> <payload.json> --private-key <key> [--broadcast]
 
 ## Environment Variables
 
-### IPFS Publishing (`registration-file publish`)
+Optional
 
-| Variable | Description |
-|---|---|
-| `W3_PRINCIPAL` | Your DID key. Get it via: `w3 key create` (install `@web3-storage/w3cli`) |
-| `W3_PROOF` | UCAN proof delegation from your web3.storage space. See [w3up docs](https://web3.storage/docs/how-to/create-space/) |
-
-```bash
-# Quick setup
-npm install -g @web3-storage/w3cli
-w3 login you@example.com
-w3 space create my-agent
-export W3_PRINCIPAL=$(w3 key create)
-export W3_PROOF=$(w3 delegation create --can 'store/add' --can 'upload/add' | base64)
-```
-
-### On-chain Registry (`registry identity`)
-
-| Variable | Description |
-|---|---|
-| `ERC8004_REGISTRY_MAINNET` | ERC-8004 registry contract address on mainnet |
-| `ERC8004_REGISTRY_BASE` | ERC-8004 registry contract address on Base |
+* PINATA_API_KEY
+* PINATA_API_SECRET
+* PINATA_JWT
 
 ## ERC-8004 v2.0 Registration File
 
@@ -139,5 +122,5 @@ if (result.success) {
 
 ## Related Packages
 
-- [`@ens-node-metadata/schemas`](../schemas) — JSON schemas for all ENS node types
-- [`@ens-node-metadata/sdk`](../sdk) — ENS metadata read SDK
+* [`@ens-node-metadata/schemas`](../schemas) — JSON schemas for all ENS node types
+* [`@ens-node-metadata/sdk`](../sdk) — ENS metadata read SDK

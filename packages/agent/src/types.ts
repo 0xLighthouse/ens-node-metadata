@@ -1,108 +1,104 @@
 /**
- * Zod schemas and inferred TypeScript types for ERC-8004 agent registration files.
- * Schema reference: https://best-practices.8004scan.io/docs/01-agent-metadata-standard.html
- *
- * v2.0 changes (Jan 2026):
- *  - Primary field name is now `services` (was `endpoints`)
- *  - Parsers accept `endpoints` for backward compatibility with a deprecation warning
+ * Zod schema for ERC-8004 v2.0 agent registration files.
+ * @see https://best-practices.8004scan.io/docs/01-agent-metadata-standard.html
  */
 import { z } from 'zod'
 
-/** Zod schema for a service endpoint exposed by the agent (v2.0). */
-export const AgentServiceSchema = z.object({
-  /** Service protocol name, e.g. "MCP", "A2A", "ENS" */
-  name: z.string(),
-  /** URL of the service endpoint */
-  endpoint: z.string(),
-  /** Optional semantic version of the service */
-  version: z.string().optional(),
+// ─── Service schemas (discriminated on `name`) ───────────────────────────────
+
+const McpServiceSchema = z.object({
+  name: z.literal('MCP'),
+  endpoint: z.string().url().describe('MCP server URL'),
+  version: z.string().describe('MCP protocol version date (e.g. 2025-11-25)'),
+  mcpTools: z.array(z.string()).optional().describe('Tool names exposed by this MCP server'),
+  capabilities: z.array(z.string()).optional().describe('MCP capability identifiers'),
 })
 
-/** Zod schema for an on-chain registry entry linking the agent to an agent registry. */
-export const AgentRegistrationSchema = z.object({
-  /** The agent's on-chain identifier within the registry */
-  agentId: z.string(),
-  /** Contract address or ENS name of the agent registry */
-  agentRegistry: z.string(),
+const A2AServiceSchema = z.object({
+  name: z.literal('A2A'),
+  endpoint: z.string().url().describe('URL to the agent card JSON (e.g. /.well-known/agent-card.json)'),
+  version: z.string().describe('A2A protocol version (e.g. 0.3.0)'),
 })
 
-/**
- * Zod schema for the full ERC-8004 v2.0 agent registration file.
- * Publish this to IPFS or HTTPS and set `agent-uri` in the ENS text records.
- *
- * Backward-compatibility: accepts `endpoints` in place of `services` and emits a
- * WA031 deprecation warning. New implementations must use `services`.
- */
-export const AgentRegistrationFileSchema = z
-  .object({
-    /** Fixed value: 'Agent' */
-    type: z.literal('Agent'),
-    /** Human-readable name of the agent */
-    name: z.string().min(1),
-    /** Human-readable description of the agent's capabilities */
-    description: z.string().min(1),
-    /** Optional URL to an image representing the agent */
-    image: z.string().optional(),
-    /** Service endpoints the agent exposes (v2.0 field name). */
-    services: z.array(AgentServiceSchema).optional(),
-    /**
-     * Legacy field name for service endpoints (v1.x).
-     * Accepted for backward compatibility — triggers WA031 deprecation warning.
-     * Prefer `services`.
-     */
-    endpoints: z.array(AgentServiceSchema).optional(),
-    /** Whether the agent supports HTTP 402 / x402 micro-payment flows */
-    x402Support: z.boolean().default(false),
-    /** Whether the agent is currently active and accepting requests */
-    active: z.boolean().default(true),
-    /** On-chain registry entries for this agent */
-    registrations: z.array(AgentRegistrationSchema).default([]),
-    /**
-     * Trust models supported by the agent.
-     * Common values: "reputation", "attestation", "stake", "none"
-     */
-    supportedTrust: z.array(z.string()).default([]),
-  })
-  .transform((data) => {
-    // Backward compat: if only `endpoints` is present, use it as `services`
-    const services = data.services ?? data.endpoints ?? []
-    return {
-      type: data.type,
-      name: data.name,
-      description: data.description,
-      image: data.image,
-      services,
-      x402Support: data.x402Support,
-      active: data.active,
-      registrations: data.registrations,
-      supportedTrust: data.supportedTrust,
-      /** Internal flag set when `endpoints` was used instead of `services`. */
-      _legacyEndpoints: data.endpoints !== undefined && data.services === undefined,
-    }
-  })
+const OasfServiceSchema = z.object({
+  name: z.literal('OASF'),
+  endpoint: z.string().url().describe('OASF schema endpoint URL'),
+  version: z.string().describe('OASF version (e.g. 0.8.0)'),
+  skills: z.array(z.string()).optional().describe('Skill paths (e.g. analytical_skills/data_analysis/blockchain_analysis)'),
+  domains: z.array(z.string()).optional().describe('Domain paths (e.g. technology/blockchain)'),
+})
 
-/** Parsed + normalized ERC-8004 registration file. */
-export type AgentRegistrationFile = z.infer<typeof AgentRegistrationFileSchema>
+const AgentWalletServiceSchema = z.object({
+  name: z.literal('agentWallet'),
+  endpoint: z.string().describe('CAIP-10 wallet address (e.g. eip155:1:0x...)'),
+})
 
-/** A service endpoint exposed by the agent. */
-export type AgentService = z.infer<typeof AgentServiceSchema>
+const WebServiceSchema = z.object({
+  name: z.literal('web'),
+  endpoint: z.string().url().describe('Human-facing web UI URL'),
+})
 
-/** An on-chain registry entry linking the agent to an agent registry. */
-export type AgentRegistration = z.infer<typeof AgentRegistrationSchema>
+const EmailServiceSchema = z.object({
+  name: z.literal('email'),
+  endpoint: z.string().email().describe('Support email address'),
+})
 
-// ---------------------------------------------------------------------------
-// ENS metadata payload schema (the flat text-record object for ENS)
-// ---------------------------------------------------------------------------
+// ─── Main schema ─────────────────────────────────────────────────────────────
 
-export const AgentMetadataPayloadSchema = z
-  .record(z.string(), z.string())
-  .refine((obj) => obj.class === 'Agent', {
-    message: 'class must be "Agent"',
-    path: ['class'],
-  })
-  .refine((obj) => !!obj['agent-uri'], {
-    message: 'agent-uri is required',
-    path: ['agent-uri'],
-  })
+export const SCHEMA_8004_V2 = z.object({
+  type: z
+    .literal('https://eips.ethereum.org/EIPS/eip-8004#registration-v1')
+    .describe('ERC-8004 registration type identifier — must be this exact URI'),
 
-export type AgentMetadataPayload = z.infer<typeof AgentMetadataPayloadSchema>
+  name: z
+    .string().min(3).max(200)
+    .describe('Agent display name (3–200 characters)'),
+
+  description: z
+    .string().min(10)
+    .describe('Natural language explanation of what the agent does and its capabilities'),
+
+  image: z
+    .string().url().optional()
+    .describe('Avatar or logo URI — PNG, SVG, WebP, or JPG; 512×512px minimum recommended'),
+
+  services: z
+    .array(z.discriminatedUnion('name', [
+      McpServiceSchema,
+      A2AServiceSchema,
+      OasfServiceSchema,
+      AgentWalletServiceSchema,
+      WebServiceSchema,
+      EmailServiceSchema,
+    ]))
+    .describe('Communication endpoints — MCP, A2A, OASF, agentWallet, web, or email'),
+
+  registrations: z
+    .array(z.object({
+      agentId: z.union([z.number().int(), z.string()])
+        .describe('Agent token ID in the on-chain registry'),
+      agentRegistry: z.string()
+        .describe('CAIP-10 formatted registry contract address (e.g. eip155:1:0x...)'),
+    }))
+    .optional()
+    .describe('On-chain NFT identity links to agent registries'),
+
+  supportedTrust: z
+    .array(z.enum(['reputation', 'crypto-economic', 'tee-attestation']))
+    .optional()
+    .describe('Trust models supported by this agent'),
+
+  active: z
+    .boolean().default(false)
+    .describe('Whether the agent is production-ready and accepting requests (default: false)'),
+
+  x402Support: z
+    .boolean().default(false)
+    .describe('Whether the agent supports the HTTP 402 / x402 micro-payment protocol'),
+
+  updatedAt: z
+    .number().int().optional()
+    .describe('Unix timestamp (seconds) of the last metadata update'),
+})
+
+export type AgentRegistrationFile = z.infer<typeof SCHEMA_8004_V2>
