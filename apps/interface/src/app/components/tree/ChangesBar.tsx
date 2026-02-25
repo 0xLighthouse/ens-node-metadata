@@ -87,13 +87,17 @@ export function ChangesBar() {
             onClick={() => {
               const connectedAddress = walletClient?.account?.address?.toLowerCase()
 
+              // Wallet not yet connected/initialized — don't show an auth error
+              if (!connectedAddress) return
+
               // Collect nodes the connected wallet is NOT owner/manager of
               const notOwned: string[] = []
               for (const [nodeName] of pendingMutations.entries()) {
                 const node = findNode(nodeName)
-                if (!node) continue
-                const nodeOwner = node.owner?.toLowerCase()
-                if (!connectedAddress || !nodeOwner || connectedAddress !== nodeOwner) {
+                // If node is absent from sourceTree (e.g. pending creation) treat it as
+                // unauthorized — there is no owner record to verify against.
+                const nodeOwner = node?.owner?.toLowerCase()
+                if (!nodeOwner || connectedAddress !== nodeOwner) {
                   notOwned.push(nodeName)
                 }
               }

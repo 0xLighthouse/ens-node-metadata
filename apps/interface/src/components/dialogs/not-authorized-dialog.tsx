@@ -12,7 +12,7 @@ interface NotAuthorizedDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   /**
-   * The list of ENS node names the connected wallet is not authorised to edit.
+   * The list of ENS node names the connected wallet is not authorized to edit.
    */
   unauthorizedNodes: string[]
 }
