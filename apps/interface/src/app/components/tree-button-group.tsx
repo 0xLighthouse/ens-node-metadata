@@ -2,7 +2,6 @@
 
 import { Button } from '@/components/ui/button'
 import { ButtonGroup } from '@/components/ui/button-group'
-import { useUiStore } from '@/stores/ui'
 import { useAppStore } from '@/stores/app'
 import { useState } from 'react'
 import {
@@ -17,7 +16,6 @@ import { useRouter, usePathname } from 'next/navigation'
 import { Network, Table, Braces } from 'lucide-react'
 
 export const TreeButtonGroup = () => {
-  const { routeHistory } = useUiStore()
   const { activeDomain } = useAppStore()
   const { previewTree } = useTreeData()
   const [isDebugOpen, setIsDebugOpen] = useState(false)
@@ -25,7 +23,7 @@ export const TreeButtonGroup = () => {
   const pathname = usePathname()
 
   // Don't render if on home or select domain page
-  if (['/', '/select-name', '/select-domain'].includes(routeHistory.currentPath ?? '')) {
+  if (['/', '/select-name', '/select-domain'].includes(pathname)) {
     return null
   }
 
