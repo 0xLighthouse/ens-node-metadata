@@ -4,19 +4,25 @@
   "type": "module",
   "main": "./src/index.ts",
   "bin": {
-    "agent-registration": "./src/cli.ts"
+    "agent-registration": "./dist/cli.js"
   },
   "exports": {
     ".": "./src/index.ts"
   },
   "scripts": {
+    "build": "tsc",
     "lint": "biome check ."
   },
   "dependencies": {
+    "ink": "^6.8.0",
+    "pastel": "^3.0.0",
+    "react": "^19.2.4",
     "viem": "2.23.15",
     "zod": "^3.25.76"
   },
   "devDependencies": {
+    "@types/react": "^19.2.14",
+    "tsconfig": "workspace:*",
     "typescript": "^5"
   }
 }
