@@ -1,8 +1,8 @@
 import type { Hex, PublicClient } from 'viem'
-import { encodeFunctionData, http, createPublicClient, createWalletClient } from 'viem'
+import { encodeFunctionData, formatEther, http, createPublicClient, createWalletClient } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
 import { mainnet } from 'viem/chains'
-import { estimateCost, formatCost, type CostEstimate } from './estimate-cost.js'
+import { estimateCost, formatCost, validateCost, type CostEstimate } from './estimate-cost.js'
 
 export type TextRecord = { key: string; value: string }
 
@@ -24,11 +24,11 @@ async function resolveEns(publicClient: any, ensName: string) {
   return resolverAddress
 }
 
-export async function estimateEnsTextRecordsCost(
+async function encodeEnsTextRecords(
   ensName: string,
   texts: TextRecord[],
   privateKey: string,
-): Promise<CostEstimate> {
+) {
   const { account, publicClient } = await ensSetup(privateKey)
   const { namehash, generateRecordCallArray } = await import('@ensdomains/ensjs/utils')
   const resolverAddress = await resolveEns(publicClient, ensName)
@@ -48,14 +48,32 @@ export async function estimateEnsTextRecordsCost(
         args: [calls as Hex[]],
       })
 
-  return estimateCost(publicClient, {
-    account: account.address,
-    to: resolverAddress,
-    data,
-  })
+  return { account, publicClient, resolverAddress, data }
+}
+
+export async function estimateEnsTextRecordsCost(
+  ensName: string,
+  texts: TextRecord[],
+  privateKey: string,
+): Promise<CostEstimate & { balance: string }> {
+  const { account, publicClient, resolverAddress, data } = await encodeEnsTextRecords(ensName, texts, privateKey)
+  const [est, balance] = await Promise.all([
+    estimateCost(publicClient, { account: account.address, to: resolverAddress, data }),
+    publicClient.getBalance({ address: account.address }),
+  ])
+  return { ...est, balance: `${Number.parseFloat(formatEther(balance)).toFixed(6)} ETH` }
 }
 
 export { formatCost }
+
+export async function validateEnsTextRecordsCost(
+  ensName: string,
+  texts: TextRecord[],
+  privateKey: string,
+): Promise<CostEstimate> {
+  const { account, publicClient, resolverAddress, data } = await encodeEnsTextRecords(ensName, texts, privateKey)
+  return validateCost(publicClient, { account: account.address, to: resolverAddress, data })
+}
 
 export async function setEnsTextRecords(
   ensName: string,

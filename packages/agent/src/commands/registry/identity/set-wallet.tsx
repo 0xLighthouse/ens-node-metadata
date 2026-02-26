@@ -1,10 +1,10 @@
 import { Box, Text, useApp } from 'ink'
 import React from 'react'
-import { encodeFunctionData, http, createPublicClient, createWalletClient, verifyTypedData } from 'viem'
+import { encodeFunctionData, formatEther, http, createPublicClient, createWalletClient, verifyTypedData } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
 import { z } from 'zod'
 import IdentityRegistryABI from '../../../lib/abis/IdentityRegistry.json' with { type: 'json' }
-import { estimateCost, formatCost } from '../../../lib/estimate-cost.js'
+import { estimateCost, formatCost, validateCost } from '../../../lib/estimate-cost.js'
 import { SUPPORTED_CHAINS, resolveChain } from '../../../lib/registry.js'
 
 export const description = 'Link a verified wallet to an agent via EIP-712 signature'
@@ -140,13 +140,14 @@ export default function SetWallet({
         })
 
         let costLine = '  Est. Cost: unable to estimate'
+        let balanceLine = ''
         try {
-          const est = await estimateCost(publicClient, {
-            account: account.address,
-            to: registryAddress,
-            data,
-          })
+          const [est, balance] = await Promise.all([
+            estimateCost(publicClient, { account: account.address, to: registryAddress, data }),
+            publicClient.getBalance({ address: account.address }),
+          ])
           costLine = `  Est. Cost: ${formatCost(est)}`
+          balanceLine = `  Balance:   ${Number.parseFloat(formatEther(balance)).toFixed(6)} ETH`
         } catch {}
 
         const lines = [
@@ -158,6 +159,7 @@ export default function SetWallet({
           `  Deadline:  ${finalDeadline.toString()}`,
           `  Signer:    ${account.address}`,
           `  Signature: ${signatureOpt ? 'provided (verified)' : 'auto-signed'}`,
+          balanceLine,
           costLine,
         ]
 
@@ -194,6 +196,13 @@ export default function SetWallet({
       try {
         const walletClient = createWalletClient({ account, chain, transport: http() })
 
+        const txData = encodeFunctionData({
+          abi: IdentityRegistryABI,
+          functionName: 'setAgentWallet',
+          args: [tokenId, walletAddress as `0x${string}`, finalDeadline, finalSignature],
+        })
+        await validateCost(publicClient, { account: account.address, to: registryAddress, data: txData })
+
         const { request } = await publicClient.simulateContract({
           account,
           address: registryAddress,
@@ -204,13 +213,14 @@ export default function SetWallet({
 
         const txHash = await walletClient.writeContract(request)
 
+        const explorerUrl = chain.blockExplorers?.default?.url
         setState({
           status: 'done',
           message: [
             `✅ Wallet linked on ${chainName}`,
             `   Agent ID: ${tokenId.toString()}`,
             `   Wallet:   ${walletAddress}`,
-            `   Tx Hash:  ${txHash}`,
+            `   Tx Hash:  ${explorerUrl ? `${explorerUrl}/tx/${txHash}` : txHash}`,
           ].join('\n'),
         })
       } catch (err) {

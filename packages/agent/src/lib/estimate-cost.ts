@@ -68,3 +68,36 @@ export function formatCost(est: CostEstimate): string {
   const eth = Number.parseFloat(est.costEth).toPrecision(4)
   return `$${est.costUsd} (${eth} ETH)`
 }
+
+const MAX_COST_USD = 2
+
+/**
+ * Pre-flight guard: estimates cost and hard-errors if gas exceeds $2 USD
+ * or the signer's balance cannot cover the transaction.
+ */
+export async function validateCost(
+  client: PublicClient,
+  tx: EstimateGasParameters & { account: `0x${string}` },
+): Promise<CostEstimate> {
+  const [est, balance] = await Promise.all([
+    estimateCost(client, tx),
+    client.getBalance({ address: tx.account }),
+  ])
+
+  const costUsd = Number.parseFloat(est.costUsd)
+
+  if (costUsd > MAX_COST_USD) {
+    throw new Error(
+      `Estimated gas cost ${formatCost(est)} exceeds the $${MAX_COST_USD} safety limit. Aborting.`,
+    )
+  }
+
+  if (balance < est.costWei) {
+    const balEth = Number.parseFloat(formatEther(balance)).toFixed(6)
+    throw new Error(
+      `Insufficient balance: ${balEth} ETH available but transaction costs ~${formatCost(est)}. Aborting.`,
+    )
+  }
+
+  return est
+}

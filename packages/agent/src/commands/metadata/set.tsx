@@ -5,7 +5,7 @@ import { z } from 'zod'
 import { SCHEMA_MAP } from '@ens-node-metadata/schemas'
 import { getPublishedRegistry } from '@ens-node-metadata/schemas/published'
 import { validateMetadataSchema } from '@ens-node-metadata/sdk'
-import { setEnsTextRecords, estimateEnsTextRecordsCost, formatCost } from '../../lib/ens-write.js'
+import { setEnsTextRecords, estimateEnsTextRecordsCost, formatCost, validateEnsTextRecordsCost } from '../../lib/ens-write.js'
 
 export const description = 'Set ENS metadata text records from a payload file'
 
@@ -77,15 +77,18 @@ export default function Set({ args: [ensName, payloadFile], options }: Props) {
 
       if (!options.broadcast) {
         let costLine = '  Est. Cost: unable to estimate'
+        let balanceLine = ''
         try {
           const est = await estimateEnsTextRecordsCost(ensName, texts, options.privateKey)
           costLine = `  Est. Cost: ${formatCost(est)}`
+          balanceLine = `  Balance:   ${est.balance}`
         } catch (err) { console.error('DEBUG estimate error:', err) }
 
         const lines = [
           `Dry run — would set ${texts.length} text records on ${ensName}:`,
           '',
           ...texts.map((t) => `  setText("${t.key}", "${t.value}")`),
+          balanceLine,
           costLine,
           '',
           'Run with --broadcast to submit on-chain.',
@@ -96,8 +99,9 @@ export default function Set({ args: [ensName, payloadFile], options }: Props) {
 
       setState({ status: 'working', message: `Setting ${texts.length} text records on ${ensName}…` })
       try {
+        await validateEnsTextRecordsCost(ensName, texts, options.privateKey)
         const hash = await setEnsTextRecords(ensName, texts, options.privateKey)
-        setState({ status: 'done', message: `✅ Transaction submitted: ${hash}` })
+        setState({ status: 'done', message: `✅ Transaction submitted: https://etherscan.io/tx/${hash}` })
       } catch (err) {
         setState({ status: 'error', message: `Transaction failed: ${(err as Error).message}` })
       }

@@ -1,10 +1,10 @@
 import { Box, Text, useApp } from 'ink'
 import React from 'react'
-import { encodeFunctionData, http, createPublicClient, createWalletClient } from 'viem'
+import { encodeFunctionData, formatEther, http, createPublicClient, createWalletClient } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
 import { z } from 'zod'
 import IdentityRegistryABI from '../../../lib/abis/IdentityRegistry.json' with { type: 'json' }
-import { estimateCost, formatCost } from '../../../lib/estimate-cost.js'
+import { estimateCost, formatCost, validateCost } from '../../../lib/estimate-cost.js'
 import { SUPPORTED_CHAINS, resolveChain } from '../../../lib/registry.js'
 
 export const description = 'Clear the verified wallet from an agent'
@@ -63,13 +63,14 @@ export default function UnsetWallet({
         })
 
         let costLine = '  Est. Cost: unable to estimate'
+        let balanceLine = ''
         try {
-          const est = await estimateCost(publicClient, {
-            account: account.address,
-            to: registryAddress,
-            data,
-          })
+          const [est, balance] = await Promise.all([
+            estimateCost(publicClient, { account: account.address, to: registryAddress, data }),
+            publicClient.getBalance({ address: account.address }),
+          ])
           costLine = `  Est. Cost: ${formatCost(est)}`
+          balanceLine = `  Balance:   ${Number.parseFloat(formatEther(balance)).toFixed(6)} ETH`
         } catch {}
 
         setState({
@@ -80,6 +81,7 @@ export default function UnsetWallet({
             `  Registry:  ${registryAddress}`,
             `  Agent ID:  ${tokenId.toString()}`,
             `  Signer:    ${account.address}`,
+            balanceLine,
             costLine,
             '',
             'Run with --broadcast to submit on-chain.',
@@ -94,6 +96,13 @@ export default function UnsetWallet({
         const publicClient = createPublicClient({ chain, transport: http() })
         const walletClient = createWalletClient({ account, chain, transport: http() })
 
+        const txData = encodeFunctionData({
+          abi: IdentityRegistryABI,
+          functionName: 'unsetAgentWallet',
+          args: [tokenId],
+        })
+        await validateCost(publicClient, { account: account.address, to: registryAddress, data: txData })
+
         const { request } = await publicClient.simulateContract({
           account,
           address: registryAddress,
@@ -104,12 +113,13 @@ export default function UnsetWallet({
 
         const txHash = await walletClient.writeContract(request)
 
+        const explorerUrl = chain.blockExplorers?.default?.url
         setState({
           status: 'done',
           message: [
             `✅ Wallet cleared on ${chainName}`,
             `   Agent ID: ${tokenId.toString()}`,
-            `   Tx Hash:  ${txHash}`,
+            `   Tx Hash:  ${explorerUrl ? `${explorerUrl}/tx/${txHash}` : txHash}`,
           ].join('\n'),
         })
       } catch (err) {
