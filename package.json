@@ -19,5 +19,14 @@
     "turbo": "^2.5.5"
   },
   "name": "signals",
-  "packageManager": "pnpm@10.29.3"
+  "packageManager": "pnpm@10.29.3",
+  "pnpm": {
+    "peerDependencyRules": {
+      "allowedVersions": {
+        "pastel>react": "19",
+        "vocs>react": "18",
+        "vocs>react-dom": "18"
+      }
+    }
+  }
 }

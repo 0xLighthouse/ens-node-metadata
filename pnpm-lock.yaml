@@ -244,15 +244,9 @@ importers:
 
   packages/agent:
     dependencies:
-      '@ens-node-metadata/schemas':
-        specifier: workspace:*
-        version: link:../schemas
       '@ens-node-metadata/sdk':
         specifier: workspace:*
         version: link:../sdk
-      '@ens-node-metadata/shared':
-        specifier: workspace:*
-        version: link:../shared
       '@ensdomains/ensjs':
         specifier: ^4.0.2
         version: 4.2.2(typescript@5.8.3)(viem@2.23.15(bufferutil@4.1.0)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.25.76))(zod@3.25.76)
@@ -306,9 +300,6 @@ importers:
 
   packages/sdk:
     dependencies:
-      '@ens-node-metadata/schemas':
-        specifier: workspace:*
-        version: link:../schemas
       viem:
         specifier: 2.23.15
         version: 2.23.15(bufferutil@4.1.0)(typescript@5.8.3)(utf-8-validate@5.0.10)(zod@3.25.76)
