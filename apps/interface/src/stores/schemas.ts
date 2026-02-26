@@ -33,10 +33,6 @@ export const useSchemaStore = create<SchemaState>()(
 
       fetchSchemas: async () => {
         const schemas = await fetchSchemasAPI()
-
-        console.log('----- FETCHED SCHEMAS -----')
-        console.log('schemas', schemas)
-
         set({ schemas })
       },
 

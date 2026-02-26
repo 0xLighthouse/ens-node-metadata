@@ -10,9 +10,6 @@ export async function fetchSchemas(): Promise<Schema[]> {
   const ensip5Properties = globals['ensip-5']?.properties ?? {}
   const schemas: Schema[] = []
 
-  console.log('----- FETCHED REGISTRY -----')
-  console.log('registry', registry)
-
   // Extract all published versions of each schema from the registry
   for (const [schemaId, schemaData] of Object.entries(registry.schemas)) {
     // Skip globals schema
