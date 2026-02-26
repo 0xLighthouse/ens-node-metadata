@@ -142,7 +142,7 @@ export const BaseNodeCard = ({
               type="button"
               onMouseDown={stopNodeInteraction}
               onClick={handleToggleCollapse}
-              className="nodrag nopan p-1 rounded hover:bg-gray-100 transition-colors"
+              className="nodrag nopan p-1 rounded hover:bg-gray-100 transition-colors cursor-pointer"
               aria-label={isCollapsed ? 'Expand' : 'Collapse'}
               title={isCollapsed ? 'Expand children' : 'Collapse children'}
             >

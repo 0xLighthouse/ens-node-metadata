@@ -39,7 +39,7 @@ export function ExternalActionButton({
       aria-label={label}
       title={label}
       className={cn(
-        'nodrag nopan p-0.5 rounded transition-colors flex-shrink-0',
+        'nodrag nopan p-0.5 rounded transition-colors flex-shrink-0 cursor-pointer',
         className,
       )}
       {...props}
