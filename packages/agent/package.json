@@ -22,7 +22,8 @@
     "version:minor": "pnpm version minor --no-git-tag-version",
     "agent": "bun src/cli.ts",
     "build": "tsup",
-    "lint": "biome check ."
+    "lint": "biome check .",
+    "test": "vitest run"
   },
   "dependencies": {
     "@ens-node-metadata/sdk": "workspace:*",
