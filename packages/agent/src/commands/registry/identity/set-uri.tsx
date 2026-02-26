@@ -1,11 +1,8 @@
-import { Box, Text, useApp } from 'ink'
 import React from 'react'
-import { encodeFunctionData, formatEther, http, createPublicClient, createWalletClient } from 'viem'
-import { privateKeyToAccount } from 'viem/accounts'
 import { z } from 'zod'
-import IdentityRegistryABI from '../../../lib/abis/IdentityRegistry.json' with { type: 'json' }
-import { estimateCost, formatCost, validateCost } from '../../../lib/estimate-cost.js'
-import { SUPPORTED_CHAINS, resolveChain } from '../../../lib/registry.js'
+import { executeRegistryCall } from '../../../lib/registry-tx.js'
+import { SUPPORTED_CHAINS } from '../../../lib/registry.js'
+import { useCommand, CommandStatus } from '../../../lib/use-command.js'
 
 export const description = 'Update agent URI on the ERC-8004 registry'
 
@@ -33,117 +30,38 @@ type Props = {
   args: z.infer<typeof args>
 }
 
-type State =
-  | { status: 'idle' }
-  | { status: 'working'; message: string }
-  | { status: 'done'; message: string }
-  | { status: 'error'; message: string }
-
 export default function SetUri({
   options: { chainName, privateKey, broadcast },
   args: [agentId, newUri],
 }: Props) {
-  const { exit } = useApp()
-  const [state, setState] = React.useState<State>({ status: 'idle' })
+  const tokenId = BigInt(agentId)
 
-  React.useEffect(() => {
-    if (state.status === 'done') exit()
-    else if (state.status === 'error') exit(new Error(state.message))
-  }, [state, exit])
-
-  React.useEffect(() => {
-    async function run() {
-      const { chain, registryAddress } = resolveChain(chainName)
-      const account = privateKeyToAccount(privateKey as `0x${string}`)
-      const tokenId = BigInt(agentId)
-
-      if (!broadcast) {
-        const publicClient = createPublicClient({ chain, transport: http() })
-        const data = encodeFunctionData({
-          abi: IdentityRegistryABI,
+  const state = useCommand(
+    [chainName, privateKey, broadcast, agentId, newUri],
+    async (setState) => {
+      const result = await executeRegistryCall(
+        {
+          chainName,
+          privateKey,
+          broadcast,
           functionName: 'setAgentURI',
-          args: [tokenId, newUri],
-        })
-
-        let costLine = '  Est. Cost: unable to estimate'
-        let balanceLine = ''
-        try {
-          const [est, balance] = await Promise.all([
-            estimateCost(publicClient, { account: account.address, to: registryAddress, data }),
-            publicClient.getBalance({ address: account.address }),
-          ])
-          costLine = `  Est. Cost: ${formatCost(est)}`
-          balanceLine = `  Balance:   ${Number.parseFloat(formatEther(balance)).toFixed(6)} ETH`
-        } catch {}
-
-        setState({
-          status: 'done',
-          message: [
-            `Dry run — would call setAgentURI on ${chainName}:`,
-            '',
-            `  Registry:  ${registryAddress}`,
+          contractArgs: [tokenId, newUri],
+          dryRunDetails: [
             `  Agent ID:  ${tokenId.toString()}`,
             `  New URI:   ${newUri}`,
-            `  Signer:    ${account.address}`,
-            balanceLine,
-            costLine,
-            '',
-            'Run with --broadcast to submit on-chain.',
-          ].join('\n'),
-        })
-        return
-      }
-
-      setState({ status: 'working', message: `Updating agent URI on ${chainName}…` })
-
-      try {
-        const publicClient = createPublicClient({ chain, transport: http() })
-        const walletClient = createWalletClient({ account, chain, transport: http() })
-
-        const txData = encodeFunctionData({
-          abi: IdentityRegistryABI,
-          functionName: 'setAgentURI',
-          args: [tokenId, newUri],
-        })
-        await validateCost(publicClient, { account: account.address, to: registryAddress, data: txData })
-
-        const { request } = await publicClient.simulateContract({
-          account,
-          address: registryAddress,
-          abi: IdentityRegistryABI,
-          functionName: 'setAgentURI',
-          args: [tokenId, newUri],
-        })
-
-        const txHash = await walletClient.writeContract(request)
-
-        const explorerUrl = chain.blockExplorers?.default?.url
-        setState({
-          status: 'done',
-          message: [
-            `✅ Agent URI updated on ${chainName}`,
+          ],
+          successMessage: `✅ Agent URI updated on ${chainName}`,
+          successDetails: [
             `   Agent ID: ${tokenId.toString()}`,
             `   New URI:  ${newUri}`,
-            `   Tx Hash:  ${explorerUrl ? `${explorerUrl}/tx/${txHash}` : txHash}`,
-          ].join('\n'),
-        })
-      } catch (err) {
-        setState({
-          status: 'error',
-          message: `setAgentURI failed: ${(err as Error).message}`,
-        })
-      }
-    }
-
-    run()
-  }, [chainName, privateKey, broadcast, agentId, newUri])
-
-  return (
-    <Box flexDirection="column">
-      {state.status === 'idle' && <Text color="gray">Preparing…</Text>}
-      {state.status === 'working' && <Text color="cyan">{state.message}</Text>}
-      {state.status === 'done' && <Text color="green">{state.message}</Text>}
-      {state.status === 'error' && <Text color="red">❌ {state.message}</Text>}
-    </Box>
+          ],
+          errorPrefix: 'setAgentURI',
+        },
+        (msg) => setState({ status: 'working', message: msg }),
+      )
+      setState({ status: result.status, message: result.message })
+    },
   )
+
+  return <CommandStatus state={state} />
 }

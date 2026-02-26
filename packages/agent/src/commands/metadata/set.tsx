@@ -1,11 +1,11 @@
 import { readFileSync } from 'node:fs'
-import { Box, Text, useApp } from 'ink'
 import React from 'react'
 import { z } from 'zod'
 import { SCHEMA_MAP } from '@ens-node-metadata/schemas'
 import { getPublishedRegistry } from '@ens-node-metadata/schemas/published'
 import { validateMetadataSchema } from '@ens-node-metadata/sdk'
 import { setEnsTextRecords, estimateEnsTextRecordsCost, formatCost, validateEnsTextRecordsCost } from '../../lib/ens-write.js'
+import { useCommand, CommandStatus } from '../../lib/use-command.js'
 
 export const description = 'Set ENS metadata text records from a payload file'
 
@@ -27,23 +27,10 @@ type Props = {
   options: z.infer<typeof options>
 }
 
-type State =
-  | { status: 'idle' }
-  | { status: 'working'; message: string }
-  | { status: 'done'; message: string }
-  | { status: 'error'; message: string }
-
 export default function Set({ args: [ensName, payloadFile], options }: Props) {
-  const { exit } = useApp()
-  const [state, setState] = React.useState<State>({ status: 'idle' })
-
-  React.useEffect(() => {
-    if (state.status === 'done') exit()
-    else if (state.status === 'error') exit(new Error(state.message))
-  }, [state, exit])
-
-  React.useEffect(() => {
-    async function run() {
+  const state = useCommand(
+    [ensName, payloadFile, options],
+    async (setState) => {
       let payload: Record<string, string>
       try {
         const raw: unknown = JSON.parse(readFileSync(payloadFile, 'utf8'))
@@ -105,17 +92,8 @@ export default function Set({ args: [ensName, payloadFile], options }: Props) {
       } catch (err) {
         setState({ status: 'error', message: `Transaction failed: ${(err as Error).message}` })
       }
-    }
-
-    run()
-  }, [ensName, payloadFile, options])
-
-  return (
-    <Box flexDirection="column">
-      {state.status === 'idle' && <Text color="gray">Preparing…</Text>}
-      {state.status === 'working' && <Text color="cyan">{state.message}</Text>}
-      {state.status === 'done' && <Text color="green">{state.message}</Text>}
-      {state.status === 'error' && <Text color="red">❌ {state.message}</Text>}
-    </Box>
+    },
   )
+
+  return <CommandStatus state={state} />
 }
