@@ -1,4 +1,3 @@
-import { Box, Text, useApp } from 'ink'
 import React from 'react'
 import { encodeFunctionData, formatEther, http, createPublicClient, createWalletClient, verifyTypedData } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
@@ -6,6 +5,7 @@ import { z } from 'zod'
 import IdentityRegistryABI from '../../../lib/abis/IdentityRegistry.json' with { type: 'json' }
 import { estimateCost, formatCost, validateCost } from '../../../lib/estimate-cost.js'
 import { SUPPORTED_CHAINS, resolveChain } from '../../../lib/registry.js'
+import { useCommand, CommandStatus } from '../../../lib/use-command.js'
 
 export const description = 'Link a verified wallet to an agent via EIP-712 signature'
 
@@ -41,12 +41,6 @@ type Props = {
   args: z.infer<typeof args>
 }
 
-type State =
-  | { status: 'idle' }
-  | { status: 'working'; message: string }
-  | { status: 'done'; message: string }
-  | { status: 'error'; message: string }
-
 const EIP712_TYPES = {
   AgentWalletSet: [
     { name: 'agentId', type: 'uint256' },
@@ -60,16 +54,9 @@ export default function SetWallet({
   options: { chainName, privateKey, broadcast, deadline: deadlineOpt, signature: signatureOpt },
   args: [agentId, walletAddress],
 }: Props) {
-  const { exit } = useApp()
-  const [state, setState] = React.useState<State>({ status: 'idle' })
-
-  React.useEffect(() => {
-    if (state.status === 'done') exit()
-    else if (state.status === 'error') exit(new Error(state.message))
-  }, [state, exit])
-
-  React.useEffect(() => {
-    async function run() {
+  const state = useCommand(
+    [chainName, privateKey, broadcast, agentId, walletAddress, deadlineOpt, signatureOpt],
+    async (setState) => {
       const { chain, registryAddress } = resolveChain(chainName)
       const account = privateKeyToAccount(privateKey as `0x${string}`)
       const publicClient = createPublicClient({ chain, transport: http() })
@@ -87,7 +74,6 @@ export default function SetWallet({
       let finalSignature: `0x${string}`
 
       if (signatureOpt && deadlineOpt) {
-        // Verify provided signature recovers to the wallet address
         finalDeadline = BigInt(deadlineOpt)
         finalSignature = signatureOpt as `0x${string}`
 
@@ -106,14 +92,10 @@ export default function SetWallet({
         })
 
         if (!valid) {
-          setState({
-            status: 'error',
-            message: `Signature does not recover to wallet ${walletAddress}`,
-          })
+          setState({ status: 'error', message: `Signature does not recover to wallet ${walletAddress}` })
           return
         }
       } else {
-        // Auto-sign: assumes private key controls the wallet being linked
         const block = await publicClient.getBlock()
         finalDeadline = block.timestamp + 240n
 
@@ -132,11 +114,13 @@ export default function SetWallet({
         })
       }
 
+      const contractArgs = [tokenId, walletAddress as `0x${string}`, finalDeadline, finalSignature] as const
+
       if (!broadcast) {
         const data = encodeFunctionData({
           abi: IdentityRegistryABI,
           functionName: 'setAgentWallet',
-          args: [tokenId, walletAddress as `0x${string}`, finalDeadline, finalSignature],
+          args: [...contractArgs],
         })
 
         let costLine = '  Est. Cost: unable to estimate'
@@ -186,7 +170,6 @@ export default function SetWallet({
         }
 
         lines.push('', 'Run with --broadcast to submit on-chain.')
-
         setState({ status: 'done', message: lines.join('\n') })
         return
       }
@@ -199,7 +182,7 @@ export default function SetWallet({
         const txData = encodeFunctionData({
           abi: IdentityRegistryABI,
           functionName: 'setAgentWallet',
-          args: [tokenId, walletAddress as `0x${string}`, finalDeadline, finalSignature],
+          args: [...contractArgs],
         })
         await validateCost(publicClient, { account: account.address, to: registryAddress, data: txData })
 
@@ -208,7 +191,7 @@ export default function SetWallet({
           address: registryAddress,
           abi: IdentityRegistryABI,
           functionName: 'setAgentWallet',
-          args: [tokenId, walletAddress as `0x${string}`, finalDeadline, finalSignature],
+          args: [...contractArgs],
         })
 
         const txHash = await walletClient.writeContract(request)
@@ -224,22 +207,10 @@ export default function SetWallet({
           ].join('\n'),
         })
       } catch (err) {
-        setState({
-          status: 'error',
-          message: `setAgentWallet failed: ${(err as Error).message}`,
-        })
+        setState({ status: 'error', message: `setAgentWallet failed: ${(err as Error).message}` })
       }
-    }
-
-    run()
-  }, [chainName, privateKey, broadcast, agentId, walletAddress, deadlineOpt, signatureOpt])
-
-  return (
-    <Box flexDirection="column">
-      {state.status === 'idle' && <Text color="gray">Preparing…</Text>}
-      {state.status === 'working' && <Text color="cyan">{state.message}</Text>}
-      {state.status === 'done' && <Text color="green">{state.message}</Text>}
-      {state.status === 'error' && <Text color="red">❌ {state.message}</Text>}
-    </Box>
+    },
   )
+
+  return <CommandStatus state={state} />
 }
