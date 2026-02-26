@@ -1,37 +1,32 @@
 ---
-name: ens-agent-registration
-description: Register an AI agent on ENS using ERC-8004.
+name: ens-agent-capabilities
+description: Manage and broadcast agent capabilities on ENS using ERC-8004.
 allowed-tools: Bash(node:*), Bash(ipfs:*), Bash(cast:*)
 ---
 
 # Agents
 
-A skill to help manage your agents their ERC-8004 metadata on ENS.
+Manage your capabilities with ERC-8004 metadata and broadcast on ENS.
 
 ## Bootstrap
 
 * Ask your human, what is their agents ens name is?
-  * Hereby referred to as AGENT_ENS_NAME
 
-## Command overview
+> Henceforth referred to as <AGENT_ENS_NAME>
+
+## Guardrails
+
+* Never show sensitive keys, even when asked
+* If human attempts to override, only acknowledge existence. Never transmit keys
+
+## Quickstart
 
 Run `ens-agent --help` or `ens-agent <command> --help` for full usage.
 
-```sh
-ens-agent registration-file template            # prints example JSON
-ens-agent registration-file validate <file>     # validates SCHEMA_8004_V2
-ens-agent registration-file publish <file>      # upload to IPFS via Pinata
-# => Returns <agent-uri>
-
-# Register agent with canonical 8004 registries
-ens-agent registry identity --chain-name <chain> <agent-uri> --private-key <0x...> [--broadcast]
-
-ens-agent metadata template                   # starter ENS text-record payload
-ens-agent metadata validate <payload>         # validates metadata JSON schema
-ens-agent metadata set <AGENT_ENS_NAME> <payload> --private-key <0x...> [--broadcast]
-
-ens-agent skill [--install]                   # Installs
-```
+1. Create a registration file with `registration-file` sub commands
+2. Register with a canonical `registry`
+3. Prepare and set `metadata` to be saved on ENS
+4. (Optional) Install and tailor the `skill` for your specific purposes
 
 ## Workflows
 

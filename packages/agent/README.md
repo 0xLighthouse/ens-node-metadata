@@ -16,7 +16,18 @@ pnpm dlx @ens-node-metadata/agent --help
 
 See [SKILL.md](./SKILL.md) for the full step-by-step guide.
 
+## Roadmap
+
+- [x] `ens-agent registration-file template`
+- [x] `ens-agent registration-file validate <file>`
+- [x] `ens-agent registration-file publish <file>`
+- [ ] `ens-agent registry identity --chain-name <chain> <agent-uri> --private-key <0x...> [--broadcast]`
+- [x] `ens-agent metadata template`
+- [x] `ens-agent metadata validate <payload>`
+- [ ] `ens-agent metadata set <AGENT_ENS_NAME> <payload> --private-key <0x...> [--broadcast]`
+- [ ] `ens-agent skill [--install]`
+
 ## Related Packages
 
-* [`@ens-node-metadata/schemas`](#TODO) — JSON schemas for all ENS node types
-* [`@ens-node-metadata/sdk`](https://www.npmjs.com/package/@ens-node-metadata/sdk) — ENS metadata read SDK
+- [`@ens-node-metadata/schemas`](#TODO) — JSON schemas for all ENS node types
+- [`@ens-node-metadata/sdk`](https://www.npmjs.com/package/@ens-node-metadata/sdk) — ENS metadata read SDK
