@@ -3,6 +3,7 @@ import { Box, Text, useApp } from 'ink'
 import React from 'react'
 import { z } from 'zod'
 import { SCHEMA_MAP } from '@ens-node-metadata/schemas'
+import { getPublishedRegistry } from '@ens-node-metadata/schemas/published'
 import { validateMetadataSchema } from '@ens-node-metadata/sdk'
 import { setEnsTextRecords } from '../../lib/ens-write.js'
 
@@ -37,6 +38,11 @@ export default function Set({ args: [ensName, payloadFile], options }: Props) {
   const [state, setState] = React.useState<State>({ status: 'idle' })
 
   React.useEffect(() => {
+    if (state.status === 'done') exit()
+    else if (state.status === 'error') exit(new Error(state.message))
+  }, [state, exit])
+
+  React.useEffect(() => {
     async function run() {
       let payload: Record<string, string>
       try {
@@ -45,14 +51,26 @@ export default function Set({ args: [ensName, payloadFile], options }: Props) {
         if (!result.success) {
           const issues = result.errors.map((e) => `[${e.key}] ${e.message}`).join('\n')
           setState({ status: 'error', message: `Invalid payload:\n${issues}` })
-          exit(new Error('validation failed'))
           return
         }
         payload = result.data
       } catch (err) {
         setState({ status: 'error', message: `Error reading payload: ${(err as Error).message}` })
-        exit(new Error('read error'))
         return
+      }
+
+      // Inject schema CID from the published registry
+      try {
+        const registry = await getPublishedRegistry()
+        const agentSchema = registry.schemas['agent']
+        if (agentSchema) {
+          const latestVersion = agentSchema.published[agentSchema.latest]
+          if (latestVersion?.cid) {
+            payload['schema'] = `ipfs://${latestVersion.cid}`
+          }
+        }
+      } catch {
+        // Non-fatal — proceed without schema record
       }
 
       const texts = Object.entries(payload).map(([key, value]) => ({ key, value }))
@@ -66,7 +84,6 @@ export default function Set({ args: [ensName, payloadFile], options }: Props) {
           'Run with --broadcast to submit on-chain.',
         ]
         setState({ status: 'done', message: lines.join('\n') })
-        exit()
         return
       }
 
@@ -74,15 +91,13 @@ export default function Set({ args: [ensName, payloadFile], options }: Props) {
       try {
         const hash = await setEnsTextRecords(ensName, texts, options.privateKey)
         setState({ status: 'done', message: `✅ Transaction submitted: ${hash}` })
-        exit()
       } catch (err) {
         setState({ status: 'error', message: `Transaction failed: ${(err as Error).message}` })
-        exit(new Error('tx failed'))
       }
     }
 
     run()
-  }, [exit, ensName, payloadFile, options])
+  }, [ensName, payloadFile, options])
 
   return (
     <Box flexDirection="column">
