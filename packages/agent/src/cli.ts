@@ -16,7 +16,12 @@ Usage:
   ens-agent registration-file validate <file.json>
   ens-agent registration-file publish <file.json>
 
-  ens-agent registry identity --chain-name <chain> <agent-uri>
+  ens-agent registry identity                       (show sub-commands)
+  ens-agent registry identity query                  --chain-name <chain> <agent-id>
+  ens-agent registry identity register               --chain-name <chain> <agent-uri> --private-key <0x...> [--broadcast]
+  ens-agent registry identity set-uri                --chain-name <chain> <agent-id> <new-uri> --private-key <0x...> [--broadcast]
+  ens-agent registry identity set-wallet             --chain-name <chain> <agent-id> <wallet> --private-key <0x...> [--deadline <ts>] [--signature <0x...>] [--broadcast]
+  ens-agent registry identity unset-wallet           --chain-name <chain> <agent-id> --private-key <0x...> [--broadcast]
 
   ens-agent metadata template
   ens-agent metadata validate <payload.json>
