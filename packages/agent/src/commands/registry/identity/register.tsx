@@ -1,9 +1,10 @@
 import { Box, Text, useApp } from 'ink'
 import React from 'react'
-import { http, createPublicClient, createWalletClient } from 'viem'
+import { encodeFunctionData, http, createPublicClient, createWalletClient } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
 import { z } from 'zod'
 import IdentityRegistryABI from '../../../lib/abis/IdentityRegistry.json' with { type: 'json' }
+import { estimateCost, formatCost } from '../../../lib/estimate-cost.js'
 import { SUPPORTED_CHAINS, resolveChain } from '../../../lib/registry.js'
 
 export const description = 'Register agent identity on ERC-8004 registry'
@@ -53,6 +54,23 @@ export default function Register({
       const account = privateKeyToAccount(privateKey as `0x${string}`)
 
       if (!broadcast) {
+        const publicClient = createPublicClient({ chain, transport: http() })
+        const data = encodeFunctionData({
+          abi: IdentityRegistryABI,
+          functionName: 'register',
+          args: [agentUri],
+        })
+
+        let costLine = '  Est. Cost: unable to estimate'
+        try {
+          const est = await estimateCost(publicClient, {
+            account: account.address,
+            to: registryAddress,
+            data,
+          })
+          costLine = `  Est. Cost: ${formatCost(est)}`
+        } catch {}
+
         setState({
           status: 'done',
           message: [
@@ -61,6 +79,7 @@ export default function Register({
             `  Registry:  ${registryAddress}`,
             `  Agent URI: ${agentUri}`,
             `  Signer:    ${account.address}`,
+            costLine,
             '',
             'Run with --broadcast to submit on-chain.',
           ].join('\n'),

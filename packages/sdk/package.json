@@ -19,6 +19,7 @@
     "viem": "2.23.15"
   },
   "devDependencies": {
+    "@ens-node-metadata/schemas": "workspace:*",
     "tsup": "^8.5.1",
     "typescript": "^5"
   }
