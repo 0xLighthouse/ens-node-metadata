@@ -20,7 +20,11 @@ interface NodeEditorState {
   // Optional field dropdown state
   isOptionalFieldDropdownOpen: boolean
 
+  // Class field lock state (locked = disabled/read-only by default)
+  classFieldLocked: boolean
+
   // Actions
+  toggleClassFieldLock: () => void
   initializeEditor: (
     nodeData: any,
     existingEdit: any,
@@ -58,10 +62,14 @@ const initialState = {
   schemaSearchQuery: '',
   isLoadingSchemas: false,
   isOptionalFieldDropdownOpen: false,
+  classFieldLocked: true,
 }
 
 export const useNodeEditorStore = create<NodeEditorState>((set, get) => ({
   ...initialState,
+
+  toggleClassFieldLock: () =>
+    set((state) => ({ classFieldLocked: !state.classFieldLocked })),
 
   initializeEditor: (nodeData, existingEdit, schemas) => {
     const nextFormData: NodeEditFormData = {}
@@ -111,6 +119,7 @@ export const useNodeEditorStore = create<NodeEditorState>((set, get) => ({
       isSchemaDropdownOpen: false,
       schemaSearchQuery: '',
       isOptionalFieldDropdownOpen: false,
+      classFieldLocked: true,
     })
   },
 

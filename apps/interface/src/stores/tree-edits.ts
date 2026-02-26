@@ -20,6 +20,8 @@ interface TreeEditState {
   selectedNode: string | null
   // Drawer open state
   isEditDrawerOpen: boolean
+  // Node switch requested while drawer is open (guarded by pending-changes check)
+  pendingNodeSwitch: string | null
 
   // Actions
   upsertEdit: (nodeName: string, texts: Record<string, string | null>, changes: Record<string, string | null>, deleted?: string[]) => void
@@ -31,12 +33,15 @@ interface TreeEditState {
   closeEditDrawer: () => void
   getPendingEdit: (nodeName: string) => TreeMutation | undefined
   hasPendingEdit: (nodeName: string) => boolean
+  requestNodeSwitch: (nodeName: string) => void
+  clearPendingNodeSwitch: () => void
 }
 
 export const useTreeEditStore = create<TreeEditState>((set, get) => ({
   pendingMutations: new Map(),
   selectedNode: null,
   isEditDrawerOpen: false,
+  pendingNodeSwitch: null,
 
   upsertEdit: (nodeName, texts, changes, deleted = []) =>
     set((state) => {
@@ -107,4 +112,17 @@ export const useTreeEditStore = create<TreeEditState>((set, get) => ({
     const mutation = get().pendingMutations.get(nodeName)
     return !!mutation && !mutation.createNode
   },
+
+  requestNodeSwitch: (nodeName) => {
+    const { isEditDrawerOpen, selectedNode } = get()
+    if (!isEditDrawerOpen || nodeName === selectedNode) {
+      // No drawer open or same node — open directly
+      set({ isEditDrawerOpen: true, selectedNode: nodeName })
+      return
+    }
+    // Drawer is open with a different node — signal pending switch for change guard
+    set({ pendingNodeSwitch: nodeName })
+  },
+
+  clearPendingNodeSwitch: () => set({ pendingNodeSwitch: null }),
 }))
