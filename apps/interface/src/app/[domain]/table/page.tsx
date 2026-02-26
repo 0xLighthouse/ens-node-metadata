@@ -14,6 +14,7 @@ import { getAvatarFallback } from '@/lib/getAvatarFallback'
 import { EditNodeDrawer } from '@/app/components/tree/drawers/EditNodeDrawer'
 import { ApplyChangesDialog } from '@/app/components/tree/ApplyChangesDialog'
 import { NotAuthorizedDialog } from '@/components/dialogs/not-authorized-dialog'
+import { DiscardChangesDialog } from '@/components/dialogs/discard-changes-dialog'
 import {
   DndContext,
   closestCenter,
@@ -315,13 +316,14 @@ function DraggableColHeader({
 export default function TablePage() {
   const { sourceTree, isLoading, hasHydrated, loadTree } = useTreeData()
   const { schemas, fetchSchemas } = useSchemaStore()
-  const { pendingMutations, openEditDrawer, clearPendingMutations } = useTreeEditStore()
+  const { pendingMutations, openEditDrawer, clearPendingMutations, hasPendingEdit } = useTreeEditStore()
   const { submitMutations, submitCreation, status: mutationsStatus } = useMutationsStore()
   const { walletClient, publicClient } = useWeb3()
   const [search, setSearch] = useState('')
   const [isApplyDialogOpen, setIsApplyDialogOpen] = useState(false)
   const [unauthorizedNodes, setUnauthorizedNodes] = useState<string[]>([])
   const [isNotAuthorizedOpen, setIsNotAuthorizedOpen] = useState(false)
+  const [showDiscardDialog, setShowDiscardDialog] = useState(false)
 
   // Column customization state (session-based, resets on page reload)
   const [columnOrder, setColumnOrder] = useState<string[]>(
@@ -374,12 +376,6 @@ export default function TablePage() {
     [sourceTree],
   )
 
-  // Helper to check if a node has pending changes (excludes creations)
-  const hasPendingChanges = (nodeName: string): boolean => {
-    const mutation = pendingMutations.get(nodeName)
-    return !!mutation && !mutation.createNode
-  }
-
   // Handle applying changes
   const handleApplyChanges = async (mutationIds: string[]) => {
     if (!walletClient || !publicClient) return
@@ -398,6 +394,11 @@ export default function TablePage() {
     },
     [walletClient, publicClient, pendingMutations, findNode, submitCreation],
   )
+
+  // Handle clear button click - show confirmation dialog
+  const handleClearClick = () => {
+    setShowDiscardDialog(true)
+  }
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event
@@ -660,7 +661,7 @@ export default function TablePage() {
               <div className="w-px h-5 bg-gray-200 dark:bg-gray-700" />
               <button
                 type="button"
-                onClick={clearPendingMutations}
+                onClick={handleClearClick}
                 className="text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
               >
                 Clear
@@ -741,9 +742,9 @@ export default function TablePage() {
                     key={node.name}
                     onClick={() => openEditDrawer(node.name)}
                     className={`transition-colors cursor-pointer ${
-                      hasPendingChanges(node.name)
-                        ? 'bg-orange-50 dark:bg-orange-900/10 hover:bg-orange-100 dark:hover:bg-orange-900/20'
-                        : 'hover:bg-gray-50 dark:hover:bg-gray-800/40'
+                      hasPendingEdit(node.name)
+                        ? 'bg-orange-100 dark:bg-orange-900/20 hover:bg-orange-200 dark:hover:bg-orange-900/30 border-l-4 border-orange-400 dark:border-orange-500'
+                        : 'bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800/40'
                     }`}
                   >
                     {orderedColumns.map((column) => (
@@ -776,6 +777,12 @@ export default function TablePage() {
         open={isNotAuthorizedOpen}
         onOpenChange={setIsNotAuthorizedOpen}
         unauthorizedNodes={unauthorizedNodes}
+      />
+
+      <DiscardChangesDialog
+        open={showDiscardDialog}
+        onOpenChange={setShowDiscardDialog}
+        onConfirm={clearPendingMutations}
       />
     </div>
   )

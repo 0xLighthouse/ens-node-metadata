@@ -1,6 +1,7 @@
 'use client'
 
 import { NotAuthorizedDialog } from '@/components/dialogs/not-authorized-dialog'
+import { DiscardChangesDialog } from '@/components/dialogs/discard-changes-dialog'
 import { useWeb3 } from '@/contexts/Web3Provider'
 import { useTreeData } from '@/hooks/useTreeData'
 import type { TreeNode } from '@/lib/tree/types'
@@ -21,6 +22,7 @@ export function ChangesBar() {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [unauthorizedNodes, setUnauthorizedNodes] = useState<string[]>([])
   const [isNotAuthorizedOpen, setIsNotAuthorizedOpen] = useState(false)
+  const [showDiscardDialog, setShowDiscardDialog] = useState(false)
 
   const findNode = useCallback(
     (name: string, node: TreeNode | null = sourceTree): TreeNode | null => {
@@ -76,7 +78,7 @@ export function ChangesBar() {
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={clearPendingMutations}
+            onClick={() => setShowDiscardDialog(true)}
             className="text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors cursor-pointer"
           >
             Clear
@@ -127,6 +129,12 @@ export function ChangesBar() {
         open={isNotAuthorizedOpen}
         onOpenChange={setIsNotAuthorizedOpen}
         unauthorizedNodes={unauthorizedNodes}
+      />
+
+      <DiscardChangesDialog
+        open={showDiscardDialog}
+        onOpenChange={setShowDiscardDialog}
+        onConfirm={clearPendingMutations}
       />
     </>
   )
