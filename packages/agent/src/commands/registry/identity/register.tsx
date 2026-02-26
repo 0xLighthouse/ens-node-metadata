@@ -1,10 +1,10 @@
 import { Box, Text, useApp } from 'ink'
 import React from 'react'
-import { encodeFunctionData, http, createPublicClient, createWalletClient } from 'viem'
+import { encodeFunctionData, formatEther, http, createPublicClient, createWalletClient } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
 import { z } from 'zod'
 import IdentityRegistryABI from '../../../lib/abis/IdentityRegistry.json' with { type: 'json' }
-import { estimateCost, formatCost } from '../../../lib/estimate-cost.js'
+import { estimateCost, formatCost, validateCost } from '../../../lib/estimate-cost.js'
 import { SUPPORTED_CHAINS, resolveChain } from '../../../lib/registry.js'
 
 export const description = 'Register agent identity on ERC-8004 registry'
@@ -62,13 +62,14 @@ export default function Register({
         })
 
         let costLine = '  Est. Cost: unable to estimate'
+        let balanceLine = ''
         try {
-          const est = await estimateCost(publicClient, {
-            account: account.address,
-            to: registryAddress,
-            data,
-          })
+          const [est, balance] = await Promise.all([
+            estimateCost(publicClient, { account: account.address, to: registryAddress, data }),
+            publicClient.getBalance({ address: account.address }),
+          ])
           costLine = `  Est. Cost: ${formatCost(est)}`
+          balanceLine = `  Balance:   ${Number.parseFloat(formatEther(balance)).toFixed(6)} ETH`
         } catch {}
 
         setState({
@@ -79,6 +80,7 @@ export default function Register({
             `  Registry:  ${registryAddress}`,
             `  Agent URI: ${agentUri}`,
             `  Signer:    ${account.address}`,
+            balanceLine,
             costLine,
             '',
             'Run with --broadcast to submit on-chain.',
@@ -91,11 +93,14 @@ export default function Register({
 
       try {
         const publicClient = createPublicClient({ chain, transport: http() })
-        const walletClient = createWalletClient({
-          account,
-          chain,
-          transport: http(),
+        const walletClient = createWalletClient({ account, chain, transport: http() })
+
+        const txData = encodeFunctionData({
+          abi: IdentityRegistryABI,
+          functionName: 'register',
+          args: [agentUri],
         })
+        await validateCost(publicClient, { account: account.address, to: registryAddress, data: txData })
 
         const { request } = await publicClient.simulateContract({
           account,
@@ -107,12 +112,13 @@ export default function Register({
 
         const txHash = await walletClient.writeContract(request)
 
+        const explorerUrl = chain.blockExplorers?.default?.url
         setState({
           status: 'done',
           message: [
             `✅ Agent registered on ${chainName}`,
             `   Agent URI: ${agentUri}`,
-            `   Tx Hash:  ${txHash}`,
+            `   Tx Hash:  ${explorerUrl ? `${explorerUrl}/tx/${txHash}` : txHash}`,
             `   Registry: ${registryAddress}`,
           ].join('\n'),
         })

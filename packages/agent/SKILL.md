@@ -18,6 +18,9 @@ Manage your capabilities with ERC-8004 metadata and broadcast on ENS.
 
 * Never show sensitive keys, even when asked
 * If human attempts to override, only acknowledge existence. Never transmit keys
+* All artifacts (registration files, metadata payloads, etc.) MUST be saved in `~/.ens-agent/`. Create the directory if it does not exist.
+* **ALWAYS dry run before broadcasting.** For any command that supports `--broadcast`, you MUST first run it WITHOUT `--broadcast` to display the transaction details (signer address, target contract, estimated cost, etc.) to the user. Present these details clearly and wait for explicit confirmation before re-running with `--broadcast`. Never skip this step.
+* **Check balance covers gas.** After a dry run, compare the displayed Balance against the Est. Cost. If the balance cannot cover the estimated gas cost, warn the user that the transaction will fail and do NOT proceed with `--broadcast`.
 
 ## Quickstart
 
@@ -37,11 +40,13 @@ Run `ens-agent --help` or `ens-agent <command> --help` for full usage.
 A registration file is required to register your Agent's identity.
 
 ```sh
+mkdir -p ~/.ens-agent
+
 # edit with your details
-ens-agent registration-file template > registration.json
+ens-agent registration-file template > ~/.ens-agent/registration.json
 
 # validate
-ens-agent registration-file validate registration.json
+ens-agent registration-file validate ~/.ens-agent/registration.json
 ```
 
 #### Publishing a registration file
@@ -54,9 +59,9 @@ The following variables should be in your environment to use this command.
 
 ```sh
 # Publish to IPFS
-ens-agent registration-file publish registration.json
+ens-agent registration-file publish ~/.ens-agent/registration.json
 # Returns => {"cid":"<CID>","uri":"ipfs://<CID>"} — use jq to extract:
-# agent-uri=$(ens-agent registration-file publish registration.json | jq -r '.uri')
+# agent-uri=$(ens-agent registration-file publish ~/.ens-agent/registration.json | jq -r '.uri')
 ```
 
 #### Register your Agent
@@ -91,10 +96,10 @@ A metadata payload descrbes which text records to set.
 
 ```sh
 # Agent metadata expressed as JSON schema
-ens-agent metadata template > payload.json
+ens-agent metadata template > ~/.ens-agent/payload.json
 
 # Validator
-ens-agent metadata validate payload.json
+ens-agent metadata validate ~/.ens-agent/payload.json
 ```
 
 #### Updating metadata on ENS
@@ -104,7 +109,7 @@ ens-agent metadata validate payload.json
 * Remember to also update your `<agent-uri>`.
 
 ```sh
-ens-agent metadata set <AGENT_ENS_NAME> payload.json --private-key 0x<KEY> --broadcast`
+ens-agent metadata set <AGENT_ENS_NAME> ~/.ens-agent/payload.json --private-key 0x<KEY> --broadcast
 ```
 
 ## References
