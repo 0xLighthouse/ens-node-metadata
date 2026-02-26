@@ -24,7 +24,8 @@
     "overrides": {
       "csstype": "3.1.3",
       "@types/react": "18.3.23",
-      "@types/react-dom": "18.3.7"
+      "@types/react-dom": "18.3.7",
+      "@inkjs/ui>react": "19.2.4"
     },
     "peerDependencyRules": {
       "allowedVersions": {
@@ -32,6 +33,9 @@
         "vocs>react": "18",
         "vocs>react-dom": "18"
       }
+    },
+    "patchedDependencies": {
+      "pastel@3.0.0": "patches/pastel@3.0.0.patch"
     }
   }
 }

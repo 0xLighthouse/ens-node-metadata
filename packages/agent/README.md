@@ -21,11 +21,30 @@ See [SKILL.md](./SKILL.md) for the full step-by-step guide.
 - [x] `ens-agent registration-file template`
 - [x] `ens-agent registration-file validate <file>`
 - [x] `ens-agent registration-file publish <file>`
-- [ ] `ens-agent registry identity --chain-name <chain> <agent-uri> --private-key <0x...> [--broadcast]`
+- [x] `ens-agent registry identity query --chain-name <chain> <agent-id>`
+- [x] `ens-agent registry identity register --chain-name <chain> <agent-uri> --private-key <0x...> [--broadcast]`
+- [x] `ens-agent registry identity set-uri --chain-name <chain> <agent-id> <new-uri> --private-key <0x...> [--broadcast]`
+- [x] `ens-agent registry identity set-wallet --chain-name <chain> <agent-id> <wallet> --private-key <0x...> [--deadline <ts>] [--signature <0x...>] [--broadcast]`
+- [x] `ens-agent registry identity unset-wallet --chain-name <chain> <agent-id> --private-key <0x...> [--broadcast]`
 - [x] `ens-agent metadata template`
 - [x] `ens-agent metadata validate <payload>`
 - [ ] `ens-agent metadata set <AGENT_ENS_NAME> <payload> --private-key <0x...> [--broadcast]`
 - [ ] `ens-agent skill [--install]`
+
+## Upcoming
+
+### Reputation Registry
+
+- [ ] `ens-agent registry reputation give` — leave feedback for an agent
+- [ ] `ens-agent registry reputation revoke` — revoke your feedback
+- [ ] `ens-agent registry reputation read` — read a specific feedback entry
+- [ ] `ens-agent registry reputation summary` — aggregated score (count + value)
+
+### Validation Registry (under active discussion)
+
+- [ ] `ens-agent registry validation request` — request validation for an agent
+- [ ] `ens-agent registry validation respond` — validator submits response
+- [ ] `ens-agent registry validation status` — check validation status
 
 ## Related Packages
 

@@ -16,7 +16,7 @@ export default defineConfig({
   },
   format: ['esm'],
   target: 'node22',
-  dts: true,
+  dts: !process.env.SKIP_DTS,
   clean: true,
   noExternal: ['@ens-node-metadata/shared', '@ens-node-metadata/schemas'],
 })

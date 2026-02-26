@@ -61,11 +61,26 @@ ens-agent registration-file publish registration.json
 
 #### Register your Agent
 
-We publish to the cannonical registries <https://github.com/erc-8004/erc-8004-contracts>
+We publish to the canonical registries <https://github.com/erc-8004/erc-8004-contracts>
 
 ```sh
-ens-agent registry identity --chain-name <chain> <agent-uri> --private-key <0x...> [--broadcast]
-# Returns => <agent-id>
+# Query agent by token ID
+ens-agent registry identity query --chain-name <chain> <agent-id>
+
+# Register agent identity (returns agent-id)
+ens-agent registry identity register --chain-name <chain> <agent-uri> --private-key <0x...> [--broadcast]
+
+# Update agent URI
+ens-agent registry identity set-uri --chain-name <chain> <agent-id> <new-uri> --private-key <0x...> [--broadcast]
+
+# Link a verified wallet (auto-signs if signer controls the wallet)
+ens-agent registry identity set-wallet --chain-name <chain> <agent-id> <wallet> --private-key <0x...> [--broadcast]
+
+# Link a wallet controlled by a different key (provide EIP-712 signature)
+ens-agent registry identity set-wallet --chain-name <chain> <agent-id> <wallet> --deadline <ts> --signature <0x...> --private-key <0x...> [--broadcast]
+
+# Clear wallet link
+ens-agent registry identity unset-wallet --chain-name <chain> <agent-id> --private-key <0x...> [--broadcast]
 ```
 
 ### ENS operations
