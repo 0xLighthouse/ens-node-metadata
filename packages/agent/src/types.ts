@@ -43,6 +43,18 @@ const EmailServiceSchema = z.object({
   endpoint: z.string().email().describe('Support email address'),
 })
 
+const EnsServiceSchema = z.object({
+  name: z.literal('ENS'),
+  endpoint: z.string().describe('ENS name (e.g. myagent.eth)'),
+  version: z.string().optional().describe('ENS version (e.g. v1)'),
+})
+
+const DidServiceSchema = z.object({
+  name: z.literal('DID'),
+  endpoint: z.string().describe('Decentralized identifier (e.g. did:ethr:0x... or did:web:example.com)'),
+  version: z.string().optional().describe('DID version'),
+})
+
 // ─── Main schema ─────────────────────────────────────────────────────────────
 
 export const SCHEMA_8004_V2 = z.object({
@@ -70,8 +82,10 @@ export const SCHEMA_8004_V2 = z.object({
       AgentWalletServiceSchema,
       WebServiceSchema,
       EmailServiceSchema,
+      EnsServiceSchema,
+      DidServiceSchema,
     ]))
-    .describe('Communication endpoints — MCP, A2A, OASF, agentWallet, web, or email'),
+    .describe('Communication endpoints — MCP, A2A, OASF, agentWallet, web, email, ENS, or DID'),
 
   registrations: z
     .array(z.object({
