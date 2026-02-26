@@ -1,9 +1,10 @@
 import { Box, Text, useApp } from 'ink'
 import React from 'react'
-import { http, createPublicClient, createWalletClient, verifyTypedData } from 'viem'
+import { encodeFunctionData, http, createPublicClient, createWalletClient, verifyTypedData } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
 import { z } from 'zod'
 import IdentityRegistryABI from '../../../lib/abis/IdentityRegistry.json' with { type: 'json' }
+import { estimateCost, formatCost } from '../../../lib/estimate-cost.js'
 import { SUPPORTED_CHAINS, resolveChain } from '../../../lib/registry.js'
 
 export const description = 'Link a verified wallet to an agent via EIP-712 signature'
@@ -132,6 +133,22 @@ export default function SetWallet({
       }
 
       if (!broadcast) {
+        const data = encodeFunctionData({
+          abi: IdentityRegistryABI,
+          functionName: 'setAgentWallet',
+          args: [tokenId, walletAddress as `0x${string}`, finalDeadline, finalSignature],
+        })
+
+        let costLine = '  Est. Cost: unable to estimate'
+        try {
+          const est = await estimateCost(publicClient, {
+            account: account.address,
+            to: registryAddress,
+            data,
+          })
+          costLine = `  Est. Cost: ${formatCost(est)}`
+        } catch {}
+
         const lines = [
           `Dry run — would call setAgentWallet on ${chainName}:`,
           '',
@@ -141,6 +158,7 @@ export default function SetWallet({
           `  Deadline:  ${finalDeadline.toString()}`,
           `  Signer:    ${account.address}`,
           `  Signature: ${signatureOpt ? 'provided (verified)' : 'auto-signed'}`,
+          costLine,
         ]
 
         if (!signatureOpt) {

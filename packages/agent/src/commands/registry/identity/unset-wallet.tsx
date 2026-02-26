@@ -1,9 +1,10 @@
 import { Box, Text, useApp } from 'ink'
 import React from 'react'
-import { http, createPublicClient, createWalletClient } from 'viem'
+import { encodeFunctionData, http, createPublicClient, createWalletClient } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
 import { z } from 'zod'
 import IdentityRegistryABI from '../../../lib/abis/IdentityRegistry.json' with { type: 'json' }
+import { estimateCost, formatCost } from '../../../lib/estimate-cost.js'
 import { SUPPORTED_CHAINS, resolveChain } from '../../../lib/registry.js'
 
 export const description = 'Clear the verified wallet from an agent'
@@ -54,6 +55,23 @@ export default function UnsetWallet({
       const tokenId = BigInt(agentId)
 
       if (!broadcast) {
+        const publicClient = createPublicClient({ chain, transport: http() })
+        const data = encodeFunctionData({
+          abi: IdentityRegistryABI,
+          functionName: 'unsetAgentWallet',
+          args: [tokenId],
+        })
+
+        let costLine = '  Est. Cost: unable to estimate'
+        try {
+          const est = await estimateCost(publicClient, {
+            account: account.address,
+            to: registryAddress,
+            data,
+          })
+          costLine = `  Est. Cost: ${formatCost(est)}`
+        } catch {}
+
         setState({
           status: 'done',
           message: [
@@ -62,6 +80,7 @@ export default function UnsetWallet({
             `  Registry:  ${registryAddress}`,
             `  Agent ID:  ${tokenId.toString()}`,
             `  Signer:    ${account.address}`,
+            costLine,
             '',
             'Run with --broadcast to submit on-chain.',
           ].join('\n'),
