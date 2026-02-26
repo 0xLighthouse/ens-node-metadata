@@ -43,6 +43,32 @@ const EmailServiceSchema = z.object({
   endpoint: z.string().email().describe('Support email address'),
 })
 
+const EnsServiceSchema = z.object({
+  name: z.literal('ENS'),
+  endpoint: z.string().describe('ENS name (e.g. myagent.eth)'),
+  version: z.string().optional().describe('ENS version (e.g. v1)'),
+})
+
+const DidServiceSchema = z.object({
+  name: z.literal('DID'),
+  endpoint: z.string().describe('Decentralized identifier (e.g. did:ethr:0x... or did:web:example.com)'),
+  version: z.string().optional().describe('DID version'),
+})
+
+// Catch-all for custom/future service types not yet defined in the spec.
+// ERC-8004 explicitly states "the number and type of endpoints are fully
+// customizable", so we must not reject unknown names.
+// Known names are explicitly excluded so their stricter schemas still apply —
+// without this, the passthrough would silently accept e.g. malformed email endpoints.
+const KNOWN_SERVICE_NAMES = ['MCP', 'A2A', 'OASF', 'agentWallet', 'web', 'email', 'ENS', 'DID'] as const
+const UnknownServiceSchema = z.object({
+  name: z.string().refine(
+    (n) => !(KNOWN_SERVICE_NAMES as readonly string[]).includes(n),
+    { message: 'Use the typed schema for known service names' }
+  ).describe('Custom service type name'),
+  endpoint: z.string().describe('Service endpoint'),
+}).passthrough()
+
 // ─── Main schema ─────────────────────────────────────────────────────────────
 
 export const SCHEMA_8004_V2 = z.object({
@@ -63,15 +89,19 @@ export const SCHEMA_8004_V2 = z.object({
     .describe('Avatar or logo URI — PNG, SVG, WebP, or JPG; 512×512px minimum recommended'),
 
   services: z
-    .array(z.discriminatedUnion('name', [
-      McpServiceSchema,
-      A2AServiceSchema,
-      OasfServiceSchema,
-      AgentWalletServiceSchema,
-      WebServiceSchema,
-      EmailServiceSchema,
-    ]))
-    .describe('Communication endpoints — MCP, A2A, OASF, agentWallet, web, or email'),
+    .array(
+      z.discriminatedUnion('name', [
+        McpServiceSchema,
+        A2AServiceSchema,
+        OasfServiceSchema,
+        AgentWalletServiceSchema,
+        WebServiceSchema,
+        EmailServiceSchema,
+        EnsServiceSchema,
+        DidServiceSchema,
+      ]).or(UnknownServiceSchema)
+    )
+    .describe('Communication endpoints — MCP, A2A, OASF, agentWallet, web, email, ENS, DID, or any custom type'),
 
   registrations: z
     .array(z.object({
