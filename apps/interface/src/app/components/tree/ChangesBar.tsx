@@ -81,7 +81,7 @@ export function ChangesBar() {
             onClick={() => setShowDiscardDialog(true)}
             className="text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors cursor-pointer"
           >
-            Clear
+            Reset
           </button>
           <button
             type="button"
@@ -113,7 +113,7 @@ export function ChangesBar() {
             }}
             disabled={mutationsStatus === 'executing'}
           >
-            {mutationsStatus === 'executing' ? 'Submitting...' : 'Apply Changes'}
+            {mutationsStatus === 'executing' ? 'Publishing...' : 'Publish Changes'}
           </button>
         </div>
       </div>
