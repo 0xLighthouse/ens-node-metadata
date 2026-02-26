@@ -9,6 +9,11 @@ export const AGENT_SCHEMA: Schema = {
   description: 'AI agent identity metadata aligned with ERC-8004 registration format.',
   type: 'object' as const,
   properties: {
+    schema: {
+      type: 'string',
+      format: 'uri',
+      description: 'IPFS URI to the published schema version used by this node'
+    },
     class: {
       type: 'string',
       default: 'Agent',

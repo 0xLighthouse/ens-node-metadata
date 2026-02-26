@@ -28,7 +28,7 @@ See [SKILL.md](./SKILL.md) for the full step-by-step guide.
 - [x] `ens-agent registry identity unset-wallet --chain-name <chain> <agent-id> --private-key <0x...> [--broadcast]`
 - [x] `ens-agent metadata template`
 - [x] `ens-agent metadata validate <payload>`
-- [ ] `ens-agent metadata set <AGENT_ENS_NAME> <payload> --private-key <0x...> [--broadcast]`
+- [x] `ens-agent metadata set <AGENT_ENS_NAME> <payload> --private-key <0x...> [--broadcast]`
 - [ ] `ens-agent skill [--install]`
 
 ## Upcoming
