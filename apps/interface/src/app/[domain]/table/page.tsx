@@ -1,14 +1,34 @@
 'use client'
 
-import { useMemo, useState, useEffect } from 'react'
+import { useMemo, useState, useEffect, useCallback } from 'react'
 import { ExternalLink, Search, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react'
 import { useTreeData } from '@/hooks/useTreeData'
 import { useSchemaStore } from '@/stores/schemas'
 import { useTreeEditStore } from '@/stores/tree-edits'
+import { useMutationsStore } from '@/stores/mutations'
+import { useWeb3 } from '@/contexts/Web3Provider'
 import type { TreeNode } from '@/lib/tree/types'
 import { shortAddress } from '@/lib/shortAddress'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { getAvatarFallback } from '@/lib/getAvatarFallback'
+import { EditNodeDrawer } from '@/app/components/tree/drawers/EditNodeDrawer'
+import { ApplyChangesDialog } from '@/app/components/tree/ApplyChangesDialog'
+import { NotAuthorizedDialog } from '@/components/dialogs/not-authorized-dialog'
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core'
+import {
+  SortableContext,
+  horizontalListSortingStrategy,
+  useSortable,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -25,8 +45,60 @@ function flattenTree(node: TreeNode, depth = 0): Array<{ node: TreeNode; depth: 
   return result
 }
 
-type SortKey = 'name' | 'parent' | 'fullPath' | 'class' | 'address'
+type SortKey = 'name' | 'parent' | 'class' | 'address'
 type SortDir = 'asc' | 'desc' | null
+
+interface TableColumn {
+  id: string
+  label: string
+  sortKey?: SortKey
+  defaultWidth: number
+  minWidth: number
+  maxWidth?: number
+  resizable: boolean
+}
+
+const DEFAULT_COLUMNS: TableColumn[] = [
+  {
+    id: 'name',
+    label: 'Name',
+    sortKey: 'name',
+    defaultWidth: 200,
+    minWidth: 120,
+    resizable: true,
+  },
+  {
+    id: 'parent',
+    label: 'Parent',
+    sortKey: 'parent',
+    defaultWidth: 250,
+    minWidth: 150,
+    resizable: true,
+  },
+  {
+    id: 'class',
+    label: 'Class',
+    sortKey: 'class',
+    defaultWidth: 180,
+    minWidth: 120,
+    resizable: true,
+  },
+  {
+    id: 'address',
+    label: 'Address',
+    sortKey: 'address',
+    defaultWidth: 200,
+    minWidth: 140,
+    resizable: true,
+  },
+  {
+    id: 'owner',
+    label: 'Owner',
+    defaultWidth: 220,
+    minWidth: 160,
+    resizable: true,
+  },
+]
 
 function useSortState(initial: SortKey) {
   const [key, setKey] = useState<SortKey>(initial)
@@ -46,6 +118,33 @@ function useSortState(initial: SortKey) {
   }
 
   return { key, dir, toggle }
+}
+
+/**
+ * Compares two ENS names by namespace hierarchy (right-to-left).
+ * Example: "def.abc.eth" < "abc.def.eth" because:
+ *   - Both end with "eth"
+ *   - Next level: "abc" < "def"
+ *
+ * @param nameA - First ENS name (e.g., "alice.dao.eth")
+ * @param nameB - Second ENS name (e.g., "bob.dao.eth")
+ * @returns negative if nameA < nameB, positive if nameA > nameB, 0 if equal
+ */
+function compareByNamespaceHierarchy(nameA: string, nameB: string): number {
+  const partsA = nameA.split('.').reverse()
+  const partsB = nameB.split('.').reverse()
+
+  // Compare each segment from right to left (TLD first, then moving left)
+  const minLength = Math.min(partsA.length, partsB.length)
+  for (let i = 0; i < minLength; i++) {
+    const comparison = partsA[i].localeCompare(partsB[i])
+    if (comparison !== 0) {
+      return comparison
+    }
+  }
+
+  // If all compared segments are equal, shorter path comes first
+  return partsA.length - partsB.length
 }
 
 // ---------------------------------------------------------------------------
@@ -96,6 +195,119 @@ function StatusBadge({ node }: { node: TreeNode }) {
   )
 }
 
+function ResizeHandle({
+  onResize,
+}: {
+  onResize: (delta: number) => void
+}) {
+  const [isResizing, setIsResizing] = useState(false)
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation() // Prevent triggering column header click/drag
+    setIsResizing(true)
+
+    const startX = e.clientX
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const delta = e.clientX - startX
+      onResize(delta)
+    }
+
+    const handleMouseUp = () => {
+      setIsResizing(false)
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mouseup', handleMouseUp)
+      document.body.style.cursor = ''
+      document.body.style.userSelect = ''
+    }
+
+    document.addEventListener('mousemove', handleMouseMove)
+    document.addEventListener('mouseup', handleMouseUp)
+    document.body.style.cursor = 'col-resize'
+    document.body.style.userSelect = 'none'
+  }
+
+  return (
+    <div
+      onMouseDown={handleMouseDown}
+      className={`absolute right-0 top-0 bottom-0 w-2 cursor-col-resize transition-colors ${
+        isResizing
+          ? 'bg-indigo-500'
+          : 'bg-gray-300 dark:bg-gray-600 hover:bg-indigo-400 dark:hover:bg-indigo-500'
+      }`}
+      style={{
+        zIndex: 10,
+        marginRight: '-4px',  // Extend clickable area beyond column edge
+      }}
+    />
+  )
+}
+
+function DraggableColHeader({
+  column,
+  sortKey,
+  sortDir,
+  onSort,
+  onResize,
+  width,
+}: {
+  column: TableColumn
+  sortKey: string
+  sortDir: SortDir
+  onSort: (key: SortKey) => void
+  onResize: (delta: number) => void
+  width: number
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: column.id })
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    width: `${width}px`,
+    position: 'relative' as const,
+    opacity: isDragging ? 0.5 : 1,
+  }
+
+  const handleHeaderClick = () => {
+    if (column.sortKey) {
+      onSort(column.sortKey)
+    }
+  }
+
+  return (
+    <th
+      ref={setNodeRef}
+      style={style}
+      className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer select-none hover:text-gray-700 dark:hover:text-gray-200 whitespace-nowrap"
+      {...attributes}
+      {...listeners}
+      onClick={handleHeaderClick}
+    >
+      <span className="inline-flex items-center gap-1">
+        {column.label}
+        {column.sortKey && (
+          <SortIcon col={column.sortKey} sortKey={sortKey} dir={sortDir} />
+        )}
+      </span>
+      {column.resizable && (
+        <ResizeHandle
+          onResize={(delta) => {
+            onResize(delta)
+          }}
+        />
+      )}
+    </th>
+  )
+}
+
 // ---------------------------------------------------------------------------
 // Page
 // ---------------------------------------------------------------------------
@@ -103,8 +315,21 @@ function StatusBadge({ node }: { node: TreeNode }) {
 export default function TablePage() {
   const { sourceTree, isLoading, hasHydrated, loadTree } = useTreeData()
   const { schemas, fetchSchemas } = useSchemaStore()
-  const { pendingMutations } = useTreeEditStore()
+  const { pendingMutations, openEditDrawer, clearPendingMutations } = useTreeEditStore()
+  const { submitMutations, submitCreation, status: mutationsStatus } = useMutationsStore()
+  const { walletClient, publicClient } = useWeb3()
   const [search, setSearch] = useState('')
+  const [isApplyDialogOpen, setIsApplyDialogOpen] = useState(false)
+  const [unauthorizedNodes, setUnauthorizedNodes] = useState<string[]>([])
+  const [isNotAuthorizedOpen, setIsNotAuthorizedOpen] = useState(false)
+
+  // Column customization state (session-based, resets on page reload)
+  const [columnOrder, setColumnOrder] = useState<string[]>(
+    DEFAULT_COLUMNS.map(c => c.id)
+  )
+  const [columnWidths, setColumnWidths] = useState<Record<string, number>>(
+    Object.fromEntries(DEFAULT_COLUMNS.map(c => [c.id, c.defaultWidth]))
+  )
 
   // Trigger tree and schema loading on mount
   useEffect(() => {
@@ -116,6 +341,89 @@ export default function TablePage() {
     if (schemas.length === 0) void fetchSchemas()
   }, [schemas.length, fetchSchemas])
   const { key: sortKey, dir: sortDir, toggle: toggleSort } = useSortState('name')
+
+  // Drag and drop sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,  // Require 8px movement to activate drag
+      },
+    }),
+    useSensor(KeyboardSensor)
+  )
+
+  // Get ordered columns
+  const orderedColumns = useMemo(
+    () => columnOrder.map(id => DEFAULT_COLUMNS.find(c => c.id === id)!),
+    [columnOrder]
+  )
+
+  // Helper to find a node in the tree
+  const findNode = useCallback(
+    (name: string, node: TreeNode | null = sourceTree): TreeNode | null => {
+      if (!node) return null
+      if (node.name === name) return node
+      if (node.children) {
+        for (const child of node.children) {
+          const found = findNode(name, child)
+          if (found) return found
+        }
+      }
+      return null
+    },
+    [sourceTree],
+  )
+
+  // Helper to check if a node has pending changes (excludes creations)
+  const hasPendingChanges = (nodeName: string): boolean => {
+    const mutation = pendingMutations.get(nodeName)
+    return !!mutation && !mutation.createNode
+  }
+
+  // Handle applying changes
+  const handleApplyChanges = async (mutationIds: string[]) => {
+    if (!walletClient || !publicClient) return
+    await submitMutations({ mutationIds, findNode, walletClient, publicClient })
+  }
+
+  // Handle creating subname
+  const handleCreateSubname = useCallback(
+    async (nodeName: string) => {
+      if (!walletClient || !publicClient) return
+      const mutation = pendingMutations.get(nodeName)
+      if (!mutation?.createNode) return
+      const parentNode = findNode(mutation.parentName ?? '')
+      if (!parentNode) return
+      await submitCreation({ nodeName, parentNode, walletClient, publicClient })
+    },
+    [walletClient, publicClient, pendingMutations, findNode, submitCreation],
+  )
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event
+    if (over && active.id !== over.id) {
+      setColumnOrder((prev) => {
+        const oldIndex = prev.indexOf(active.id as string)
+        const newIndex = prev.indexOf(over.id as string)
+        const newOrder = [...prev]
+        newOrder.splice(oldIndex, 1)
+        newOrder.splice(newIndex, 0, active.id as string)
+        return newOrder
+      })
+    }
+  }
+
+  const handleResize = (columnId: string, delta: number) => {
+    setColumnWidths((prev) => {
+      const column = DEFAULT_COLUMNS.find(c => c.id === columnId)!
+      const currentWidth = prev[columnId]
+      const newWidth = Math.max(
+        column.minWidth,
+        Math.min(column.maxWidth ?? Infinity, currentWidth + delta)
+      )
+      return { ...prev, [columnId]: newWidth }
+    })
+  }
 
   const rows = useMemo(() => {
     if (!sourceTree) return []
@@ -153,10 +461,9 @@ export default function TablePage() {
         case 'parent': {
           const parentA = a.name.split('.').slice(1).join('.')
           const parentB = b.name.split('.').slice(1).join('.')
-          return dir * parentA.localeCompare(parentB)
+          // Use namespace-aware comparison for parent paths
+          return dir * compareByNamespaceHierarchy(parentA, parentB)
         }
-        case 'fullPath':
-          return dir * a.name.localeCompare(b.name)
         case 'class': {
           const currentClassA = ((a as any).class || a.texts?.class) ?? ''
           const currentClassB = ((b as any).class || b.texts?.class) ?? ''
@@ -193,24 +500,113 @@ export default function TablePage() {
     return null
   }
 
-  function ColHeader({
-    col,
-    label,
-  }: {
-    col: SortKey
-    label: string
-  }) {
-    return (
-      <th
-        className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer select-none hover:text-gray-700 dark:hover:text-gray-200 whitespace-nowrap"
-        onClick={() => toggleSort(col)}
-      >
-        <span className="inline-flex items-center gap-1">
-          {label}
-          <SortIcon col={col} sortKey={sortKey} dir={sortDir} />
-        </span>
-      </th>
-    )
+  const renderCell = (column: TableColumn, node: TreeNode) => {
+    const ensUrl = `https://app.ens.domains/${node.name}`
+    const addressUrl = node.address
+      ? `https://etherscan.io/address/${node.address}`
+      : null
+    const ownerUrl = `https://etherscan.io/address/${node.owner}`
+    const displayName = node.name.split('.')[0]
+    const parentPath = node.name.split('.').slice(1).join('.') || '—'
+
+    switch (column.id) {
+      case 'name':
+        return (
+          <div className="flex items-center gap-1.5">
+            <span className="font-mono text-xs font-semibold text-gray-900 dark:text-white">
+              {displayName}
+            </span>
+            <a
+              href={ensUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center text-gray-400 dark:text-gray-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer flex-shrink-0"
+              title="Open in ENS app"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <ExternalLink size={10} />
+            </a>
+          </div>
+        )
+
+      case 'parent':
+        return (
+          <span className="font-mono text-xs text-gray-600 dark:text-gray-400">
+            {parentPath}
+          </span>
+        )
+
+      case 'class': {
+        const currentClass = ((node as any).class || node.texts?.class) as string | undefined
+        const pendingClass = getPendingClassChange(node.name)
+        const displayClass = pendingClass || currentClass
+        const hasPendingClassChange = !!pendingClass
+
+        if (!displayClass) {
+          return <span className="text-xs text-gray-400 dark:text-gray-500">—</span>
+        }
+
+        return (
+          <div className="flex items-center gap-1.5">
+            <div
+              className={hasPendingClassChange ? 'relative' : ''}
+              title={hasPendingClassChange ? `Class will change to "${displayClass}"` : ''}
+            >
+              {hasPendingClassChange && (
+                <div className="absolute -inset-1 bg-orange-100 dark:bg-orange-900/20 rounded-full" />
+              )}
+              <div className="relative">
+                <ClassBadge label={displayClass} />
+              </div>
+            </div>
+            {hasPendingClassChange && (
+              <div className="flex-shrink-0 w-2 h-2 rounded-full bg-orange-500 dark:bg-orange-400" title="Pending change" />
+            )}
+          </div>
+        )
+      }
+
+      case 'address':
+        return node.address ? (
+          <a
+            href={addressUrl!}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 text-xs font-mono text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400"
+          >
+            {shortAddress(node.address)}
+            <ExternalLink size={10} className="text-gray-400" />
+          </a>
+        ) : (
+          <span className="text-xs text-gray-400 dark:text-gray-500">—</span>
+        )
+
+      case 'owner':
+        return (
+          <a
+            href={ownerUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 text-xs text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400"
+          >
+            <Avatar className="size-4 flex-shrink-0">
+              <AvatarImage
+                src={node.ownerEnsAvatar || `https://avatar.vercel.sh/${node.owner}`}
+              />
+              <AvatarFallback className="text-[8px] font-medium bg-gradient-to-br from-purple-400 to-pink-500 text-white">
+                {getAvatarFallback(node.owner)}
+              </AvatarFallback>
+            </Avatar>
+            <span style={{ fontFamily: node.ownerEnsName ? 'inherit' : 'monospace' }}>
+              {node.ownerEnsName || shortAddress(node.owner)}
+            </span>
+            <ExternalLink size={10} className="text-gray-400" />
+          </a>
+        )
+
+      default:
+        return null
+    }
   }
 
   if (isLoading) {
@@ -249,166 +645,138 @@ export default function TablePage() {
         <span className="text-xs text-gray-400 dark:text-gray-500 shrink-0">
           {sorted.length} of {rows.length} nodes
         </span>
+
+        {/* Pending changes bar (only show if changes exist) */}
+        {pendingMutations.size > 0 && (
+          <>
+            <div className="flex-1" /> {/* Spacer to push to right */}
+            <div className="flex items-center gap-3 px-4 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-full shadow-sm">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 bg-yellow-500 rounded-full" />
+                <span className="text-sm font-medium text-gray-900 dark:text-white">
+                  {pendingMutations.size} {pendingMutations.size === 1 ? 'Change' : 'Changes'}
+                </span>
+              </div>
+              <div className="w-px h-5 bg-gray-200 dark:bg-gray-700" />
+              <button
+                type="button"
+                onClick={clearPendingMutations}
+                className="text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+              >
+                Clear
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const connectedAddress = walletClient?.account?.address?.toLowerCase()
+                  if (!connectedAddress) return
+
+                  const notOwned: string[] = []
+                  for (const [nodeName] of pendingMutations.entries()) {
+                    const node = findNode(nodeName)
+                    const nodeOwner = node?.owner?.toLowerCase()
+                    if (!nodeOwner || connectedAddress !== nodeOwner) {
+                      notOwned.push(nodeName)
+                    }
+                  }
+
+                  if (notOwned.length > 0) {
+                    setUnauthorizedNodes(notOwned)
+                    setIsNotAuthorizedOpen(true)
+                  } else {
+                    setIsApplyDialogOpen(true)
+                  }
+                }}
+                disabled={mutationsStatus === 'executing'}
+                className="px-4 py-1.5 bg-indigo-600 text-white text-sm font-medium rounded-full hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {mutationsStatus === 'executing' ? 'Submitting...' : 'Apply Changes'}
+              </button>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Table */}
       <div className="flex-1 overflow-auto rounded-xl border border-gray-200 dark:border-gray-700">
-        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
-          <thead className="bg-gray-50 dark:bg-gray-800/60 sticky top-0 z-10">
-            <tr>
-              <ColHeader col="name" label="Name" />
-              <ColHeader col="parent" label="Parent" />
-              <ColHeader col="fullPath" label="Full Path" />
-              <ColHeader col="class" label="Class" />
-              <ColHeader col="address" label="Address" />
-              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Owner
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100 dark:divide-gray-800 bg-white dark:bg-gray-900">
-            {sorted.length === 0 ? (
-              <tr>
-                <td
-                  colSpan={6}
-                  className="px-4 py-12 text-center text-sm text-gray-500 dark:text-gray-400"
-                >
-                  No nodes match your search.
-                </td>
-              </tr>
-            ) : (
-              sorted.map(({ node, depth }) => {
-                const classLabel = ((node as any).class || node.texts?.class) as string | undefined
-                const schemaId = (node as any).schema || node.texts?.schema
-                const schema = schemaId ? schemaById.get(schemaId) : undefined
-                const ensUrl = `https://app.ens.domains/${node.name}`
-                const addressUrl = node.address
-                  ? `https://etherscan.io/address/${node.address}`
-                  : null
-                const ownerUrl = `https://etherscan.io/address/${node.owner}`
-                const displayName = node.name.split('.')[0]
-                const parentPath = node.name.split('.').slice(1).join('.') || '—'
-                const fullPath = node.name
-
-                return (
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
+            <thead className="bg-gray-50 dark:bg-gray-800/60 sticky top-0 z-10">
+              <SortableContext
+                items={columnOrder}
+                strategy={horizontalListSortingStrategy}
+              >
+                <tr>
+                  {orderedColumns.map((column) => (
+                    <DraggableColHeader
+                      key={column.id}
+                      column={column}
+                      sortKey={sortKey}
+                      sortDir={sortDir}
+                      onSort={toggleSort}
+                      onResize={(delta) => handleResize(column.id, delta)}
+                      width={columnWidths[column.id]}
+                    />
+                  ))}
+                </tr>
+              </SortableContext>
+            </thead>
+            <tbody className="divide-y divide-gray-100 dark:divide-gray-800 bg-white dark:bg-gray-900">
+              {sorted.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={orderedColumns.length}
+                    className="px-4 py-12 text-center text-sm text-gray-500 dark:text-gray-400"
+                  >
+                    No nodes match your search.
+                  </td>
+                </tr>
+              ) : (
+                sorted.map(({ node, depth }) => (
                   <tr
                     key={node.name}
-                    className="hover:bg-gray-50 dark:hover:bg-gray-800/40 transition-colors"
+                    onClick={() => openEditDrawer(node.name)}
+                    className={`transition-colors cursor-pointer ${
+                      hasPendingChanges(node.name)
+                        ? 'bg-orange-50 dark:bg-orange-900/10 hover:bg-orange-100 dark:hover:bg-orange-900/20'
+                        : 'hover:bg-gray-50 dark:hover:bg-gray-800/40'
+                    }`}
                   >
-                    {/* Name */}
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <span className="font-mono text-xs font-semibold text-gray-900 dark:text-white">
-                        {displayName}
-                      </span>
-                    </td>
-
-                    {/* Parent */}
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <span className="font-mono text-xs text-gray-600 dark:text-gray-400">
-                        {parentPath}
-                      </span>
-                    </td>
-
-                    {/* Full Path */}
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <div className="flex items-center gap-1.5">
-                        <span className="font-mono text-xs text-gray-700 dark:text-gray-300">
-                          {fullPath}
-                        </span>
-                        <a
-                          href={ensUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center text-gray-400 dark:text-gray-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer flex-shrink-0"
-                          title="Open in ENS app"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <ExternalLink size={10} />
-                        </a>
-                      </div>
-                    </td>
-
-                    {/* Class */}
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      {(() => {
-                        const currentClass = classLabel
-                        const pendingClass = getPendingClassChange(node.name)
-                        const displayClass = pendingClass || currentClass
-                        const hasPendingClassChange = !!pendingClass
-
-                        if (!displayClass) {
-                          return <span className="text-xs text-gray-400 dark:text-gray-500">—</span>
-                        }
-
-                        return (
-                          <div className="flex items-center gap-1.5">
-                            <div
-                              className={hasPendingClassChange ? 'relative' : ''}
-                              title={hasPendingClassChange ? `Class will change to "${displayClass}"` : ''}
-                            >
-                              {hasPendingClassChange && (
-                                <div className="absolute -inset-1 bg-orange-100 dark:bg-orange-900/20 rounded-full" />
-                              )}
-                              <div className="relative">
-                                <ClassBadge label={displayClass} />
-                              </div>
-                            </div>
-                            {hasPendingClassChange && (
-                              <div className="flex-shrink-0 w-2 h-2 rounded-full bg-orange-500 dark:bg-orange-400" title="Pending change" />
-                            )}
-                          </div>
-                        )
-                      })()}
-                    </td>
-
-                    {/* Address */}
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      {node.address ? (
-                        <a
-                          href={addressUrl!}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 text-xs font-mono text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400"
-                        >
-                          {shortAddress(node.address)}
-                          <ExternalLink size={10} className="text-gray-400" />
-                        </a>
-                      ) : (
-                        <span className="text-xs text-gray-400 dark:text-gray-500">—</span>
-                      )}
-                    </td>
-
-                    {/* Owner */}
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <a
-                        href={ownerUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 text-xs text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400"
+                    {orderedColumns.map((column) => (
+                      <td
+                        key={column.id}
+                        className="px-4 py-3 whitespace-nowrap"
+                        style={{ width: `${columnWidths[column.id]}px` }}
                       >
-                        <Avatar className="size-4 flex-shrink-0">
-                          <AvatarImage
-                            src={node.ownerEnsAvatar || `https://avatar.vercel.sh/${node.owner}`}
-                          />
-                          <AvatarFallback className="text-[8px] font-medium bg-gradient-to-br from-purple-400 to-pink-500 text-white">
-                            {getAvatarFallback(node.owner)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span
-                          style={{ fontFamily: node.ownerEnsName ? 'inherit' : 'monospace' }}
-                        >
-                          {node.ownerEnsName || shortAddress(node.owner)}
-                        </span>
-                        <ExternalLink size={10} className="text-gray-400" />
-                      </a>
-                    </td>
+                        {renderCell(column, node)}
+                      </td>
+                    ))}
                   </tr>
-                )
-              })
-            )}
-          </tbody>
-        </table>
+                ))
+              )}
+            </tbody>
+          </table>
+        </DndContext>
       </div>
+
+      <EditNodeDrawer />
+
+      <ApplyChangesDialog
+        open={isApplyDialogOpen}
+        onOpenChange={setIsApplyDialogOpen}
+        onConfirm={handleApplyChanges}
+        onCreateSubname={handleCreateSubname}
+      />
+
+      <NotAuthorizedDialog
+        open={isNotAuthorizedOpen}
+        onOpenChange={setIsNotAuthorizedOpen}
+        unauthorizedNodes={unauthorizedNodes}
+      />
     </div>
   )
 }
