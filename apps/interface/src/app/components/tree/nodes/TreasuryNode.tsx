@@ -116,7 +116,7 @@ const TreasuryNodeWrapper = ({ data }: NodeProps<DomainTreeNode>) => {
       onMouseDown={stopNodeInteraction}
       onClick={handleInspect}
       disabled={isInspecting}
-      className="nodrag nopan absolute left-1/2 -translate-x-1/2 -bottom-4 w-8 h-8 rounded-full bg-amber-500 hover:bg-amber-600 transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center z-10"
+      className="nodrag nopan absolute left-1/2 -translate-x-1/2 -bottom-4 w-8 h-8 rounded-full bg-amber-500 hover:bg-amber-600 transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center z-10 cursor-pointer"
       aria-label="Inspect contract"
       title="Detect contract type and metadata"
       style={{ border: '2px solid white' }}

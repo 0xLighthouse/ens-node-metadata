@@ -114,7 +114,7 @@ export function SuggestionsDialog({ open, onOpenChange }: SuggestionsDialogProps
                 <button
                   key={suggestion.id}
                   onClick={() => handleSelectSuggestion(suggestion)}
-                  className="group relative flex flex-col items-start gap-3 p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-950 transition-all text-left"
+                  className="group relative flex flex-col items-start gap-3 p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-950 transition-all text-left cursor-pointer"
                 >
                   {/* Icon */}
                   <div className="p-2 bg-indigo-100 dark:bg-indigo-900 rounded-lg group-hover:bg-indigo-200 dark:group-hover:bg-indigo-800 transition-colors">

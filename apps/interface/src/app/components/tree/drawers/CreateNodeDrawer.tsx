@@ -170,7 +170,7 @@ export function CreateNodeDrawer({ isOpen, onClose, suggestionId, suggestionTitl
             <div className="mb-6 relative">
               <button
                 onClick={handleCloseWithConfirmation}
-                className="absolute -top-2 -right-2 p-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                className="absolute -top-2 -right-2 p-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 cursor-pointer"
                 aria-label="Close drawer"
               >
                 <X size={20} />
@@ -193,7 +193,7 @@ export function CreateNodeDrawer({ isOpen, onClose, suggestionId, suggestionTitl
                 <button
                   type="button"
                   onClick={() => setIsParentDropdownOpen((v) => !v)}
-                  className="w-full flex items-center justify-between px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800 hover:border-gray-400 dark:hover:border-gray-500 transition-colors"
+                  className="w-full flex items-center justify-between px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800 hover:border-gray-400 dark:hover:border-gray-500 transition-colors cursor-pointer"
                 >
                   <span className="text-gray-900 dark:text-white font-mono text-xs truncate">
                     {selectedParent || 'Select parent…'}
@@ -234,7 +234,7 @@ export function CreateNodeDrawer({ isOpen, onClose, suggestionId, suggestionTitl
                               setIsParentDropdownOpen(false)
                               setParentSearch('')
                             }}
-                            className={`w-full text-left px-3 py-2 text-sm transition-colors ${
+                            className={`w-full text-left px-3 py-2 text-sm transition-colors cursor-pointer ${
                               selectedParent === parent.name
                                 ? 'bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400'
                                 : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-white'
@@ -283,13 +283,13 @@ export function CreateNodeDrawer({ isOpen, onClose, suggestionId, suggestionTitl
             <div className="flex gap-2 mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
               <button
                 onClick={handleCloseWithConfirmation}
-                className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 onClick={handleCreate}
-                className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors"
+                className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors cursor-pointer"
               >
                 Create Node
               </button>
@@ -313,13 +313,13 @@ export function CreateNodeDrawer({ isOpen, onClose, suggestionId, suggestionTitl
             <div className="flex gap-3">
               <button
                 onClick={handleCancelDiscard}
-                className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer"
               >
                 No, continue editing
               </button>
               <button
                 onClick={handleConfirmDiscard}
-                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors"
+                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors cursor-pointer"
               >
                 Yes, discard
               </button>

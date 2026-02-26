@@ -44,7 +44,6 @@ export default function DefaultLayout({ children }: { children: React.ReactNode 
             >
               <BookOpenText className="size-4 mr-2" />
               Docs
-              {isExternal(DOCS_NAV_URL) && <ExternalLink className="size-3.5 ml-1 opacity-70" />}
             </a>
             <a
               href={SCHEMAS_NAV_URL}
@@ -54,9 +53,6 @@ export default function DefaultLayout({ children }: { children: React.ReactNode 
             >
               <FileJson className="size-4 mr-2" />
               Schemas
-              {isExternal(SCHEMAS_NAV_URL) && (
-                <ExternalLink className="size-3.5 ml-1 opacity-70" />
-              )}
             </a>
           </div>
           <a
