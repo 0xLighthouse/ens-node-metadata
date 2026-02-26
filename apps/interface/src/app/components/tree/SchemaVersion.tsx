@@ -46,10 +46,6 @@ export function SchemaVersion({ className = '' }: SchemaVersionProps) {
     )
 
   const handleSelectSchema = (schemaId: string) => {
-    const schema = schemas.find((s) => s.id === schemaId)
-    if (schema) {
-      console.log('Selected schema:', schema)
-    }
     selectSchema(schemaId)
     setIsOpen(false)
     setSearchQuery('')

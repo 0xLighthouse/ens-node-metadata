@@ -35,9 +35,6 @@ export function ApplyChangesDialog({
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [creatingSubnames, setCreatingSubnames] = useState<Set<string>>(new Set())
 
-  console.log('---- APPLY CHANGES DIALOG -----')
-  console.log('pendingMutations', pendingMutations)
-
   // Array of [nodeName, mutation] entries
   const changesArray = useMemo(() => Array.from(pendingMutations.entries()), [pendingMutations])
 
