@@ -110,11 +110,6 @@ export function EditNodeDrawer() {
   useEffect(() => {
     if (!nodeWithEdits) return
 
-    console.log('----- NODE EDIT DRAWER -----')
-    console.log('Node data:', nodeWithEdits)
-    console.log('Existing edit:', existingEdit)
-    console.log('Is pending creation:', isPendingCreation)
-
     initializeEditor(nodeWithEdits, existingEdit, schemas)
   }, [existingEdit, nodeWithEdits, isPendingCreation, schemas, initializeEditor])
 

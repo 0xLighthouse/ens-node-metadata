@@ -1,11 +1,14 @@
 'use client'
 
 import { useRef } from 'react'
-import { Search, ChevronDown, RefreshCw, Star } from 'lucide-react'
+import { Search, ChevronDown, RefreshCw, Star, Info } from 'lucide-react'
 import { useNodeEditorStore } from '@/stores/node-editor'
 import { useSchemaStore } from '@/stores/schemas'
 import { useOutsideClick } from '@/hooks/useOutsideClick'
 import type { Schema } from '@/stores/schemas'
+
+/** Fields managed automatically (set when a schema is selected) — hidden from the manual editor */
+const MANAGED_FIELDS = new Set(['schema', 'class'])
 
 interface SchemaEditorProps {
   activeSchema: Schema | null
@@ -55,15 +58,18 @@ export function SchemaEditor({
     .filter((s) => s.isLatest && s.class != null)
     .filter((s) => s.class.toLowerCase().includes(schemaSearchQuery.toLowerCase()))
 
+  const isHiddenField = (key: string) =>
+    addressFieldKeys.has(key) || MANAGED_FIELDS.has(key)
+
   const hasNonAddressFields =
     activeSchema?.properties &&
-    Object.keys(activeSchema.properties).some((k) => !addressFieldKeys.has(k))
+    Object.keys(activeSchema.properties).some((k) => !isHiddenField(k))
 
   const hasOptionalToAdd =
     activeSchema?.properties &&
     Object.entries(activeSchema.properties).some(
       ([key]) =>
-        !addressFieldKeys.has(key) &&
+        !isHiddenField(key) &&
         !activeSchema.required?.includes(key) &&
         !activeSchema.recommended?.includes(key) &&
         !visibleOptionalFields.has(key),
@@ -161,7 +167,7 @@ export function SchemaEditor({
           {Object.entries(activeSchema!.properties!)
             .filter(
               ([key]) =>
-                !addressFieldKeys.has(key) &&
+                !isHiddenField(key) &&
                 (activeSchema!.required?.includes(key) ||
                   activeSchema!.recommended?.includes(key)),
             )
@@ -169,24 +175,48 @@ export function SchemaEditor({
               const isRequired = activeSchema!.required?.includes(key)
               const isRecommended = !isRequired && activeSchema!.recommended?.includes(key)
               const isTextArea = attribute.type === 'text' || key === 'description'
+              const inputType =
+                attribute.format === 'uri' || attribute.format === 'url'
+                  ? 'url'
+                  : attribute.type === 'string'
+                    ? 'text'
+                    : attribute.type ?? 'text'
 
               return (
                 <div key={key}>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      {key}
-                      {isRequired && <span className="text-red-500 ml-1">*</span>}
-                      {isRecommended && (
-                        <span title="recommended">
-                          <Star size={10} className="inline ml-1 text-gray-400 dark:text-gray-500" />
-                        </span>
+                  <div className="flex items-start justify-between mb-1">
+                    <div>
+                      <label
+                        className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                        title={attribute.description}
+                      >
+                        {key}
+                        {isRequired && <span className="text-red-500 ml-1">*</span>}
+                        {isRecommended && (
+                          <span title="recommended">
+                            <Star size={10} className="inline ml-1 text-amber-400" />
+                          </span>
+                        )}
+                        {attribute.description && (
+                          <span
+                            className="inline-block align-middle ml-1 text-gray-400 dark:text-gray-500 cursor-help"
+                            title={attribute.description}
+                          >
+                            <Info size={11} className="inline" />
+                          </span>
+                        )}
+                      </label>
+                      {attribute.description && (
+                        <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5 leading-snug">
+                          {attribute.description}
+                        </p>
                       )}
-                    </label>
+                    </div>
                     {!isRequired && (
                       <button
                         type="button"
                         onClick={() => removeOptionalField(key)}
-                        className="text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                        className="text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 shrink-0 ml-2"
                       >
                         Remove
                       </button>
@@ -196,16 +226,16 @@ export function SchemaEditor({
                     <textarea
                       value={formData[key] ?? ''}
                       onChange={(e) => updateField(key, e.target.value)}
-                      placeholder={attribute.description}
+                      placeholder={attribute.examples?.[0] ?? attribute.default ?? ''}
                       rows={4}
                       className="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-gray-900 dark:text-white resize-y"
                     />
                   ) : (
                     <input
-                      type={attribute.type === 'string' ? 'text' : attribute.type}
+                      type={inputType}
                       value={formData[key] ?? ''}
                       onChange={(e) => updateField(key, e.target.value)}
-                      placeholder={attribute.description}
+                      placeholder={attribute.examples?.[0] ?? attribute.default ?? ''}
                       className="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-gray-900 dark:text-white"
                     />
                   )}
@@ -217,24 +247,48 @@ export function SchemaEditor({
           {Object.entries(activeSchema!.properties!)
             .filter(
               ([key]) =>
-                !addressFieldKeys.has(key) &&
+                !isHiddenField(key) &&
                 !activeSchema!.required?.includes(key) &&
                 !activeSchema!.recommended?.includes(key) &&
                 visibleOptionalFields.has(key),
             )
             .map(([key, attribute]: [string, any]) => {
               const isTextArea = attribute.type === 'text' || key === 'description'
+              const inputType =
+                attribute.format === 'uri' || attribute.format === 'url'
+                  ? 'url'
+                  : attribute.type === 'string'
+                    ? 'text'
+                    : attribute.type ?? 'text'
 
               return (
                 <div key={key}>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      {key}
-                    </label>
+                  <div className="flex items-start justify-between mb-1">
+                    <div>
+                      <label
+                        className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                        title={attribute.description}
+                      >
+                        {key}
+                        {attribute.description && (
+                          <span
+                            className="inline-block align-middle ml-1 text-gray-400 dark:text-gray-500 cursor-help"
+                            title={attribute.description}
+                          >
+                            <Info size={11} className="inline" />
+                          </span>
+                        )}
+                      </label>
+                      {attribute.description && (
+                        <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5 leading-snug">
+                          {attribute.description}
+                        </p>
+                      )}
+                    </div>
                     <button
                       type="button"
                       onClick={() => removeOptionalField(key)}
-                      className="text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                      className="text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 shrink-0 ml-2"
                     >
                       Remove
                     </button>
@@ -243,16 +297,16 @@ export function SchemaEditor({
                     <textarea
                       value={formData[key] ?? ''}
                       onChange={(e) => updateField(key, e.target.value)}
-                      placeholder={attribute.description}
+                      placeholder={attribute.examples?.[0] ?? attribute.default ?? ''}
                       rows={4}
                       className="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-gray-900 dark:text-white resize-y"
                     />
                   ) : (
                     <input
-                      type={attribute.type === 'string' ? 'text' : attribute.type}
+                      type={inputType}
                       value={formData[key] ?? ''}
                       onChange={(e) => updateField(key, e.target.value)}
-                      placeholder={attribute.description}
+                      placeholder={attribute.examples?.[0] ?? attribute.default ?? ''}
                       className="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-gray-900 dark:text-white"
                     />
                   )}
@@ -279,7 +333,7 @@ export function SchemaEditor({
                   {Object.entries(activeSchema!.properties!)
                     .filter(
                       ([key]) =>
-                        !addressFieldKeys.has(key) &&
+                        !isHiddenField(key) &&
                         !activeSchema!.required?.includes(key) &&
                         !activeSchema!.recommended?.includes(key) &&
                         !visibleOptionalFields.has(key),

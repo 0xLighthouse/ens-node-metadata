@@ -59,7 +59,6 @@ export const useAppStore = create<AppState>()(
       error: null,
 
       initialize: async (user: User) => {
-        console.log('AppStore.initialize')
         set({ status: 'initializing', user })
 
         try {
@@ -86,14 +85,9 @@ export const useAppStore = create<AppState>()(
       },
 
       fetchDomains: async (userAddress: string) => {
-
-        console.log('AppStore.fetchDomains.userAddress', userAddress)
-
         try {
           const apiStore = useApiStore.getState()
           const resp = await apiStore.ensRequest<{ domains: any[] }>(QUERY_DOMAINS_OWNED, { address: userAddress })
-
-          console.log('AppStore.fetchDomains.resp', resp)
 
           // Transform shitty subgraph response to our types
           const domains: ENSRootDomain[] = []
@@ -130,8 +124,6 @@ export const useAppStore = create<AppState>()(
       },
 
       logout: () => {
-        console.log('AppStore.logout')
-
         // Clear cookie
         Cookies.remove(AUTH_TOKEN_COOKIE)
 
