@@ -16,21 +16,6 @@ pnpm dlx @ens-node-metadata/agent --help
 
 See [SKILL.md](./SKILL.md) for the full step-by-step guide.
 
-## Roadmap
-
-- [x] `ens-agent registration-file template`
-- [x] `ens-agent registration-file validate <file>`
-- [x] `ens-agent registration-file publish <file>`
-- [x] `ens-agent registry identity query --chain-name <chain> <agent-id>`
-- [x] `ens-agent registry identity register --chain-name <chain> <agent-uri> --private-key <0x...> [--broadcast]`
-- [x] `ens-agent registry identity set-uri --chain-name <chain> <agent-id> <new-uri> --private-key <0x...> [--broadcast]`
-- [x] `ens-agent registry identity set-wallet --chain-name <chain> <agent-id> <wallet> --private-key <0x...> [--deadline <ts>] [--signature <0x...>] [--broadcast]`
-- [x] `ens-agent registry identity unset-wallet --chain-name <chain> <agent-id> --private-key <0x...> [--broadcast]`
-- [x] `ens-agent metadata template`
-- [x] `ens-agent metadata validate <payload>`
-- [x] `ens-agent metadata set <AGENT_ENS_NAME> <payload> --private-key <0x...> [--broadcast]`
-- [ ] `ens-agent skill [--install]`
-
 ## Upcoming
 
 ### Reputation Registry
