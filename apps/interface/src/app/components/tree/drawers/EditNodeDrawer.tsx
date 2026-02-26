@@ -169,7 +169,8 @@ export function EditNodeDrawer() {
         <Drawer.Overlay className="fixed inset-0 z-40 pointer-events-none" />
         <Drawer.Content
           className="right-4 top-20 bottom-4 fixed z-50 outline-none w-[500px] flex"
-          style={{ '--initial-transform': 'calc(100% + 16px)' } as React.CSSProperties}
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          style={{ '--initial-transform': 'calc(100% + 16px)' } as any}
         >
           <div className="h-full w-full grow p-6 flex flex-col rounded-r-[16px] border-l border-white bg-[rgb(247,247,248)] dark:bg-neutral-900">
             {/* Header */}

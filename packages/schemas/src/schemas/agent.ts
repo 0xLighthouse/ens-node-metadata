@@ -1,4 +1,4 @@
-import { Schema } from "../types";
+import type { Schema } from "../types";
 import { GITHUB_URL } from "../config/constants";
 
 export const AGENT_SCHEMA: Schema = {

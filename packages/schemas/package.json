@@ -16,6 +16,9 @@
     "./registry": "./published/_registry.json",
     "./latest": "./published/_latest.json"
   },
+  "dependencies": {
+    "@ens-node-metadata/shared": "workspace:*"
+  },
   "devDependencies": {
     "@types/node": "^25.2.3",
     "tsx": "^4.7.0",
