@@ -664,7 +664,7 @@ export default function TablePage() {
                 onClick={handleClearClick}
                 className="text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
               >
-                Clear
+                Reset
               </button>
               <button
                 type="button"
@@ -691,7 +691,7 @@ export default function TablePage() {
                 disabled={mutationsStatus === 'executing'}
                 className="px-4 py-1.5 bg-indigo-600 text-white text-sm font-medium rounded-full hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {mutationsStatus === 'executing' ? 'Submitting...' : 'Apply Changes'}
+                {mutationsStatus === 'executing' ? 'Publishing...' : 'Publish Changes'}
               </button>
             </div>
           </>
