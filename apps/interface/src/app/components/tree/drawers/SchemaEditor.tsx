@@ -1,14 +1,14 @@
 'use client'
 
 import { useRef } from 'react'
-import { Search, ChevronDown, RefreshCw, Star, Info } from 'lucide-react'
+import { Search, ChevronDown, RefreshCw, Star, Info, Lock, Unlock } from 'lucide-react'
 import { useNodeEditorStore } from '@/stores/node-editor'
 import { useSchemaStore } from '@/stores/schemas'
 import { useOutsideClick } from '@/hooks/useOutsideClick'
 import type { Schema } from '@/stores/schemas'
 
 /** Fields managed automatically (set when a schema is selected) — hidden from the manual editor */
-const MANAGED_FIELDS = new Set(['schema', 'class'])
+const MANAGED_FIELDS = new Set(['schema'])
 
 interface SchemaEditorProps {
   activeSchema: Schema | null
@@ -30,12 +30,14 @@ export function SchemaEditor({
     schemaSearchQuery,
     isLoadingSchemas,
     isOptionalFieldDropdownOpen,
+    isClassFieldLocked,
     updateField,
     addOptionalField,
     removeOptionalField,
     toggleSchemaDropdown,
     setSchemaSearchQuery,
     toggleOptionalFieldDropdown,
+    toggleClassFieldLock,
   } = useNodeEditorStore()
 
   const { schemas } = useSchemaStore()
@@ -58,8 +60,7 @@ export function SchemaEditor({
     .filter((s) => s.isLatest && s.class != null)
     .filter((s) => s.class.toLowerCase().includes(schemaSearchQuery.toLowerCase()))
 
-  const isHiddenField = (key: string) =>
-    addressFieldKeys.has(key) || MANAGED_FIELDS.has(key)
+  const isHiddenField = (key: string) => addressFieldKeys.has(key) || key === 'schema' || key === 'class'
 
   const hasNonAddressFields =
     activeSchema?.properties &&
@@ -101,10 +102,7 @@ export function SchemaEditor({
             <div className="p-2 border-b border-gray-200 dark:border-gray-700">
               <div className="flex items-center gap-2">
                 <div className="relative flex-1">
-                  <Search
-                    size={14}
-                    className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"
-                  />
+                  <Search size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500" />
                   <input
                     type="text"
                     placeholder="Search schemas…"
@@ -163,6 +161,41 @@ export function SchemaEditor({
       {/* Fields */}
       {hasNonAddressFields ? (
         <div className="space-y-4">
+          {/* Class Field - Always shown at top when schema is selected */}
+          {activeSchema && activeSchema.properties?.class && (
+            <div className="mb-4 pb-4 border-b border-gray-200 dark:border-gray-700">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                class
+                <span className="text-red-500 ml-1">*</span>
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={formData.class ?? activeSchema.class ?? ''}
+                  onChange={(e) => !isClassFieldLocked && updateField('class', e.target.value)}
+                  disabled={isClassFieldLocked}
+                  className={`w-full px-3 py-2 pr-10 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
+                    isClassFieldLocked
+                      ? 'bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-700 cursor-not-allowed'
+                      : 'bg-white dark:bg-gray-900 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600'
+                  }`}
+                />
+                <button
+                  type="button"
+                  onClick={toggleClassFieldLock}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  aria-label={isClassFieldLocked ? 'Unlock class field' : 'Lock class field'}
+                >
+                  {isClassFieldLocked ? (
+                    <Lock size={14} className="text-gray-500 dark:text-gray-400" />
+                  ) : (
+                    <Unlock size={14} className="text-gray-500 dark:text-gray-400" />
+                  )}
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Loop 1: required + recommended fields */}
           {Object.entries(activeSchema!.properties!)
             .filter(
@@ -316,10 +349,7 @@ export function SchemaEditor({
 
           {/* Add optional field */}
           {hasOptionalToAdd && (
-            <div
-              className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 relative"
-              ref={optionalFieldDropdownRef}
-            >
+            <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 relative" ref={optionalFieldDropdownRef}>
               <button
                 type="button"
                 onClick={toggleOptionalFieldDropdown}
@@ -329,7 +359,7 @@ export function SchemaEditor({
               </button>
 
               {isOptionalFieldDropdownOpen && (
-                <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg z-50 max-h-48 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg z-50 max-h-64 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                   {Object.entries(activeSchema!.properties!)
                     .filter(
                       ([key]) =>

@@ -20,6 +20,9 @@ interface NodeEditorState {
   // Optional field dropdown state
   isOptionalFieldDropdownOpen: boolean
 
+  // Class field lock state
+  isClassFieldLocked: boolean
+
   // Actions
   initializeEditor: (
     nodeData: any,
@@ -39,6 +42,7 @@ interface NodeEditorState {
   setNewAttributeKey: (key: string) => void
   addCustomAttribute: (key: string) => void
   removeCustomAttribute: (key: string) => void
+  toggleClassFieldLock: () => void
   getFormData: () => NodeEditFormData
   hasChanges: (originalNode: any, activeSchema: any) => boolean
   getChangedFields: (originalNode: any, activeSchema: any) => { changes: Record<string, any>; deleted: string[] }
@@ -58,6 +62,7 @@ const initialState = {
   schemaSearchQuery: '',
   isLoadingSchemas: false,
   isOptionalFieldDropdownOpen: false,
+  isClassFieldLocked: true,
 }
 
 export const useNodeEditorStore = create<NodeEditorState>((set, get) => ({
@@ -111,6 +116,7 @@ export const useNodeEditorStore = create<NodeEditorState>((set, get) => ({
       isSchemaDropdownOpen: false,
       schemaSearchQuery: '',
       isOptionalFieldDropdownOpen: false,
+      isClassFieldLocked: true,
     })
   },
 
@@ -204,6 +210,10 @@ export const useNodeEditorStore = create<NodeEditorState>((set, get) => ({
     set((state) => ({
       formData: { ...state.formData, [key]: null },
     })),
+
+  toggleClassFieldLock: () => {
+    set((state) => ({ isClassFieldLocked: !state.isClassFieldLocked }))
+  },
 
   getFormData: () => get().formData,
 

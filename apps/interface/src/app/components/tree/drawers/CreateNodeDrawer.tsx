@@ -8,7 +8,7 @@ import { useTreeEditStore } from '@/stores/tree-edits'
 import { useTreeData } from '@/hooks/useTreeData'
 import { useOutsideClick } from '@/hooks/useOutsideClick'
 import { type TreeNode } from '@/lib/tree/types'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { useSchemaStore } from '@/stores/schemas'
 import { useNodeEditorStore } from '@/stores/node-editor'
 
@@ -38,6 +38,7 @@ export function CreateNodeDrawer({ isOpen, onClose, suggestionId, suggestionTitl
   const [selectedParent, setSelectedParent] = useState<string>('')
   const [parentSearch, setParentSearch] = useState('')
   const [isParentDropdownOpen, setIsParentDropdownOpen] = useState(false)
+  const [showDiscardDialog, setShowDiscardDialog] = useState(false)
 
   const parentDropdownRef = useRef<HTMLDivElement>(null)
 
@@ -93,6 +94,13 @@ export function CreateNodeDrawer({ isOpen, onClose, suggestionId, suggestionTitl
     : []
   const addressFieldKeys = new Set(addressFields.map(([key]) => key))
 
+  // Check if there are any form changes
+  const hasChanges = useMemo(() => {
+    return Object.values(formData).some((value) => {
+      return value !== '' && value !== null && value !== undefined
+    })
+  }, [formData])
+
   const handleSelectSchema = (schemaId: string) => {
     const schema = schemas.find((s) => s.id === schemaId)
     if (!schema) return
@@ -117,15 +125,41 @@ export function CreateNodeDrawer({ isOpen, onClose, suggestionId, suggestionTitl
     handleClose()
   }
 
+  // Called by onOpenChange (click outside, Escape) - ignores close if changes exist
   const handleClose = () => {
+    if (hasChanges) {
+      // Ignore the close attempt when there are unsaved changes
+      return
+    }
+    // No changes, close immediately
     onClose()
     resetEditor()
   }
 
+  // Called by X button and Cancel button - shows confirmation if changes exist
+  const handleCloseWithConfirmation = () => {
+    if (hasChanges) {
+      setShowDiscardDialog(true)
+      return
+    }
+    onClose()
+    resetEditor()
+  }
+
+  const handleConfirmDiscard = () => {
+    setShowDiscardDialog(false)
+    onClose()
+    resetEditor()
+  }
+
+  const handleCancelDiscard = () => {
+    setShowDiscardDialog(false)
+  }
+
   return (
-    <Drawer.Root open={isOpen} onOpenChange={(open) => !open && handleClose()} direction="right">
+    <Drawer.Root open={isOpen} onOpenChange={(open) => !open && handleClose()} direction="right" handleOnly={true}>
       <Drawer.Portal>
-        <Drawer.Overlay className="fixed inset-0 z-40 pointer-events-none" />
+        <Drawer.Overlay className="fixed inset-0 z-40 bg-black/40" />
         <Drawer.Content
           className="right-4 top-20 bottom-4 fixed z-50 outline-none w-[500px] flex"
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -135,7 +169,7 @@ export function CreateNodeDrawer({ isOpen, onClose, suggestionId, suggestionTitl
             {/* Header */}
             <div className="mb-6 relative">
               <button
-                onClick={handleClose}
+                onClick={handleCloseWithConfirmation}
                 className="absolute -top-2 -right-2 p-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
                 aria-label="Close drawer"
               >
@@ -248,7 +282,7 @@ export function CreateNodeDrawer({ isOpen, onClose, suggestionId, suggestionTitl
             {/* Actions */}
             <div className="flex gap-2 mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
               <button
-                onClick={handleClose}
+                onClick={handleCloseWithConfirmation}
                 className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
               >
                 Cancel
@@ -263,6 +297,36 @@ export function CreateNodeDrawer({ isOpen, onClose, suggestionId, suggestionTitl
           </div>
         </Drawer.Content>
       </Drawer.Portal>
+
+      {/* Discard Changes Confirmation Dialog */}
+      {showDiscardDialog && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center">
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={handleCancelDiscard}
+            aria-hidden="true"
+          />
+          <div className="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 max-w-md w-full mx-4 border border-gray-200 dark:border-gray-700">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">
+              Are you sure you want to discard your changes?
+            </h3>
+            <div className="flex gap-3">
+              <button
+                onClick={handleCancelDiscard}
+                className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+              >
+                No, continue editing
+              </button>
+              <button
+                onClick={handleConfirmDiscard}
+                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors"
+              >
+                Yes, discard
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </Drawer.Root>
   )
 }

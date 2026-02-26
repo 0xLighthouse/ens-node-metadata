@@ -6,13 +6,14 @@ import { AddressField } from './AddressField'
 import { SchemaEditor } from './SchemaEditor'
 import { useTreeEditStore } from '@/stores/tree-edits'
 import { useTreeData } from '@/hooks/useTreeData'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useSchemaStore } from '@/stores/schemas'
 import { useNodeEditorStore } from '@/stores/node-editor'
 
 export function EditNodeDrawer() {
   const { sourceTree, previewTree } = useTreeData()
   const { schemas, fetchSchemas } = useSchemaStore()
+  const [showDiscardDialog, setShowDiscardDialog] = useState(false)
   const {
     isEditDrawerOpen,
     selectedNode,
@@ -149,9 +150,35 @@ export function EditNodeDrawer() {
     return null
   }
 
+  // Called by onOpenChange (click outside, Escape) - ignores close if changes exist
   const handleDrawerClose = () => {
+    if (hasChanges) {
+      // Ignore the close attempt when there are unsaved changes
+      return
+    }
+    // No changes, close immediately
     closeEditDrawer()
     resetEditor()
+  }
+
+  // Called by X button and Cancel button - shows confirmation if changes exist
+  const handleCloseWithConfirmation = () => {
+    if (hasChanges) {
+      setShowDiscardDialog(true)
+      return
+    }
+    closeEditDrawer()
+    resetEditor()
+  }
+
+  const handleConfirmDiscard = () => {
+    setShowDiscardDialog(false)
+    closeEditDrawer()
+    resetEditor()
+  }
+
+  const handleCancelDiscard = () => {
+    setShowDiscardDialog(false)
   }
 
   return (
@@ -159,9 +186,10 @@ export function EditNodeDrawer() {
       open={isEditDrawerOpen}
       onOpenChange={(open) => !open && handleDrawerClose()}
       direction="right"
+      handleOnly={true}
     >
       <Drawer.Portal>
-        <Drawer.Overlay className="fixed inset-0 z-40 pointer-events-none" />
+        <Drawer.Overlay className="fixed inset-0 z-40 bg-black/40" />
         <Drawer.Content
           className="right-4 top-20 bottom-4 fixed z-50 outline-none w-[500px] flex"
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -171,7 +199,7 @@ export function EditNodeDrawer() {
             {/* Header */}
             <div className="mb-4 relative">
               <button
-                onClick={handleDrawerClose}
+                onClick={handleCloseWithConfirmation}
                 className="absolute -top-2 -right-2 p-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
                 aria-label="Close drawer"
               >
@@ -183,31 +211,6 @@ export function EditNodeDrawer() {
               </Drawer.Title>
 
               <Drawer.Description className="sr-only">{nodeWithEdits?.name}</Drawer.Description>
-
-              {/* Schema label row — display only; schema switching handled by SchemaEditor below */}
-              <div className="flex items-center justify-between pt-3 border-t border-gray-200 dark:border-gray-700">
-                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Schema</span>
-                {activeSchema ? (
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-xs font-medium text-indigo-600 dark:text-indigo-400">
-                      {activeSchema.class}
-                    </span>
-                    <a
-                      href={activeSchema.id.replace('ipfs://', 'https://ipfs.io/ipfs/')}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-indigo-400 dark:text-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-300 transition-colors"
-                    >
-                      <ExternalLink className="size-3" />
-                    </a>
-                    <span className="text-xs text-gray-400 dark:text-gray-500">
-                      v{activeSchema.version}
-                    </span>
-                  </div>
-                ) : (
-                  <span className="text-xs text-gray-400 dark:text-gray-500">None</span>
-                )}
-              </div>
             </div>
 
             {/* Form */}
@@ -400,7 +403,7 @@ export function EditNodeDrawer() {
             <div className="flex flex-col gap-3 mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
               <div className="flex gap-2">
                 <button
-                  onClick={handleDrawerClose}
+                  onClick={handleCloseWithConfirmation}
                   className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                 >
                   Cancel
@@ -426,6 +429,36 @@ export function EditNodeDrawer() {
           </div>
         </Drawer.Content>
       </Drawer.Portal>
+
+      {/* Discard Changes Confirmation Dialog */}
+      {showDiscardDialog && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center">
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={handleCancelDiscard}
+            aria-hidden="true"
+          />
+          <div className="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 max-w-md w-full mx-4 border border-gray-200 dark:border-gray-700">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">
+              Are you sure you want to discard your changes?
+            </h3>
+            <div className="flex gap-3">
+              <button
+                onClick={handleCancelDiscard}
+                className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+              >
+                No, continue editing
+              </button>
+              <button
+                onClick={handleConfirmDiscard}
+                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors"
+              >
+                Yes, discard
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </Drawer.Root>
   )
 }
