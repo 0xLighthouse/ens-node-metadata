@@ -1,11 +1,14 @@
 'use client'
 
-import { useRef } from 'react'
-import { Search, ChevronDown, RefreshCw, Star } from 'lucide-react'
+import { useOutsideClick } from '@/hooks/useOutsideClick'
 import { useNodeEditorStore } from '@/stores/node-editor'
 import { useSchemaStore } from '@/stores/schemas'
-import { useOutsideClick } from '@/hooks/useOutsideClick'
 import type { Schema } from '@/stores/schemas'
+import { ChevronDown, Lock, RefreshCw, Search, Star, Unlock } from 'lucide-react'
+import { useRef } from 'react'
+
+/** Fields rendered specially (not in the normal required/optional loops) */
+const MANAGED_FIELD_KEYS = new Set(['class', 'schema'])
 
 interface SchemaEditorProps {
   activeSchema: Schema | null
@@ -27,12 +30,14 @@ export function SchemaEditor({
     schemaSearchQuery,
     isLoadingSchemas,
     isOptionalFieldDropdownOpen,
+    classFieldLocked,
     updateField,
     addOptionalField,
     removeOptionalField,
     toggleSchemaDropdown,
     setSchemaSearchQuery,
     toggleOptionalFieldDropdown,
+    toggleClassFieldLock,
   } = useNodeEditorStore()
 
   const { schemas } = useSchemaStore()
@@ -55,15 +60,18 @@ export function SchemaEditor({
     .filter((s) => s.isLatest && s.class != null)
     .filter((s) => s.class.toLowerCase().includes(schemaSearchQuery.toLowerCase()))
 
+  const isExcludedField = (key: string) =>
+    addressFieldKeys.has(key) || MANAGED_FIELD_KEYS.has(key)
+
   const hasNonAddressFields =
     activeSchema?.properties &&
-    Object.keys(activeSchema.properties).some((k) => !addressFieldKeys.has(k))
+    Object.keys(activeSchema.properties).some((k) => !isExcludedField(k))
 
   const hasOptionalToAdd =
     activeSchema?.properties &&
     Object.entries(activeSchema.properties).some(
       ([key]) =>
-        !addressFieldKeys.has(key) &&
+        !isExcludedField(key) &&
         !activeSchema.required?.includes(key) &&
         !activeSchema.recommended?.includes(key) &&
         !visibleOptionalFields.has(key),
@@ -154,6 +162,44 @@ export function SchemaEditor({
         )}
       </div>
 
+      {/* class field — always at top when schema is selected, locked by default */}
+      {activeSchema && (
+        <div className="mb-4 pb-4 border-b border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-between mb-1.5">
+            <label
+              htmlFor="schema-class-field"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+            >
+              class
+              <span className="ml-1 text-xs text-gray-400 dark:text-gray-500 font-normal">
+                (managed)
+              </span>
+            </label>
+            <button
+              type="button"
+              onClick={toggleClassFieldLock}
+              className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
+              title={classFieldLocked ? 'Unlock to edit' : 'Lock field'}
+              aria-label={classFieldLocked ? 'Unlock class field' : 'Lock class field'}
+            >
+              {classFieldLocked ? <Lock size={13} /> : <Unlock size={13} />}
+            </button>
+          </div>
+          <input
+            id="schema-class-field"
+            type="text"
+            value={formData.class ?? activeSchema.class ?? ''}
+            onChange={(e) => updateField('class', e.target.value)}
+            disabled={classFieldLocked}
+            className={`w-full px-3 py-2.5 border rounded-lg text-sm bg-white dark:bg-gray-900 dark:text-white transition-colors ${
+              classFieldLocked
+                ? 'border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed bg-gray-50 dark:bg-gray-800/50'
+                : 'border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
+            }`}
+          />
+        </div>
+      )}
+
       {/* Fields */}
       {hasNonAddressFields ? (
         <div className="space-y-4">
@@ -161,7 +207,7 @@ export function SchemaEditor({
           {Object.entries(activeSchema!.properties!)
             .filter(
               ([key]) =>
-                !addressFieldKeys.has(key) &&
+                !isExcludedField(key) &&
                 (activeSchema!.required?.includes(key) ||
                   activeSchema!.recommended?.includes(key)),
             )
@@ -217,7 +263,7 @@ export function SchemaEditor({
           {Object.entries(activeSchema!.properties!)
             .filter(
               ([key]) =>
-                !addressFieldKeys.has(key) &&
+                !isExcludedField(key) &&
                 !activeSchema!.required?.includes(key) &&
                 !activeSchema!.recommended?.includes(key) &&
                 visibleOptionalFields.has(key),
@@ -260,7 +306,7 @@ export function SchemaEditor({
               )
             })}
 
-          {/* Add optional field */}
+          {/* Add optional field — size doubled (max-h-96 ≈ 2× the original max-h-48) */}
           {hasOptionalToAdd && (
             <div
               className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 relative"
@@ -275,11 +321,11 @@ export function SchemaEditor({
               </button>
 
               {isOptionalFieldDropdownOpen && (
-                <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg z-50 max-h-48 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                   {Object.entries(activeSchema!.properties!)
                     .filter(
                       ([key]) =>
-                        !addressFieldKeys.has(key) &&
+                        !isExcludedField(key) &&
                         !activeSchema!.required?.includes(key) &&
                         !activeSchema!.recommended?.includes(key) &&
                         !visibleOptionalFields.has(key),
