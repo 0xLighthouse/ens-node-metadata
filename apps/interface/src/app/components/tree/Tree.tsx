@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent } from 'react'
 import {
   ReactFlow,
   type Edge,
@@ -215,7 +215,7 @@ export function Tree({ data }: Props) {
     clearNodePositions,
     layoutTrigger,
   } = useTreeControlsStore()
-  const { openEditDrawer, hasPendingEdit } = useTreeEditStore()
+  const { openEditDrawer, hasPendingEdit, requestNodeSwitch } = useTreeEditStore()
   const pendingMutationCount = useTreeEditStore((state) => state.pendingMutations.size)
   const [reactFlowInstance, setReactFlowInstance] = useState<
     ReactFlowInstance<DomainTreeNode, Edge> | null
@@ -330,7 +330,7 @@ export function Tree({ data }: Props) {
 
   // Record start positions of the dragged node and all visible descendants
   const onNodeDragStart = useCallback(
-    (_: React.MouseEvent, draggedNode: DomainTreeNode) => {
+    (_: MouseEvent, draggedNode: DomainTreeNode) => {
       const positions = new Map<string, { x: number; y: number }>()
       positions.set(draggedNode.id, { x: draggedNode.position.x, y: draggedNode.position.y })
       const descendants = getAllDescendants(draggedNode.id)
@@ -347,7 +347,7 @@ export function Tree({ data }: Props) {
 
   // Move all descendants by the same delta as the dragged parent
   const onNodeDrag = useCallback(
-    (_: React.MouseEvent, draggedNode: DomainTreeNode) => {
+    (_: MouseEvent, draggedNode: DomainTreeNode) => {
       const startPos = dragStartPositions.current.get(draggedNode.id)
       if (!startPos) return
 
@@ -358,7 +358,7 @@ export function Tree({ data }: Props) {
       const descendants = getAllDescendants(draggedNode.id)
       if (descendants.length === 0) return
 
-      setNodes((nds) =>
+      setNodes((nds: DomainTreeNode[]) =>
         nds.map((n) => {
           if (descendants.includes(n.id)) {
             const origPos = dragStartPositions.current.get(n.id)
@@ -375,7 +375,7 @@ export function Tree({ data }: Props) {
 
   // Persist descendant positions to the store when drag ends
   const onNodeDragStop = useCallback(
-    (_: React.MouseEvent, draggedNode: DomainTreeNode) => {
+    (_: MouseEvent, draggedNode: DomainTreeNode) => {
       const startPos = dragStartPositions.current.get(draggedNode.id)
       if (startPos) {
         const dx = draggedNode.position.x - startPos.x
@@ -511,9 +511,9 @@ export function Tree({ data }: Props) {
       nodesConnectable={false}
       elementsSelectable={true}
       fitView={false}
-      onNodeClick={(_, node) => {
+      onNodeClick={(_: MouseEvent, node: DomainTreeNode) => {
         setSelectedNode(node.id)
-        openEditDrawer(node.id)
+        requestNodeSwitch(node.id)
       }}
       onNodeDragStart={onNodeDragStart}
       onNodeDrag={onNodeDrag}
