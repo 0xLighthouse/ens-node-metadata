@@ -195,7 +195,7 @@ export function EditNodeDrawer() {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           style={{ '--initial-transform': 'calc(100% + 16px)' } as any}
         >
-          <div className="h-full w-full grow p-6 flex flex-col rounded-r-[16px] border-l border-white bg-[rgb(247,247,248)] dark:bg-neutral-900">
+          <div className="h-full w-full grow p-6 flex flex-col rounded-[16px] border-l border-white bg-[rgb(247,247,248)] dark:bg-neutral-900">
             {/* Header */}
             <div className="mb-4 relative">
               <button

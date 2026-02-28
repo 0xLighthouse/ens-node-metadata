@@ -1,10 +1,11 @@
 'use client'
 
 import { useRef } from 'react'
-import { Search, ChevronDown, RefreshCw, Star, Info, Lock, Unlock } from 'lucide-react'
+import { Search, ChevronDown, RefreshCw, Info, Lock, Unlock } from 'lucide-react'
 import { useNodeEditorStore } from '@/stores/node-editor'
 import { useSchemaStore } from '@/stores/schemas'
 import { useOutsideClick } from '@/hooks/useOutsideClick'
+import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/ui/tooltip'
 import type { Schema } from '@/stores/schemas'
 
 /** Fields managed automatically (set when a schema is selected) — hidden from the manual editor */
@@ -206,7 +207,6 @@ export function SchemaEditor({
             )
             .map(([key, attribute]: [string, any]) => {
               const isRequired = activeSchema!.required?.includes(key)
-              const isRecommended = !isRequired && activeSchema!.recommended?.includes(key)
               const isTextArea = attribute.type === 'text' || key === 'description'
               const inputType =
                 attribute.format === 'uri' || attribute.format === 'url'
@@ -220,30 +220,25 @@ export function SchemaEditor({
                   <div className="flex items-start justify-between mb-1">
                     <div>
                       <label
-                        className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                        title={attribute.description}
+                        className="flex items-center gap-1 text-sm font-medium text-gray-700 dark:text-gray-300"
                       >
                         {key}
-                        {isRequired && <span className="text-red-500 ml-1">*</span>}
-                        {isRecommended && (
-                          <span title="recommended">
-                            <Star size={10} className="inline ml-1 text-amber-400" />
-                          </span>
-                        )}
+                        {isRequired && <span className="text-red-500 ml-0.5">*</span>}
                         {attribute.description && (
-                          <span
-                            className="inline-block align-middle ml-1 text-gray-400 dark:text-gray-500 cursor-help"
-                            title={attribute.description}
-                          >
-                            <Info size={11} className="inline" />
-                          </span>
+                          <TooltipProvider delayDuration={200}>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <button type="button" className="inline-flex text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 cursor-help">
+                                  <Info size={14} />
+                                </button>
+                              </TooltipTrigger>
+                              <TooltipContent side="top" className="max-w-64 text-xs">
+                                {attribute.description}
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         )}
                       </label>
-                      {attribute.description && (
-                        <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5 leading-snug">
-                          {attribute.description}
-                        </p>
-                      )}
                     </div>
                     {!isRequired && (
                       <button
@@ -251,7 +246,7 @@ export function SchemaEditor({
                         onClick={() => removeOptionalField(key)}
                         className="text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 shrink-0 ml-2 cursor-pointer"
                       >
-                        Remove
+                        Clear
                       </button>
                     )}
                   </div>
@@ -299,31 +294,31 @@ export function SchemaEditor({
                   <div className="flex items-start justify-between mb-1">
                     <div>
                       <label
-                        className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                        title={attribute.description}
+                        className="flex items-center gap-1 text-sm font-medium text-gray-700 dark:text-gray-300"
                       >
                         {key}
                         {attribute.description && (
-                          <span
-                            className="inline-block align-middle ml-1 text-gray-400 dark:text-gray-500 cursor-help"
-                            title={attribute.description}
-                          >
-                            <Info size={11} className="inline" />
-                          </span>
+                          <TooltipProvider delayDuration={200}>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <button type="button" className="inline-flex text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 cursor-help">
+                                  <Info size={14} />
+                                </button>
+                              </TooltipTrigger>
+                              <TooltipContent side="top" className="max-w-64 text-xs">
+                                {attribute.description}
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         )}
                       </label>
-                      {attribute.description && (
-                        <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5 leading-snug">
-                          {attribute.description}
-                        </p>
-                      )}
                     </div>
                     <button
                       type="button"
                       onClick={() => removeOptionalField(key)}
                       className="text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 shrink-0 ml-2 cursor-pointer"
                     >
-                      Remove
+                      Clear
                     </button>
                   </div>
                   {isTextArea ? (
